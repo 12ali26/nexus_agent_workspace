@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createBlockLayout } from './blockLayout'
 import PrimitiveBlock from './PrimitiveBlock'
 import WorkspaceToolbar from './WorkspaceToolbar'
 import { forceOverTimeData } from './sampleData'
@@ -6,7 +7,8 @@ import { forceOverTimeData } from './sampleData'
 const physicsRenderers = ['3D Object', 'Equation', 'Chart', 'Annotation']
 
 function PhysicsWorkspaceCanvas() {
-  // Future agent render instructions will append to this same block array.
+  // Future agent render instructions will append to this same block array,
+  // including agent-controlled position and size layout data.
   const [primitiveBlocks, setPrimitiveBlocks] = useState([])
 
   const addPrimitiveBlock = (renderer) => {
@@ -16,18 +18,36 @@ function PhysicsWorkspaceCanvas() {
       return
     }
 
-    setPrimitiveBlocks((currentBlocks) => [
-      ...currentBlocks,
-      {
-        id: crypto.randomUUID(),
-        ...primitive,
-      },
-    ])
+    setPrimitiveBlocks((currentBlocks) => {
+      const layout = createBlockLayout(currentBlocks.length)
+
+      return [
+        ...currentBlocks,
+        {
+          id: crypto.randomUUID(),
+          ...layout,
+          ...primitive,
+        },
+      ]
+    })
   }
 
   const removePrimitiveBlock = (blockId) => {
     setPrimitiveBlocks((currentBlocks) =>
       currentBlocks.filter((block) => block.id !== blockId),
+    )
+  }
+
+  const updatePrimitiveBlockLayout = (blockId, layout) => {
+    setPrimitiveBlocks((currentBlocks) =>
+      currentBlocks.map((block) =>
+        block.id === blockId
+          ? {
+              ...block,
+              ...layout,
+            }
+          : block,
+      ),
     )
   }
 
@@ -41,15 +61,14 @@ function PhysicsWorkspaceCanvas() {
         className={`domain-canvas-body${primitiveBlocks.length ? ' has-blocks' : ''}`}
       >
         {primitiveBlocks.length ? (
-          <div className="primitive-stack">
-            {primitiveBlocks.map((block) => (
-              <PrimitiveBlock
-                block={block}
-                key={block.id}
-                onRemove={removePrimitiveBlock}
-              />
-            ))}
-          </div>
+          primitiveBlocks.map((block) => (
+            <PrimitiveBlock
+              block={block}
+              key={block.id}
+              onLayoutChange={updatePrimitiveBlockLayout}
+              onRemove={removePrimitiveBlock}
+            />
+          ))
         ) : (
           <p>Physics Workspace Ready — Load data or connect an agent to begin</p>
         )}
