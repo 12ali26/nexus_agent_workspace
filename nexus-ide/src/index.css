@@ -7,10 +7,14 @@
   --color-panel-card-border: #333333;
   --color-primitive-bg: #252526;
   --color-primitive-border: #3a3a3a;
+  --color-primitive-panel: #2a2a2b;
   --color-workspace: #1e1e1e;
   --color-workspace-toolbar: #202020;
   --color-status-bar: #007acc;
   --color-status-border: #1686d9;
+  --color-status-approved: #4ade80;
+  --color-status-challenged: #f59e0b;
+  --color-status-pending: #9ca3af;
   --color-status-text: #ffffff;
   --color-border: #2b2b2b;
   --color-hover: #252526;

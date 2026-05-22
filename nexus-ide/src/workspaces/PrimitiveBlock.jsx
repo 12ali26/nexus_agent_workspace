@@ -1,15 +1,19 @@
 import { Rnd } from 'react-rnd'
+import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
 import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
+import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
 
 const primitiveComponents = {
+  'assumption-flag': AssumptionFlagPrimitive,
   chart: ChartPrimitive,
   equation: EquationPrimitive,
+  'progress-step': ProgressStepPrimitive,
   table: TablePrimitive,
 }
 
-function PrimitiveBlock({ block, onLayoutChange, onRemove }) {
+function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
   const PrimitiveComponent = primitiveComponents[block.type]
 
   if (!PrimitiveComponent) {
@@ -25,6 +29,8 @@ function PrimitiveBlock({ block, onLayoutChange, onRemove }) {
       minWidth={300}
       position={block.position}
       size={block.size}
+      style={{ zIndex: block.zIndex }}
+      onDragStart={() => onFocus(block.id)}
       onDragStop={(_, dragData) =>
         onLayoutChange(block.id, {
           position: {
@@ -33,6 +39,7 @@ function PrimitiveBlock({ block, onLayoutChange, onRemove }) {
           },
         })
       }
+      onMouseDown={() => onFocus(block.id)}
       onResizeStop={(_, __, ref, ___, position) =>
         onLayoutChange(block.id, {
           position,
