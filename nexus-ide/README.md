@@ -1,16 +1,27 @@
-# React + Vite
+# NEXUS IDE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+NEXUS IDE is a universal AI workspace shell: a domain-agnostic cockpit where humans and AI agents can work visibly together across actuarial science, physics, statistics, engineering, law, and other knowledge domains. The project is currently a React + Vite browser shell that will later be wrapped in Electron for desktop distribution.
 
-Currently, two official plugins are available:
+The product direction, architecture, proof-of-concept domains, and success criteria are captured in [docs/PRD.md](docs/PRD.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Current Status
 
-## React Compiler
+- React + Vite web app shell
+- Dark IDE-style layout
+- Expandable workspace sidebar
+- Local workspace registry seeded with Actuarial / Statistics and Physics / 3D Engineering domains
+- Session-only workspace install and activation state
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Quick Start
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Checks
+
+```bash
+npm run build
+npm run lint
+```
