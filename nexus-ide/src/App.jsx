@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import WorkspaceCanvas from './WorkspaceCanvas'
 import WorkspacePanel from './WorkspacePanel'
 import { WorkspaceRegistryProvider } from './registry/WorkspaceRegistryContext'
 import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
@@ -83,7 +84,7 @@ function NexusShell() {
           {isWorkspacePanelOpen && <WorkspacePanel />}
         </aside>
 
-        <main className="workspace-canvas" aria-label="Workspace canvas" />
+        <WorkspaceCanvas />
       </div>
 
       <footer className="status-bar">

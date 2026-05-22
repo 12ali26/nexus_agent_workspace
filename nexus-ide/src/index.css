@@ -6,6 +6,7 @@
   --color-panel-card-active: #263342;
   --color-panel-card-border: #333333;
   --color-workspace: #1e1e1e;
+  --color-workspace-toolbar: #202020;
   --color-status-bar: #007acc;
   --color-status-border: #1686d9;
   --color-status-text: #ffffff;
@@ -22,11 +23,13 @@
   --color-text: #cccccc;
   --color-text-muted: #9d9d9d;
   --color-text-strong: #f2f2f2;
+  --color-canvas-brand: rgba(255, 255, 255, 0.08);
   --color-canvas-grid: rgba(255, 255, 255, 0.025);
 
   --top-bar-height: 34px;
   --activity-bar-width: 52px;
   --workspace-sidebar-width: 240px;
+  --workspace-toolbar-height: 42px;
   --status-bar-height: 24px;
 
   font-family:
