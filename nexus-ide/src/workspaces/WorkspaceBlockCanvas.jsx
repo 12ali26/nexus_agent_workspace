@@ -1,0 +1,33 @@
+import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
+import PrimitiveBlock from './PrimitiveBlock'
+
+function WorkspaceBlockCanvas({ emptyMessage }) {
+  const {
+    focusPrimitiveBlock,
+    primitiveBlocks,
+    removePrimitiveBlock,
+    updatePrimitiveBlockLayout,
+  } = useRenderBlocks()
+
+  return (
+    <div
+      className={`domain-canvas-body${primitiveBlocks.length ? ' has-blocks' : ''}`}
+    >
+      {primitiveBlocks.length ? (
+        primitiveBlocks.map((block) => (
+          <PrimitiveBlock
+            block={block}
+            key={block.id}
+            onFocus={focusPrimitiveBlock}
+            onLayoutChange={updatePrimitiveBlockLayout}
+            onRemove={removePrimitiveBlock}
+          />
+        ))
+      ) : (
+        <p>{emptyMessage}</p>
+      )}
+    </div>
+  )
+}
+
+export default WorkspaceBlockCanvas

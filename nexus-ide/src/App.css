@@ -35,6 +35,49 @@
   letter-spacing: 0.08em;
 }
 
+.top-bar-action {
+  min-height: 24px;
+  margin-left: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.top-bar-action:hover,
+.top-bar-action:focus-visible {
+  border-color: var(--color-accent);
+  color: var(--color-text-strong);
+}
+
+.top-bar-action:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.file-input {
+  display: none;
+}
+
+.toast {
+  position: fixed;
+  right: 50%;
+  bottom: calc(var(--status-bar-height) + 16px);
+  z-index: 10000;
+  max-width: min(420px, calc(100vw - 32px));
+  transform: translateX(50%);
+  border: 1px solid var(--color-button-border);
+  border-radius: 6px;
+  background: var(--color-toast-bg);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+  color: var(--color-text-strong);
+  font-size: 13px;
+  padding: 10px 14px;
+}
+
 .workbench {
   display: grid;
   grid-template-columns: var(--activity-bar-width) 1fr;
