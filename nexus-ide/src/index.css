@@ -5,6 +5,8 @@
   --color-panel-card: #2a2a2b;
   --color-panel-card-active: #263342;
   --color-panel-card-border: #333333;
+  --color-primitive-bg: #252526;
+  --color-primitive-border: #3a3a3a;
   --color-workspace: #1e1e1e;
   --color-workspace-toolbar: #202020;
   --color-status-bar: #007acc;
@@ -25,6 +27,7 @@
   --color-text-strong: #f2f2f2;
   --color-canvas-brand: rgba(255, 255, 255, 0.08);
   --color-canvas-grid: rgba(255, 255, 255, 0.025);
+  --color-chart-grid: rgba(255, 255, 255, 0.11);
 
   --top-bar-height: 34px;
   --activity-bar-width: 52px;
