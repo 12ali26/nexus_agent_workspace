@@ -317,23 +317,61 @@
 }
 
 .table-primitive {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
   height: 100%;
-  overflow: auto;
+  min-width: 0;
+  overflow: hidden;
   padding: 14px;
 }
 
-.table-primitive table {
+.table-primitive-toolbar {
+  min-width: 0;
+}
+
+.table-search-input {
   width: 100%;
+  min-height: 30px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.table-search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.table-search-input:focus {
+  border-color: var(--color-accent);
+  outline: 1px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.table-scroll-area {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.table-primitive table {
+  min-width: 100%;
   border-collapse: collapse;
   color: var(--color-text);
   font-size: 13px;
+  table-layout: fixed;
 }
 
 .table-primitive th,
 .table-primitive td {
+  overflow: hidden;
   padding: 10px 12px;
   border-bottom: 1px solid var(--color-border);
   text-align: right;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -343,14 +381,119 @@
 }
 
 .table-primitive th {
+  position: relative;
   color: var(--color-text-strong);
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
+.table-header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+}
+
+.table-primitive th:first-child .table-header-button {
+  justify-content: flex-start;
+}
+
+.table-header-button:disabled {
+  cursor: default;
+}
+
+.table-header-button:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.table-header-button span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sort-indicator {
+  color: var(--color-accent-strong);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.column-resizer {
+  position: absolute;
+  top: 7px;
+  right: 0;
+  bottom: 7px;
+  width: 8px;
+  border: 0;
+  border-right: 2px solid transparent;
+  background: transparent;
+  cursor: col-resize;
+  padding: 0;
+  touch-action: none;
+}
+
+.column-resizer:hover,
+.column-resizer:focus-visible,
+.column-resizer.is-resizing {
+  border-right-color: var(--color-accent);
+}
+
+.column-resizer:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 .table-primitive tr:last-child td {
   border-bottom: 0;
+}
+
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.table-pagination button {
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.table-pagination button:hover:not(:disabled),
+.table-pagination button:focus-visible:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-text-strong);
+}
+
+.table-pagination button:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.table-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .equation-primitive {
