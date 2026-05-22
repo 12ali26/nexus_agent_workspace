@@ -283,6 +283,14 @@
   overflow: hidden;
 }
 
+.primitive-loading {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
 .primitive-close {
   display: grid;
   place-items: center;

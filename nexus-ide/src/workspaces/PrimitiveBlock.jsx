@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Rnd } from 'react-rnd'
 import AnnotationPrimitive from '../primitives/AnnotationPrimitive'
 import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
@@ -5,7 +6,10 @@ import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
-import ThreeObjectPrimitive from '../primitives/ThreeObjectPrimitive'
+
+const ThreeObjectPrimitive = lazy(
+  () => import('../primitives/ThreeObjectPrimitive'),
+)
 
 const primitiveComponents = {
   '3d-object': ThreeObjectPrimitive,
@@ -67,7 +71,13 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
           </button>
         </header>
         <div className="primitive-block-content">
-          <PrimitiveComponent {...block.data.props} />
+          <Suspense
+            fallback={
+              <div className="primitive-loading">Loading 3D renderer...</div>
+            }
+          >
+            <PrimitiveComponent {...block.data.props} />
+          </Suspense>
         </div>
       </article>
     </Rnd>

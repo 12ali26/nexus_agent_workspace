@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import './App.css'
 import ActivityBar from './ActivityBar'
+import ClearCanvasButton from './ClearCanvasButton'
 import FileOpenButton from './FileOpenButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
 import { panels } from './panels'
@@ -28,7 +29,10 @@ function NexusShell() {
   }
 
   return (
-    <RenderBlocksProvider key={activeWorkspace?.id ?? 'no-workspace'}>
+    <RenderBlocksProvider
+      key={activeWorkspace?.id ?? 'no-workspace'}
+      workspaceId={activeWorkspace?.id}
+    >
       <div className="nexus-shell">
         <header className="top-bar">
           <div className="brand-mark" aria-hidden="true">
@@ -36,6 +40,7 @@ function NexusShell() {
           </div>
           <div className="brand-text">NEXUS IDE</div>
           <FileOpenButton onToast={showToast} />
+          <ClearCanvasButton onToast={showToast} />
         </header>
 
         <div className={`workbench${activePanel ? ' sidebar-open' : ''}`}>
