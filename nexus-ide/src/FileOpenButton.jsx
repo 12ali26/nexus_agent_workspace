@@ -1,13 +1,14 @@
 import { useRef } from 'react'
 import { parseFileToPrimitive } from './fileLoading/fileToPrimitive'
-import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
+import { getPrimitiveLabel } from './primitives/primitivePayloads'
+import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 
 const acceptedFileTypes = '.csv,.json,application/json,text/csv'
 
 function FileOpenButton({ onToast }) {
   const fileInputRef = useRef(null)
-  const { activeWorkspace } = useWorkspaceRegistry()
+  const { activePrimitives, installedPacks } = usePackRegistry()
   const { addPrimitiveBlock } = useRenderBlocks()
 
   const openFilePicker = () => {
@@ -22,8 +23,8 @@ function FileOpenButton({ onToast }) {
       return
     }
 
-    if (!activeWorkspace) {
-      onToast('Please activate a workspace before loading a file')
+    if (!installedPacks.length) {
+      onToast('Install a pack from the Extensions panel before loading a file')
       return
     }
 
@@ -37,6 +38,15 @@ function FileOpenButton({ onToast }) {
 
     if (result.error === 'parse') {
       onToast('Could not parse file. Expected CSV or JSON')
+      return
+    }
+
+    if (!activePrimitives.includes(result.primitive.type)) {
+      onToast(
+        `Install a pack that supports ${getPrimitiveLabel(
+          result.primitive.type,
+        )} before loading this file`,
+      )
       return
     }
 

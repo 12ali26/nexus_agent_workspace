@@ -5,8 +5,8 @@ import ClearCanvasButton from './ClearCanvasButton'
 import FileOpenButton from './FileOpenButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
 import { panels } from './panels'
-import { WorkspaceRegistryProvider } from './registry/WorkspaceRegistryContext'
-import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
+import { PackRegistryProvider } from './registry/PackRegistryContext'
+import { usePackRegistry } from './registry/usePackRegistry'
 import { RenderBlocksProvider } from './renderBlocks/RenderBlocksProvider'
 import { SettingsProvider } from './settings/SettingsContext'
 import { useSettings } from './settings/useSettings'
@@ -18,7 +18,7 @@ function NexusShell() {
     useState(true)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimerRef = useRef(null)
-  const { activeWorkspace } = useWorkspaceRegistry()
+  const { installedPacks } = usePackRegistry()
   const { theme } = useSettings()
   const ActivePanel = activePanel ? panels[activePanel] : null
 
@@ -35,10 +35,7 @@ function NexusShell() {
   }
 
   return (
-    <RenderBlocksProvider
-      key={activeWorkspace?.id ?? 'no-workspace'}
-      workspaceId={activeWorkspace?.id}
-    >
+    <RenderBlocksProvider>
       <ToastContext.Provider value={showToast}>
         <div className="nexus-shell" data-theme={theme}>
           <header className="top-bar">
@@ -85,7 +82,17 @@ function NexusShell() {
           </div>
 
           <footer className="status-bar">
-            <span>{activeWorkspace?.name ?? 'No Workspace Loaded'}</span>
+            <span className="status-pack-list">
+              {installedPacks.length ? (
+                installedPacks.map((pack) => (
+                  <span className="status-pack-badge" key={pack.id}>
+                    {pack.name}
+                  </span>
+                ))
+              ) : (
+                'No Packs Installed'
+              )}
+            </span>
             <span>No Agent Connected</span>
           </footer>
 
@@ -99,9 +106,9 @@ function NexusShell() {
 function App() {
   return (
     <SettingsProvider>
-      <WorkspaceRegistryProvider>
+      <PackRegistryProvider>
         <NexusShell />
-      </WorkspaceRegistryProvider>
+      </PackRegistryProvider>
     </SettingsProvider>
   )
 }

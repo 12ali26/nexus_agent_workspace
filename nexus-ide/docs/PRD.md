@@ -185,7 +185,7 @@ NEXUS does not require an agent. This is non-negotiable. The shell must be fully
 
 - Electron-ready shell running as React web app in Codespaces
 - Activity bar with all four panels — Workspaces, Extensions, Agent, Settings
-- Pack registry pattern with local JSON — remote registry seam marked
+- Primitive pack registry with local JSON — remote registry seam marked
 - Free canvas with draggable, resizable, z-managed primitive blocks
 - Data Pack primitives — Table (sort, filter, pagination, column resize), Chart, Equation
 - Audit Pack primitives — Assumption Flag with approve/challenge, Progress Step
@@ -193,12 +193,11 @@ NEXUS does not require an agent. This is non-negotiable. The shell must be fully
 - Code Pack primitives — Monaco Editor with language selector, Terminal Output
 - Computation layer stub — `src/computation/runner.js` with Electron seams marked
 - File loading — CSV and JSON parsed and rendered as appropriate primitives
-- Canvas persistence — save and restore per pack composition via localStorage
+- Canvas persistence — save and restore via localStorage
 - Settings — theme toggle, agent model selection, registry source
 
 ### 8.2 Next Steps
 
-- Refactor registry from domain workspaces to primitive packs
 - Electron packaging — wrap React app in Electron shell
 - Computation layer — wire child_process to Monaco Editor Run button
 - Agent connection — Anthropic API via MCP when API key available

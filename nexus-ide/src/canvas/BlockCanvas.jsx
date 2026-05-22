@@ -1,7 +1,7 @@
 import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
 import PrimitiveBlock from './PrimitiveBlock'
 
-function WorkspaceBlockCanvas({ emptyMessage }) {
+function BlockCanvas({ emptyMessage }) {
   const {
     focusPrimitiveBlock,
     primitiveBlocks,
@@ -30,4 +30,4 @@ function WorkspaceBlockCanvas({ emptyMessage }) {
   )
 }
 
-export default WorkspaceBlockCanvas
+export default BlockCanvas

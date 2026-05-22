@@ -1,52 +1,34 @@
-import { useWorkspaceRegistry } from '../registry/useWorkspaceRegistry'
+import { usePackRegistry } from '../registry/usePackRegistry'
 
 function WorkspacePanel() {
-  const {
-    activateWorkspace,
-    activeWorkspace,
-    availableWorkspaces,
-    installWorkspace,
-  } = useWorkspaceRegistry()
+  const { installedPacks, uninstallPack } = usePackRegistry()
 
   return (
-    <section className="workspace-panel" aria-label="Workspaces">
-      <header className="panel-header">WORKSPACES</header>
+    <section className="workspace-panel" aria-label="Packs">
+      <header className="panel-header">PACKS</header>
 
-      <div className="workspace-list">
-        {availableWorkspaces.map((workspace) => {
-          const isActive = activeWorkspace?.id === workspace.id
-
-          return (
-            <article
-              className={`workspace-card${isActive ? ' is-active' : ''}`}
-              key={workspace.id}
-            >
+      {installedPacks.length ? (
+        <div className="workspace-list">
+          {installedPacks.map((pack) => (
+            <article className="workspace-card" key={pack.id}>
               <div className="workspace-card-copy">
-                <h2>{workspace.name}</h2>
-                <p title={workspace.description}>{workspace.description}</p>
+                <h2>{pack.name}</h2>
+                <p title={pack.description}>{pack.description}</p>
               </div>
 
-              {workspace.installed ? (
-                <button
-                  className="workspace-action"
-                  type="button"
-                  onClick={() => activateWorkspace(workspace.id)}
-                >
-                  Activate
-                </button>
-              ) : (
-                <button
-                  className="workspace-action"
-                  type="button"
-                  onClick={() => installWorkspace(workspace.id)}
-                >
-                  Install
-                </button>
-              )}
+              <button
+                className="workspace-action"
+                type="button"
+                onClick={() => uninstallPack(pack.id)}
+              >
+                Uninstall
+              </button>
             </article>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="panel-empty">No packs installed. Visit Extensions to add packs.</p>
+      )}
     </section>
   )
 }

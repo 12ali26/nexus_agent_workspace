@@ -1,12 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
-import { createBlockLayout } from '../workspaces/blockLayout'
+import { createBlockLayout } from '../canvas/blockLayout'
 import { RenderBlocksContext } from './renderBlocksContext'
 
-const canvasStoragePrefix = 'nexus_canvas_'
-
-function getCanvasStorageKey(workspaceId) {
-  return workspaceId ? `${canvasStoragePrefix}${workspaceId}` : null
-}
+const canvasStorageKey = 'nexus_canvas'
 
 function serializePrimitiveBlocks(blocks) {
   return blocks.map(({ type, data, position, size, zIndex }) => ({
@@ -49,15 +45,9 @@ function restorePrimitiveBlock(block) {
   }
 }
 
-function readStoredCanvasState(workspaceId) {
-  const storageKey = getCanvasStorageKey(workspaceId)
-
-  if (!storageKey) {
-    return []
-  }
-
+function readStoredCanvasState() {
   try {
-    const storedValue = localStorage.getItem(storageKey)
+    const storedValue = localStorage.getItem(canvasStorageKey)
 
     if (!storedValue) {
       return []
@@ -75,16 +65,10 @@ function readStoredCanvasState(workspaceId) {
   }
 }
 
-function writeStoredCanvasState(workspaceId, blocks) {
-  const storageKey = getCanvasStorageKey(workspaceId)
-
-  if (!storageKey) {
-    return
-  }
-
+function writeStoredCanvasState(blocks) {
   try {
     localStorage.setItem(
-      storageKey,
+      canvasStorageKey,
       JSON.stringify(serializePrimitiveBlocks(blocks)),
     )
   } catch {
@@ -93,15 +77,9 @@ function writeStoredCanvasState(workspaceId, blocks) {
   }
 }
 
-function removeStoredCanvasState(workspaceId) {
-  const storageKey = getCanvasStorageKey(workspaceId)
-
-  if (!storageKey) {
-    return
-  }
-
+function removeStoredCanvasState() {
   try {
-    localStorage.removeItem(storageKey)
+    localStorage.removeItem(canvasStorageKey)
   } catch {
     // Ignore storage failures so clearing the in-memory canvas still works.
   }
@@ -114,21 +92,19 @@ function getHighestZIndex(blocks) {
   )
 }
 
-export function RenderBlocksProvider({ children, workspaceId }) {
-  const [primitiveBlocks, setPrimitiveBlocks] = useState(() =>
-    readStoredCanvasState(workspaceId),
-  )
+export function RenderBlocksProvider({ children }) {
+  const [primitiveBlocks, setPrimitiveBlocks] = useState(readStoredCanvasState)
   const [, setMaxZ] = useState(() => getHighestZIndex(primitiveBlocks))
 
   const commitPrimitiveBlocks = useCallback(
     (updater) => {
       setPrimitiveBlocks((currentBlocks) => {
         const nextBlocks = updater(currentBlocks)
-        writeStoredCanvasState(workspaceId, nextBlocks)
+        writeStoredCanvasState(nextBlocks)
         return nextBlocks
       })
     },
-    [workspaceId],
+    [],
   )
 
   const addPrimitiveBlock = useCallback(
@@ -211,9 +187,9 @@ export function RenderBlocksProvider({ children, workspaceId }) {
 
   const clearCanvas = useCallback(() => {
     setMaxZ(0)
-    removeStoredCanvasState(workspaceId)
+    removeStoredCanvasState()
     setPrimitiveBlocks([])
-  }, [workspaceId])
+  }, [])
 
   const value = useMemo(
     () => ({

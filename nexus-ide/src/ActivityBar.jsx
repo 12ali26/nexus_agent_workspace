@@ -1,7 +1,7 @@
 const activityItems = [
   {
     id: 'workspaces',
-    label: 'Workspace',
+    label: 'Packs',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5.1l2 2H18.5A1.5 1.5 0 0 1 20 7.5v11A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-13Z" />

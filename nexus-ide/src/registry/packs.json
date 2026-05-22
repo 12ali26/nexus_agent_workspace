@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "source": "local",
+  "packs": [
+    {
+      "id": "data-pack",
+      "name": "Data Pack",
+      "description": "Tables, charts and file loading for any data analysis work",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "primitives": ["table", "chart"],
+      "installed": false
+    },
+    {
+      "id": "math-pack",
+      "name": "Math Pack",
+      "description": "Equation rendering and formula evaluation",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "primitives": ["equation"],
+      "installed": false
+    },
+    {
+      "id": "code-pack",
+      "name": "Code Pack",
+      "description": "Multi-language code editor and terminal output",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "primitives": ["code-editor", "terminal-output"],
+      "installed": false
+    },
+    {
+      "id": "3d-pack",
+      "name": "3D Pack",
+      "description": "3D object rendering and spatial annotation",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "primitives": ["3d-object", "annotation"],
+      "installed": false
+    },
+    {
+      "id": "audit-pack",
+      "name": "Audit Pack",
+      "description": "Assumption flagging and progress tracking for regulated work",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "primitives": ["assumption-flag", "progress-step"],
+      "installed": false
+    }
+  ]
+}

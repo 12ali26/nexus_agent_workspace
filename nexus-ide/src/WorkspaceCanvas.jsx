@@ -1,41 +1,33 @@
-import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
-import { workspaceCanvases } from './workspaces'
-
-function EmptyCanvasState({
-  message = 'Install and activate a workspace to begin',
-}) {
-  return (
-    <div className="canvas-empty-state">
-      <div className="canvas-empty-brand">NEXUS IDE</div>
-      <p>{message}</p>
-    </div>
-  )
-}
+import BlockCanvas from './canvas/BlockCanvas'
+import PrimitiveToolbar from './canvas/PrimitiveToolbar'
+import { createPrimitivePayload } from './primitives/primitivePayloads'
+import { usePackRegistry } from './registry/usePackRegistry'
+import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 
 function WorkspaceCanvas() {
-  const { activeWorkspace } = useWorkspaceRegistry()
+  const { activePrimitives, installedPacks } = usePackRegistry()
+  const { addPrimitiveBlock } = useRenderBlocks()
 
-  if (!activeWorkspace) {
-    return (
-      <main className="workspace-canvas" aria-label="Workspace canvas">
-        <EmptyCanvasState />
-      </main>
-    )
-  }
-
-  const ActiveWorkspaceCanvas = workspaceCanvases[activeWorkspace.id]
-
-  if (!ActiveWorkspaceCanvas) {
-    return (
-      <main className="workspace-canvas" aria-label="Workspace canvas">
-        <EmptyCanvasState message="This workspace does not have a registered canvas yet" />
-      </main>
-    )
+  const addToolbarPrimitiveBlock = (primitiveType) => {
+    const primitive = createPrimitivePayload(primitiveType)
+    addPrimitiveBlock(primitive)
   }
 
   return (
     <main className="workspace-canvas" aria-label="Workspace canvas">
-      <ActiveWorkspaceCanvas workspace={activeWorkspace} />
+      <div className="domain-workspace">
+        <PrimitiveToolbar
+          onPrimitiveClick={addToolbarPrimitiveBlock}
+          primitiveTypes={activePrimitives}
+        />
+        <BlockCanvas
+          emptyMessage={
+            installedPacks.length
+              ? 'Canvas Ready — Add a primitive or load a file to begin'
+              : 'Install a pack from the Extensions panel to begin'
+          }
+        />
+      </div>
     </main>
   )
 }

@@ -1,16 +1,9 @@
 import { useState } from 'react'
-import { useWorkspaceRegistry } from '../registry/useWorkspaceRegistry'
-import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
+import { getPrimitiveLabel } from '../primitives/primitivePayloads'
+import { usePackRegistry } from '../registry/usePackRegistry'
 
-function formatRendererName(renderer) {
-  return renderer
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
-function ExtensionSection({ title, workspaces, onInstall, onUninstall }) {
-  if (!workspaces.length) {
+function ExtensionSection({ onInstall, onUninstall, packs, title }) {
+  if (!packs.length) {
     return null
   }
 
@@ -18,37 +11,37 @@ function ExtensionSection({ title, workspaces, onInstall, onUninstall }) {
     <section className="extension-section" aria-label={title}>
       <h2 className="extension-section-heading">{title}</h2>
       <div className="workspace-list extension-list">
-        {workspaces.map((workspace) => (
-          <article className="workspace-card extension-card" key={workspace.id}>
+        {packs.map((pack) => (
+          <article className="workspace-card extension-card" key={pack.id}>
             <div className="workspace-card-copy">
-              <h3>{workspace.name}</h3>
-              <p title={workspace.description}>{workspace.description}</p>
+              <h3>{pack.name}</h3>
+              <p title={pack.description}>{pack.description}</p>
             </div>
 
             <dl className="extension-meta">
               <div>
                 <dt>Version</dt>
-                <dd>{workspace.version}</dd>
+                <dd>{pack.version}</dd>
               </div>
               <div>
                 <dt>Author</dt>
-                <dd>{workspace.author}</dd>
+                <dd>{pack.author}</dd>
               </div>
             </dl>
 
-            <div className="extension-renderers" aria-label="Included renderers">
-              {workspace.renderers.map((renderer) => (
-                <span className="extension-renderer-chip" key={renderer}>
-                  {formatRendererName(renderer)}
+            <div className="extension-renderers" aria-label="Included primitives">
+              {pack.primitives.map((primitive) => (
+                <span className="extension-renderer-chip" key={primitive}>
+                  {getPrimitiveLabel(primitive)}
                 </span>
               ))}
             </div>
 
-            {workspace.installed ? (
+            {pack.installed ? (
               <button
                 className="workspace-action"
                 type="button"
-                onClick={() => onUninstall(workspace.id)}
+                onClick={() => onUninstall(pack.id)}
               >
                 Uninstall
               </button>
@@ -56,7 +49,7 @@ function ExtensionSection({ title, workspaces, onInstall, onUninstall }) {
               <button
                 className="workspace-action"
                 type="button"
-                onClick={() => onInstall(workspace.id)}
+                onClick={() => onInstall(pack.id)}
               >
                 Install
               </button>
@@ -69,32 +62,14 @@ function ExtensionSection({ title, workspaces, onInstall, onUninstall }) {
 }
 
 function ExtensionsPanel() {
-  const {
-    activeWorkspace,
-    availableWorkspaces,
-    installWorkspace,
-    uninstallWorkspace,
-  } = useWorkspaceRegistry()
-  const { clearCanvas } = useRenderBlocks()
+  const { availablePacks, installPack, uninstallPack } = usePackRegistry()
   const [searchValue, setSearchValue] = useState('')
   const normalizedSearchValue = searchValue.trim().toLowerCase()
-  const filteredWorkspaces = availableWorkspaces.filter((workspace) =>
-    workspace.name.toLowerCase().includes(normalizedSearchValue),
+  const filteredPacks = availablePacks.filter((pack) =>
+    pack.name.toLowerCase().includes(normalizedSearchValue),
   )
-  const installedWorkspaces = filteredWorkspaces.filter(
-    (workspace) => workspace.installed,
-  )
-  const availableExtensionWorkspaces = filteredWorkspaces.filter(
-    (workspace) => !workspace.installed,
-  )
-
-  const handleUninstall = (workspaceId) => {
-    if (activeWorkspace?.id === workspaceId) {
-      clearCanvas()
-    }
-
-    uninstallWorkspace(workspaceId)
-  }
+  const installedPacks = filteredPacks.filter((pack) => pack.installed)
+  const availableExtensionPacks = filteredPacks.filter((pack) => !pack.installed)
 
   // Remote registry fetching will plug in here later for marketplace search.
   return (
@@ -104,7 +79,7 @@ function ExtensionsPanel() {
       <div className="panel-search">
         <input
           type="search"
-          placeholder="Search extensions"
+          placeholder="Search packs"
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
         />
@@ -113,19 +88,17 @@ function ExtensionsPanel() {
       <div className="extensions-scroll">
         <ExtensionSection
           title="Installed"
-          workspaces={installedWorkspaces}
-          onInstall={installWorkspace}
-          onUninstall={handleUninstall}
+          packs={installedPacks}
+          onInstall={installPack}
+          onUninstall={uninstallPack}
         />
         <ExtensionSection
           title="Available"
-          workspaces={availableExtensionWorkspaces}
-          onInstall={installWorkspace}
-          onUninstall={handleUninstall}
+          packs={availableExtensionPacks}
+          onInstall={installPack}
+          onUninstall={uninstallPack}
         />
-        {!filteredWorkspaces.length && (
-          <p className="panel-empty">No extensions found</p>
-        )}
+        {!filteredPacks.length && <p className="panel-empty">No packs found</p>}
       </div>
     </section>
   )
