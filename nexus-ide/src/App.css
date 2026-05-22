@@ -6,6 +6,44 @@
   color: var(--color-text);
 }
 
+.nexus-shell[data-theme='light'] {
+  --color-top-bar: #ffffff;
+  --color-toast-bg: #ffffff;
+  --color-activity-bar: #ffffff;
+  --color-panel: #ffffff;
+  --color-panel-card: #f8f8f8;
+  --color-panel-card-active: #e9f1f8;
+  --color-panel-card-border: #e0e0e0;
+  --color-primitive-bg: #ffffff;
+  --color-primitive-border: #d6d6d6;
+  --color-primitive-panel: #f8f8f8;
+  --color-workspace: #f5f5f5;
+  --color-workspace-toolbar: #ffffff;
+  --color-status-bar: #0f3460;
+  --color-status-border: #0b2749;
+  --color-status-approved: #15803d;
+  --color-status-challenged: #b45309;
+  --color-status-pending: #6b7280;
+  --color-status-text: #ffffff;
+  --color-border: #e0e0e0;
+  --color-hover: #f0f4f8;
+  --color-active: #e9f1f8;
+  --color-focus: #0f3460;
+  --color-accent: #0f3460;
+  --color-accent-strong: #0f3460;
+  --color-button: #ffffff;
+  --color-button-border: #d0d7de;
+  --color-button-hover: #f0f4f8;
+  --color-input-bg: #ffffff;
+  --color-icon: #5f6368;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5f6368;
+  --color-text-strong: #111111;
+  --color-canvas-brand: rgba(15, 52, 96, 0.08);
+  --color-canvas-grid: rgba(15, 52, 96, 0.055);
+  --color-chart-grid: rgba(15, 52, 96, 0.14);
+}
+
 .top-bar {
   display: flex;
   align-items: center;
@@ -37,7 +75,6 @@
 
 .top-bar-action {
   min-height: 24px;
-  margin-left: 8px;
   padding: 0 10px;
   border: 1px solid var(--color-button-border);
   border-radius: 4px;
@@ -45,6 +82,10 @@
   color: var(--color-text);
   cursor: pointer;
   font-size: 12px;
+}
+
+.sidebar-toggle {
+  margin-left: 8px;
 }
 
 .top-bar-action:hover,
@@ -86,6 +127,10 @@
 
 .workbench.sidebar-open {
   grid-template-columns: var(--workspace-sidebar-width) 1fr;
+}
+
+.workbench.sidebar-collapsed {
+  grid-template-columns: 1fr;
 }
 
 .activity-sidebar {
@@ -319,15 +364,17 @@
 .table-primitive {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
   height: 100%;
   min-width: 0;
   overflow: hidden;
-  padding: 14px;
+  padding: 0;
 }
 
 .table-primitive-toolbar {
   min-width: 0;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-primitive-bg);
 }
 
 .table-search-input {
@@ -355,6 +402,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  padding: 10px 14px 0;
 }
 
 .table-primitive table {
@@ -382,6 +430,7 @@
 
 .table-primitive th {
   position: relative;
+  background: var(--color-primitive-bg);
   color: var(--color-text-strong);
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -465,6 +514,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-primitive-bg);
   color: var(--color-text-muted);
   font-size: 12px;
 }
@@ -844,7 +897,8 @@
   min-width: 0;
 }
 
-.workspace-card h2 {
+.workspace-card h2,
+.workspace-card h3 {
   margin: 0 0 4px;
   color: var(--color-text-strong);
   font-size: 13px;
@@ -883,6 +937,79 @@
 .workspace-action:focus-visible {
   outline: 1px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+.extensions-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.extension-section + .extension-section {
+  margin-top: 14px;
+}
+
+.extension-section-heading {
+  margin: 0 0 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.extension-list {
+  overflow: visible;
+  padding: 0;
+}
+
+.extension-card {
+  gap: 12px;
+}
+
+.extension-meta {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.extension-meta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.extension-meta dt,
+.extension-meta dd {
+  margin: 0;
+}
+
+.extension-meta dd {
+  color: var(--color-text);
+}
+
+.extension-renderers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.extension-renderer-chip {
+  border: 1px solid var(--color-button-border);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: var(--color-input-bg);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.panel-empty {
+  margin: 18px 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
 .agent-panel {
@@ -964,21 +1091,28 @@
 
 .settings-list {
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
   border: 1px solid var(--color-panel-card-border);
   border-radius: 6px;
   background: var(--color-panel-card);
   color: var(--color-text-muted);
   font-size: 12px;
+}
+
+.settings-row > span:first-child,
+.settings-row > label:first-child {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .settings-row strong {
@@ -989,6 +1123,7 @@
 .settings-toggle {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   gap: 7px;
   color: var(--color-text-strong);
   font-size: 12px;
@@ -998,6 +1133,50 @@
   width: 30px;
   height: 16px;
   accent-color: var(--color-accent);
+}
+
+.settings-select {
+  width: 100%;
+  min-height: 28px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text-strong);
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+.settings-select:focus {
+  border-color: var(--color-focus);
+  outline: none;
+}
+
+.registry-source-control {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.registry-source-control label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-strong);
+  font-size: 12px;
+}
+
+.registry-source-control input {
+  accent-color: var(--color-accent);
+}
+
+.registry-source-control .is-disabled {
+  color: var(--color-text-muted);
+}
+
+.registry-source-control em {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-style: normal;
 }
 
 .status-bar {

@@ -8,12 +8,17 @@ import { panels } from './panels'
 import { WorkspaceRegistryProvider } from './registry/WorkspaceRegistryContext'
 import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
 import { RenderBlocksProvider } from './renderBlocks/RenderBlocksProvider'
+import { SettingsProvider } from './settings/SettingsContext'
+import { useSettings } from './settings/useSettings'
 
 function NexusShell() {
   const [activePanel, setActivePanel] = useState('workspaces')
+  const [isActivitySidebarVisible, setIsActivitySidebarVisible] =
+    useState(true)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimerRef = useRef(null)
   const { activeWorkspace } = useWorkspaceRegistry()
+  const { theme } = useSettings()
   const ActivePanel = activePanel ? panels[activePanel] : null
 
   const showToast = (message) => {
@@ -33,25 +38,43 @@ function NexusShell() {
       key={activeWorkspace?.id ?? 'no-workspace'}
       workspaceId={activeWorkspace?.id}
     >
-      <div className="nexus-shell">
+      <div className="nexus-shell" data-theme={theme}>
         <header className="top-bar">
           <div className="brand-mark" aria-hidden="true">
             N
           </div>
           <div className="brand-text">NEXUS IDE</div>
+          <button
+            className="top-bar-action sidebar-toggle"
+            type="button"
+            aria-pressed={!isActivitySidebarVisible}
+            onClick={() =>
+              setIsActivitySidebarVisible(
+                (currentVisibility) => !currentVisibility,
+              )
+            }
+          >
+            {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
+          </button>
           <FileOpenButton onToast={showToast} />
           <ClearCanvasButton onToast={showToast} />
         </header>
 
-        <div className={`workbench${activePanel ? ' sidebar-open' : ''}`}>
-          <aside className="activity-sidebar" aria-label="Primary navigation">
-            <ActivityBar
-              activePanel={activePanel}
-              onPanelChange={setActivePanel}
-            />
+        <div
+          className={`workbench${
+            isActivitySidebarVisible && activePanel ? ' sidebar-open' : ''
+          }${isActivitySidebarVisible ? '' : ' sidebar-collapsed'}`}
+        >
+          {isActivitySidebarVisible && (
+            <aside className="activity-sidebar" aria-label="Primary navigation">
+              <ActivityBar
+                activePanel={activePanel}
+                onPanelChange={setActivePanel}
+              />
 
-            {ActivePanel && <ActivePanel />}
-          </aside>
+              {ActivePanel && <ActivePanel />}
+            </aside>
+          )}
 
           <WorkspaceCanvas />
         </div>
@@ -69,9 +92,11 @@ function NexusShell() {
 
 function App() {
   return (
-    <WorkspaceRegistryProvider>
-      <NexusShell />
-    </WorkspaceRegistryProvider>
+    <SettingsProvider>
+      <WorkspaceRegistryProvider>
+        <NexusShell />
+      </WorkspaceRegistryProvider>
+    </SettingsProvider>
   )
 }
 
