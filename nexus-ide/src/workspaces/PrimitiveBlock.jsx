@@ -1,11 +1,15 @@
 import { Rnd } from 'react-rnd'
+import AnnotationPrimitive from '../primitives/AnnotationPrimitive'
 import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
 import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
+import ThreeObjectPrimitive from '../primitives/ThreeObjectPrimitive'
 
 const primitiveComponents = {
+  '3d-object': ThreeObjectPrimitive,
+  annotation: AnnotationPrimitive,
   'assumption-flag': AssumptionFlagPrimitive,
   chart: ChartPrimitive,
   equation: EquationPrimitive,

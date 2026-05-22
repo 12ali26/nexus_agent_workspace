@@ -16,6 +16,9 @@
   --color-status-challenged: #f59e0b;
   --color-status-pending: #9ca3af;
   --color-status-text: #ffffff;
+  --color-annotation-force: #ef4444;
+  --color-annotation-constraint: #3b82f6;
+  --color-annotation-result: #22c55e;
   --color-border: #2b2b2b;
   --color-hover: #252526;
   --color-active: #252526;

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createBlockLayout } from './blockLayout'
 import PrimitiveBlock from './PrimitiveBlock'
 import WorkspaceToolbar from './WorkspaceToolbar'
-import { forceOverTimeData } from './sampleData'
+import { forceOverTimeData, physicsAnnotations } from './sampleData'
 
 const physicsRenderers = ['3D Object', 'Equation', 'Chart', 'Annotation']
 
@@ -106,6 +106,16 @@ function PhysicsWorkspaceCanvas() {
 }
 
 function createPhysicsPrimitive(renderer) {
+  if (renderer === '3D Object') {
+    return {
+      type: '3d-object',
+      data: {
+        title: 'Structural Beam Model',
+        props: {},
+      },
+    }
+  }
+
   if (renderer === 'Equation') {
     return {
       type: 'equation',
@@ -113,7 +123,7 @@ function createPhysicsPrimitive(renderer) {
         title: 'Force Equation',
         props: {
           formula: 'F = ma',
-          resolvedValue: 'F = 120 N',
+          resolvedValue: 'F = 120 N (m = 60kg, a = 2ms⁻²)',
         },
       },
     }
@@ -130,6 +140,18 @@ function createPhysicsPrimitive(renderer) {
           title: 'Force Over Time',
           xKey: 'time',
           yLabel: 'Force',
+        },
+      },
+    }
+  }
+
+  if (renderer === 'Annotation') {
+    return {
+      type: 'annotation',
+      data: {
+        title: 'Engineering Annotations',
+        props: {
+          annotations: physicsAnnotations,
         },
       },
     }

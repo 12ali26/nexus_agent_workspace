@@ -33,6 +33,27 @@ export const forceOverTimeData = [
   { time: 4, force: 120 },
 ]
 
+export const physicsAnnotations = [
+  {
+    id: 1,
+    label: 'Applied Force',
+    value: '120 N downward at midspan',
+    type: 'force',
+  },
+  {
+    id: 2,
+    label: 'Support Constraint',
+    value: 'Pin support at both ends',
+    type: 'constraint',
+  },
+  {
+    id: 3,
+    label: 'Max Deflection',
+    value: '2.4 mm at midspan',
+    type: 'result',
+  },
+]
+
 export const actuarialAssumptions = [
   {
     id: 1,
