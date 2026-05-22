@@ -1,188 +1,215 @@
 # NEXUS IDE
 
-The Universal AI Workspace
+The Universal AI Workspace Shell
 
-Product Requirements Document &bull; v0.1 &bull; 2026
+Product Requirements Document &bull; v0.2 &bull; 2026
+
+Revised: Primitive Pack Architecture
 
 Confidential — Concept Stage
 
-## 1. Vision & Problem Statement
+## 1. What Changed in v0.2
 
-### 1.1 The Problem
+Version 0.1 introduced the concept of domain workspaces — pre-configured environments for specific fields like actuarial science or physics. While this proved the universal shell concept, it imposed an assumption NEXUS should never make: that it knows what domain the user works in.
 
-Every knowledge domain — actuarial science, physics, statistics, engineering, law — deserves the same relationship with AI that software development has with VSCode. But today, professionals in those fields interact with AI through a chatbox. Input goes in, output comes out. The process is invisible. The reasoning is hidden. Trust is low.
+The insight that drove this revision: every domain is just a different combination of the same primitives. An actuary and a data scientist both use tables and charts. A physicist and an engineer both use equations and 3D objects. A developer and a data engineer both use code editors and terminals.
 
-The software development world solved this with IDEs and agentic coding tools. A developer can watch the AI write code, intervene at any step, edit the result, and direct the next action. The human and the AI share a visible workspace.
+VSCode does not tell you what programming language to use. It gives you a blank canvas and gets out of the way. NEXUS should do the same.
 
-No equivalent exists for any other domain.
+v0.2 replaces domain workspaces with a Primitive Pack architecture. The user composes their own environment from primitive packs. NEXUS never assumes the domain.
 
-### 1.2 The Vision
+## 2. Vision & Problem Statement
 
-NEXUS IDE is a universal desktop workspace shell — built on Electron — where AI agents work visibly alongside humans across any knowledge domain. The same way VSCode adapts to Python, Rust, or Go through extensions, NEXUS adapts to actuarial science, physics, statistics, or law through domain workspaces and pluggable agents.
+### 2.1 The Problem
 
-The AI is the engine. NEXUS is the cockpit.
+Every knowledge domain deserves the same relationship with AI that software development has with VSCode. But today professionals interact with AI through a chatbox. Input goes in, output comes out. The process is invisible. The reasoning is hidden. Trust is low.
 
-### 1.3 The Core Insight
+Beyond the AI problem, no general purpose visual workspace exists for non-developers. A physicist, actuary, statistician, or engineer has no environment where they can load data, run calculations, render domain-native visualizations, and work alongside an AI agent — all in one place.
 
-Visualization is not a nice-to-have. It is how humans operate. Even in science fiction, Tony Stark's JARVIS — one of the most advanced AI systems imagined — still worked through holographic visualizations. Humans need to see what is happening to trust it, direct it, and collaborate with it.
+### 2.2 The Vision
 
-NEXUS is built on this principle: every AI action should be rendered as a domain-native visual artifact in real time.
+NEXUS IDE is a universal desktop workspace shell where humans and AI agents work visibly together. The user assembles their environment from primitive packs — visual and computational building blocks. The AI agent sees the same workspace and drives it through the same primitive mechanism.
 
-## 2. Market Positioning
+The shell does not know or care what domain the user works in. It provides the environment. The user provides the intent.
 
-| Product | Domain | Agent Support | Visual Workspace |
-| --- | --- | --- | --- |
-| VSCode + Copilot | Code only | Yes | Code only |
-| Jupyter Notebook | Data / Python | No | Partial |
-| Wolfram Alpha | Math only | No | Math only |
-| ChatGPT / Claude | Any | Partial | None |
-| NEXUS IDE | Any domain | Yes — pluggable | Domain-native |
+### 2.3 The Core Principles
+
+- The shell never assumes the user's domain
+- Visualization is not optional — every action should be visible
+- The workspace is useful without an agent — the agent is an enhancement not a dependency
+- Primitive packs are the unit of extension — not domain workspaces
+- Local first — built on Electron, runs on the user's machine, works offline
 
 ## 3. System Architecture
 
-NEXUS is built on four distinct layers. Each layer is independent. Each has a clear responsibility.
+NEXUS is built on five layers. Each layer has a single clear responsibility.
 
 ### 3.1 Layer 1 — The Shell (Electron)
 
-The shell is the desktop wrapper. It is built using Electron, the same technology that powers VSCode, Slack, Figma, and Notion desktop. Electron takes a web-based UI and packages it as a native desktop application that runs on Windows, macOS, and Linux without any changes.
+The desktop wrapper. Built on Electron — the same technology powering VSCode, Slack, and Figma. Packages the application as a native desktop app running on Windows, macOS, and Linux.
 
-The shell is responsible for:
+In the current development phase the shell runs as a React web app in the browser. The Electron wrapper is applied after the core functionality is complete. The architecture is identical in both environments.
 
-- Launching and managing the application lifecycle
-- Providing file system access for loading domain data
-- Installing and managing domain workspaces and agents
-- Housing the rendering engine and the agent communication layer
+Shell responsibilities:
 
-The shell itself is domain agnostic. It does not know or care whether the active workspace is actuarial science or structural engineering. It simply provides the environment.
+- Application lifecycle management
+- File system access — load any file type from disk
+- Primitive pack installation and management
+- Housing the rendering engine and computation layer
+- Agent communication via MCP protocol
 
 ### 3.2 Layer 2 — The Rendering Engine (React)
 
-Inside the Electron shell lives a React-based UI. This is where everything visible happens. The rendering engine maintains a library of render primitives — visual building blocks that any domain workspace or agent can invoke.
+A React-based UI inside the Electron shell. The rendering engine maintains a library of primitive components. Each primitive is a draggable, resizable, closeable block on the canvas.
 
-#### Core Render Primitives
+Primitives are invoked by three mechanisms — all converging on the same canvas block array:
 
-| Primitive | Description | Example Use |
+- Manual — user clicks a toolbar button
+- File load — user opens a file, NEXUS renders appropriate primitive
+- Agent — AI pushes render instructions as JSON, NEXUS renders them
+
+This convergence is deliberate. The agent does not have special canvas access. It uses the exact same mechanism as a toolbar button click.
+
+### 3.3 Layer 3 — The Computation Layer
+
+The computational backbone of NEXUS. All code execution, formula evaluation, and data processing routes through a single interface: `runCode(language, code, data)`.
+
+In browser development mode this returns mock results. In Electron production it spawns real language runtimes as child processes — Python, R, Node.js, or any installed language on the user's machine.
+
+Computation results can push primitive blocks directly onto the canvas — a print statement becomes a text block, a dataframe becomes a table, a plot becomes a chart.
+
+### 3.4 Layer 4 — The Agent Protocol (MCP)
+
+Model Context Protocol is the communication standard between NEXUS and AI agents. Any agent that speaks MCP can plug into NEXUS without custom integration.
+
+The agent communication flow:
+
+1. User sends a prompt via the Agent panel chat
+2. NEXUS sends context — active packs, canvas state, loaded data — to the agent
+3. Agent responds with a conversational message and structured JSON render instructions
+4. NEXUS parses the instructions and pushes blocks onto the canvas
+5. User observes, intervenes, or redirects
+
+### 3.5 Layer 5 — The Pack Registry
+
+The extension system. Primitive packs are distributed through a central registry. In the current development phase the registry is a local JSON file. In production it connects to a remote registry — the seam is clearly marked in the codebase.
+
+## 4. Primitive Pack Architecture
+
+This is the core architectural change from v0.1. Domain workspaces are replaced by primitive packs — modular collections of related rendering and computation primitives that users install and combine freely.
+
+### 4.1 What a Primitive Pack Contains
+
+- One or more primitive components — visual building blocks
+- Optional computation capabilities — formula engines, language runtimes
+- Optional file type handlers — CSV, JSON, custom formats
+- Registry metadata — id, name, version, author, description
+
+### 4.2 Core Primitive Packs
+
+| Pack | Primitives | Use Cases |
 | --- | --- | --- |
-| Table | Structured data grid with highlight support | Mortality tables, datasets |
-| Equation | Rendered math formula with resolved value | Reserve calculations, physics formulas |
-| Chart | Line, bar, scatter, distribution plots | Survival curves, regression outputs |
-| 3D Object | Interactive three-dimensional model | Structural models, molecular diagrams |
-| Assumption Flag | Highlighted callout for agent assumptions | Actuarial assumptions, model parameters |
-| Progress Step | Sequential step tracker showing AI process | Any multi-step calculation |
-| Annotation | Text callout attached to any artifact | Notes, audit comments |
+| Data Pack | Table, Chart, CSV loader | Any data analysis, statistics, reporting |
+| Math Pack | Equation, Formula engine | Actuarial, physics, engineering calculations |
+| Code Pack | Monaco Editor, Terminal Output | Software development, scripting, automation |
+| 3D Pack | Three.js Object, Annotation | Engineering, physics, architecture, design |
+| Audit Pack | Assumption Flag, Progress Step | Actuarial, compliance, regulated industries |
 
-Render primitives are invoked via a JSON instruction vocabulary. Agents do not draw anything directly. They emit structured JSON messages describing what should be rendered, and the rendering engine draws it.
+### 4.3 How Users Compose Their Environment
 
-### 3.3 Layer 3 — The Agent Protocol (MCP)
+NEXUS opens to a blank canvas with an empty toolbar. The user installs the packs they need from the Extensions panel. Each installed pack adds its primitives to the toolbar. The user then builds their workspace by adding primitives to the canvas.
 
-MCP — Model Context Protocol — is the emerging standard for how AI agents communicate with external environments. Anthropic developed and published MCP, and it is gaining adoption across the AI tooling ecosystem. NEXUS adopts MCP as its native agent protocol.
+Example compositions:
 
-This means any agent that speaks MCP can plug into NEXUS without custom integration work. The agent connects, declares its capabilities, and begins emitting render instructions as it works.
+- Actuary: Data Pack + Math Pack + Audit Pack
+- Physicist: Math Pack + 3D Pack + Data Pack
+- Data Engineer: Code Pack + Data Pack
+- Full Stack Developer: Code Pack only
+- Research Scientist: Data Pack + Math Pack + Code Pack + Audit Pack
 
-The communication flow is:
+None of these are prescribed by NEXUS. The user decides. NEXUS just renders.
 
-1. Shell receives user input or file upload
-2. Shell passes context to the active agent via MCP
-3. Agent processes and emits JSON render instructions
-4. Rendering engine draws each instruction in real time
-5. Human observes, intervenes, or redirects
-6. Agent receives updated context and continues
+### 4.4 Third Party Packs
 
-### 3.4 Layer 4 — The Extension System
+The registry is open. Third parties can publish primitive packs for any domain. Examples:
 
-NEXUS has a three-tier extension system. Extensions are installed from a central registry, similar to the VSCode marketplace.
+- Bio Pack — DNA strand renderer, protein structure viewer, sequence alignment
+- Finance Pack — Candlestick chart, order book renderer, risk matrix
+- Legal Pack — Timeline renderer, clause comparator, citation tracker
+- GIS Pack — Map renderer, coordinate tools, spatial analysis
 
-#### Tier 1 — Renderers
+Third parties build primitives. NEXUS renders them. The shell never needs to know what domain a pack serves.
 
-New visual primitives that expand what the shell can display. A third party could build a DNA strand renderer, a circuit diagram renderer, or a legal timeline renderer. Once installed, any agent or workspace can invoke that renderer.
+## 5. Canvas Model
 
-#### Tier 2 — Domain Workspaces
+The canvas is a free-form infinite workspace. Primitive blocks sit on it like windows on a desktop.
 
-A curated environment for a specific field. A domain workspace pre-loads the relevant renderers, sets the appropriate layout, and configures the workspace defaults. An actuary installs the actuarial workspace and the environment immediately feels native to their discipline.
+| Property | Behavior |
+| --- | --- |
+| Positioning | Freely draggable anywhere on canvas |
+| Sizing | Resizable from any edge or corner, minimum 300x200px |
+| Z-order | Click any block to bring to front — full window management |
+| Persistence | Canvas state saves to localStorage per pack composition, restored on reload |
+| Multi-block | Unlimited blocks on canvas simultaneously, any mix of primitive types |
+| Data flow | Loaded data is available to all blocks and to the computation layer |
 
-#### Tier 3 — Agents
+## 6. Human and Agent Modes
 
-The AI layer. Agents are installed independently of workspaces. This means a general-purpose Claude agent and a specialized mortality modeling agent can both operate inside the same actuarial workspace. Renderers, workspaces, and agents are deliberately decoupled so they can be mixed and matched freely.
-
-## 4. Human and Agent Modes
-
-NEXUS does not require an agent to be useful. This is a critical design principle. The shell must be fully functional as a human workspace before any agent is introduced.
+NEXUS does not require an agent. This is non-negotiable. The shell must be fully useful as a human workspace before any agent is introduced.
 
 | Mode | Description | Analogy |
 | --- | --- | --- |
-| Shell Only | Human uses the workspace manually. Loads data, renders equations, builds visualizations by hand. | VSCode without Copilot |
-| Shell + Workspace | Domain-specific environment active. Tools and layout are native to the field. | VSCode with Python extension |
-| Shell + Workspace + Agent | Agent works visibly inside the domain environment. Human observes, intervenes, and directs. | VSCode + Claude Code |
+| Shell only | User installs packs, builds canvas manually, loads files, runs computations | VSCode without Copilot |
+| Shell + Agent | Agent works visibly inside the canvas. Human observes, intervenes, redirects | VSCode + Claude Code |
 
-Each mode adds value. None requires the next. This is what separates NEXUS from AI-first tools that collapse without the AI layer.
-
-## 5. Proof of Concept — Two Domains
-
-To validate the universal workspace paradigm, the initial proof of concept targets two domains chosen for maximum visual contrast. If the same shell adapts convincingly to both, the domain-agnostic claim is demonstrated.
-
-### 5.1 Domain 1 — Actuarial / Statistics
-
-This domain was selected because of existing subject matter knowledge and because professional auditability requirements make AI visualization genuinely mission-critical, not just a UX preference.
-
-Render primitives used:
-
-- Table — mortality datasets, experience data
-- Equation — reserve formulas, probability calculations
-- Chart — survival curves, loss distributions
-- Assumption Flag — highlighting model assumptions for audit trail
-- Progress Step — showing calculation sequence
-
-Target demo scenario: Load a mortality dataset. Agent runs a basic reserve calculation. Every formula renders live. Every assumption is flagged. Human adjusts one assumption mid-process. Agent recalculates. Output is fully traceable.
-
-### 5.2 Domain 2 — Physics / 3D Engineering
-
-This domain was selected because its primary visual language — three-dimensional models, force vectors, and motion — is entirely different from Domain 1. There is no overlap in render primitives used.
-
-Render primitives used:
-
-- 3D Object — structural models, rigid body simulations
-- Equation — force equations, energy calculations
-- Chart — motion over time, stress distributions
-- Annotation — labeling forces and constraints
-
-Target demo scenario: Load a simple structural problem. Agent models the geometry in 3D. Applies forces. Renders stress distribution. Human repositions a load point. Agent recalculates and updates the model live.
-
-## 6. Technology Stack
+## 7. Technology Stack
 
 | Layer | Technology | Purpose |
 | --- | --- | --- |
 | Shell | Electron | Desktop wrapper, OS access, file system |
-| UI Framework | React | Component rendering, workspace layout |
-| 3D Rendering | Three.js | 3D object and spatial visualization |
-| Math Rendering | MathJax / KaTeX | Equation display and resolution |
-| Charts | Recharts / D3 | Data visualization, statistical plots |
+| UI Framework | React + Vite | Component rendering, canvas, toolbar |
+| Code Editor | Monaco Editor | Multi-language code editing primitive |
+| 3D Rendering | Three.js + React Three Fiber | 3D object primitive |
+| Math Rendering | KaTeX | Equation primitive |
+| Charts | Recharts | Chart primitive |
+| Tables | TanStack Table | Table primitive with sort, filter, pagination |
+| Drag & Resize | react-rnd | Canvas block positioning |
+| File Parsing | PapaParse | CSV file loading |
+| Computation | child_process (Electron) | Real language runtime execution |
 | Agent Protocol | MCP | Standardized agent communication |
-| Build Tooling | Vite + Electron Builder | Development and packaging |
 | AI Agents | Claude / GPT / any MCP agent | Domain intelligence layer |
 
-## 7. The Competitive Moat
+## 8. Current Build Status
 
-The moat in NEXUS is not the shell. It is not the agents. It is the protocol — the standardized rendering vocabulary and agent communication standard that any domain workspace must conform to.
+### 8.1 Completed
 
-The more domain workspaces and renderers built on NEXUS, the more indispensable the standard becomes. This is the same network effect that made VSCode dominant — not because Microsoft built the best features, but because the extension ecosystem became too valuable to leave.
+- Electron-ready shell running as React web app in Codespaces
+- Activity bar with all four panels — Workspaces, Extensions, Agent, Settings
+- Pack registry pattern with local JSON — remote registry seam marked
+- Free canvas with draggable, resizable, z-managed primitive blocks
+- Data Pack primitives — Table (sort, filter, pagination, column resize), Chart, Equation
+- Audit Pack primitives — Assumption Flag with approve/challenge, Progress Step
+- 3D Pack primitives — Three.js object with orbit controls, Annotation
+- Code Pack primitives — Monaco Editor with language selector, Terminal Output
+- Computation layer stub — `src/computation/runner.js` with Electron seams marked
+- File loading — CSV and JSON parsed and rendered as appropriate primitives
+- Canvas persistence — save and restore per pack composition via localStorage
+- Settings — theme toggle, agent model selection, registry source
 
-First mover advantage here is significant. The team that defines the rendering vocabulary defines what domain-native AI workspaces look like for the next decade.
+### 8.2 Next Steps
 
-## 8. Success Metrics — Proof of Concept
+- Refactor registry from domain workspaces to primitive packs
+- Electron packaging — wrap React app in Electron shell
+- Computation layer — wire child_process to Monaco Editor Run button
+- Agent connection — Anthropic API via MCP when API key available
+- Remote registry — connect Extensions panel to remote pack registry
 
-- Shell installs and launches cleanly on macOS and Windows
-- Actuarial workspace loads and renders all five primitive types correctly
-- Physics workspace loads and renders a live 3D model with agent interaction
-- Agent intervention mid-process works in both domains without shell restart
-- Human-only mode functional in both domains without any agent connected
-- Total demo duration under 5 minutes per domain
+## 9. The Competitive Moat
 
-## 9. Open Questions
+The moat is the primitive pack standard — the rendering vocabulary and agent communication protocol that any pack must conform to.
 
-- Renderer packaging format — how are custom renderers distributed and sandboxed
-- Agent authentication — how does the shell verify and trust installed agents
-- Offline capability — which features work without internet access
-- Workspace data persistence — how does the shell save and restore workspace state
-- Monetization model — open core, marketplace revenue share, or subscription
+The more packs published against the NEXUS standard, the more indispensable the standard becomes. This is the same network effect that made VSCode dominant — not because of Microsoft's features but because the extension ecosystem became too valuable to leave.
 
-NEXUS IDE &bull; Concept Stage &bull; Not for distribution
+The team that defines what domain-native AI workspaces look like defines the category.
+
+NEXUS IDE &bull; v0.2 &bull; Primitive Pack Architecture &bull; Not for distribution

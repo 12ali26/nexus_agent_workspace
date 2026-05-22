@@ -10,6 +10,7 @@ import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
 import { RenderBlocksProvider } from './renderBlocks/RenderBlocksProvider'
 import { SettingsProvider } from './settings/SettingsContext'
 import { useSettings } from './settings/useSettings'
+import { ToastContext } from './toast/toastContext'
 
 function NexusShell() {
   const [activePanel, setActivePanel] = useState('workspaces')
@@ -38,54 +39,59 @@ function NexusShell() {
       key={activeWorkspace?.id ?? 'no-workspace'}
       workspaceId={activeWorkspace?.id}
     >
-      <div className="nexus-shell" data-theme={theme}>
-        <header className="top-bar">
-          <div className="brand-mark" aria-hidden="true">
-            N
-          </div>
-          <div className="brand-text">NEXUS IDE</div>
-          <button
-            className="top-bar-action sidebar-toggle"
-            type="button"
-            aria-pressed={!isActivitySidebarVisible}
-            onClick={() =>
-              setIsActivitySidebarVisible(
-                (currentVisibility) => !currentVisibility,
-              )
-            }
+      <ToastContext.Provider value={showToast}>
+        <div className="nexus-shell" data-theme={theme}>
+          <header className="top-bar">
+            <div className="brand-mark" aria-hidden="true">
+              N
+            </div>
+            <div className="brand-text">NEXUS IDE</div>
+            <button
+              className="top-bar-action sidebar-toggle"
+              type="button"
+              aria-pressed={!isActivitySidebarVisible}
+              onClick={() =>
+                setIsActivitySidebarVisible(
+                  (currentVisibility) => !currentVisibility,
+                )
+              }
+            >
+              {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
+            </button>
+            <FileOpenButton onToast={showToast} />
+            <ClearCanvasButton onToast={showToast} />
+          </header>
+
+          <div
+            className={`workbench${
+              isActivitySidebarVisible && activePanel ? ' sidebar-open' : ''
+            }${isActivitySidebarVisible ? '' : ' sidebar-collapsed'}`}
           >
-            {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
-          </button>
-          <FileOpenButton onToast={showToast} />
-          <ClearCanvasButton onToast={showToast} />
-        </header>
+            {isActivitySidebarVisible && (
+              <aside
+                className="activity-sidebar"
+                aria-label="Primary navigation"
+              >
+                <ActivityBar
+                  activePanel={activePanel}
+                  onPanelChange={setActivePanel}
+                />
 
-        <div
-          className={`workbench${
-            isActivitySidebarVisible && activePanel ? ' sidebar-open' : ''
-          }${isActivitySidebarVisible ? '' : ' sidebar-collapsed'}`}
-        >
-          {isActivitySidebarVisible && (
-            <aside className="activity-sidebar" aria-label="Primary navigation">
-              <ActivityBar
-                activePanel={activePanel}
-                onPanelChange={setActivePanel}
-              />
+                {ActivePanel && <ActivePanel />}
+              </aside>
+            )}
 
-              {ActivePanel && <ActivePanel />}
-            </aside>
-          )}
+            <WorkspaceCanvas />
+          </div>
 
-          <WorkspaceCanvas />
+          <footer className="status-bar">
+            <span>{activeWorkspace?.name ?? 'No Workspace Loaded'}</span>
+            <span>No Agent Connected</span>
+          </footer>
+
+          {toastMessage && <div className="toast">{toastMessage}</div>}
         </div>
-
-        <footer className="status-bar">
-          <span>{activeWorkspace?.name ?? 'No Workspace Loaded'}</span>
-          <span>No Agent Connected</span>
-        </footer>
-
-        {toastMessage && <div className="toast">{toastMessage}</div>}
-      </div>
+      </ToastContext.Provider>
     </RenderBlocksProvider>
   )
 }

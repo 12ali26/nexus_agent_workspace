@@ -322,6 +322,55 @@
   user-select: none;
 }
 
+.primitive-block-header > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primitive-block-header-actions,
+.primitive-header-controls {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.primitive-header-select,
+.primitive-header-action {
+  min-height: 24px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text-strong);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.primitive-header-select {
+  max-width: 112px;
+  padding: 0 6px;
+}
+
+.primitive-header-action {
+  padding: 0 8px;
+}
+
+.primitive-header-select:hover,
+.primitive-header-select:focus-visible,
+.primitive-header-action:hover,
+.primitive-header-action:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-button-hover);
+}
+
+.primitive-header-select:focus-visible,
+.primitive-header-action:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .primitive-block-content {
   min-width: 0;
   min-height: 0;
@@ -584,6 +633,40 @@
   color: var(--color-text-strong);
   font-size: 13px;
   font-weight: 700;
+}
+
+.code-editor-primitive {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.terminal-output-primitive {
+  height: 100%;
+  overflow: auto;
+  padding: 14px;
+  background: #090b0a;
+  color: #86efac;
+  font-family:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.terminal-output-line {
+  display: flex;
+  gap: 8px;
+  white-space: pre-wrap;
+}
+
+.terminal-output-line span:first-child {
+  color: #22c55e;
+}
+
+.terminal-output-empty {
+  color: rgba(134, 239, 172, 0.58);
 }
 
 .assumption-flag-primitive {

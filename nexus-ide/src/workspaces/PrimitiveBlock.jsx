@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import { Rnd } from 'react-rnd'
 import AnnotationPrimitive from '../primitives/AnnotationPrimitive'
 import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
@@ -6,6 +6,11 @@ import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
+import TerminalOutputPrimitive from '../primitives/TerminalOutputPrimitive'
+
+const CodeEditorPrimitive = lazy(
+  () => import('../primitives/CodeEditorPrimitive'),
+)
 
 const ThreeObjectPrimitive = lazy(
   () => import('../primitives/ThreeObjectPrimitive'),
@@ -16,13 +21,20 @@ const primitiveComponents = {
   annotation: AnnotationPrimitive,
   'assumption-flag': AssumptionFlagPrimitive,
   chart: ChartPrimitive,
+  'code-editor': CodeEditorPrimitive,
   equation: EquationPrimitive,
   'progress-step': ProgressStepPrimitive,
   table: TablePrimitive,
+  'terminal-output': TerminalOutputPrimitive,
 }
 
 function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
   const PrimitiveComponent = primitiveComponents[block.type]
+  const [headerControls, setHeaderControls] = useState(null)
+  const registerHeaderControls = useCallback(
+    (controls) => setHeaderControls(controls),
+    [],
+  )
 
   if (!PrimitiveComponent) {
     return null
@@ -61,22 +73,28 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
       <article className="primitive-block">
         <header className="primitive-block-header">
           <span>{block.data.title}</span>
-          <button
-            className="primitive-close"
-            type="button"
-            aria-label={`Remove ${block.data.title}`}
-            onClick={() => onRemove(block.id)}
-          >
-            x
-          </button>
+          <div className="primitive-block-header-actions">
+            {headerControls}
+            <button
+              className="primitive-close"
+              type="button"
+              aria-label={`Remove ${block.data.title}`}
+              onClick={() => onRemove(block.id)}
+            >
+              x
+            </button>
+          </div>
         </header>
         <div className="primitive-block-content">
           <Suspense
             fallback={
-              <div className="primitive-loading">Loading 3D renderer...</div>
+              <div className="primitive-loading">Loading renderer...</div>
             }
           >
-            <PrimitiveComponent {...block.data.props} />
+            <PrimitiveComponent
+              {...block.data.props}
+              headerControls={registerHeaderControls}
+            />
           </Suspense>
         </div>
       </article>

@@ -27,6 +27,22 @@
       "renderers": ["3d-object", "equation", "chart", "annotation"],
       "agent": null,
       "installed": false
+    },
+    {
+      "id": "code",
+      "name": "Code",
+      "description": "Multi-language code editor with computational output",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "renderers": [
+        "code-editor",
+        "terminal-output",
+        "equation",
+        "table",
+        "chart"
+      ],
+      "agent": null,
+      "installed": false
     }
   ]
 }

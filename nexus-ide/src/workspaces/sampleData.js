@@ -33,6 +33,35 @@ export const forceOverTimeData = [
   { time: 4, force: 120 },
 ]
 
+export const codeTableData = [
+  { language: 'JavaScript', runtime: 'Node.js', status: 'Desktop Runtime' },
+  { language: 'Python', runtime: 'Python 3', status: 'Desktop Runtime' },
+  { language: 'R', runtime: 'Rscript', status: 'Desktop Runtime' },
+  { language: 'SQL', runtime: 'SQLite', status: 'Desktop Runtime' },
+]
+
+export const codeTableColumns = [
+  {
+    accessorKey: 'language',
+    header: 'Language',
+  },
+  {
+    accessorKey: 'runtime',
+    header: 'Runtime',
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+  },
+]
+
+export const codeExecutionChartData = [
+  { step: 'Load', duration: 12 },
+  { step: 'Parse', duration: 18 },
+  { step: 'Execute', duration: 42 },
+  { step: 'Render', duration: 16 },
+]
+
 export const physicsAnnotations = [
   {
     id: 1,
