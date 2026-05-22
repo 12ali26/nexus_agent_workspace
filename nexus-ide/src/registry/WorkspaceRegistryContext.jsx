@@ -24,6 +24,19 @@ export function WorkspaceRegistryProvider({ children }) {
     )
   }, [])
 
+  const uninstallWorkspace = useCallback((workspaceId) => {
+    setAvailableWorkspaces((currentWorkspaces) =>
+      currentWorkspaces.map((workspace) =>
+        workspace.id === workspaceId
+          ? { ...workspace, installed: false }
+          : workspace,
+      ),
+    )
+    setActiveWorkspaceId((currentActiveWorkspaceId) =>
+      currentActiveWorkspaceId === workspaceId ? null : currentActiveWorkspaceId,
+    )
+  }, [])
+
   const activateWorkspace = useCallback(
     (workspaceId) => {
       const workspace = availableWorkspaces.find(
@@ -42,9 +55,16 @@ export function WorkspaceRegistryProvider({ children }) {
       availableWorkspaces,
       activeWorkspace,
       installWorkspace,
+      uninstallWorkspace,
       activateWorkspace,
     }),
-    [activateWorkspace, activeWorkspace, availableWorkspaces, installWorkspace],
+    [
+      activateWorkspace,
+      activeWorkspace,
+      availableWorkspaces,
+      installWorkspace,
+      uninstallWorkspace,
+    ],
   )
 
   return (

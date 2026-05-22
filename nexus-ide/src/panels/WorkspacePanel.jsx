@@ -1,4 +1,4 @@
-import { useWorkspaceRegistry } from './registry/useWorkspaceRegistry'
+import { useWorkspaceRegistry } from '../registry/useWorkspaceRegistry'
 
 function WorkspacePanel() {
   const {

@@ -73,7 +73,7 @@
   border-left: 2px solid transparent;
   background: transparent;
   color: var(--color-icon);
-  cursor: default;
+  cursor: pointer;
 }
 
 .activity-button svg {
@@ -578,6 +578,39 @@
   border-left: 1px solid var(--color-border);
 }
 
+.panel-search {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-search input,
+.agent-composer input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.panel-search input {
+  height: 30px;
+  padding: 0 9px;
+}
+
+.panel-search input::placeholder,
+.agent-composer input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.panel-search input:focus,
+.agent-composer input:focus {
+  border-color: var(--color-focus);
+  outline: none;
+}
+
 .panel-header {
   display: flex;
   align-items: center;
@@ -656,6 +689,121 @@
 .workspace-action:focus-visible {
   outline: 1px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+.agent-panel {
+  display: grid;
+  grid-template-rows: 35px 1fr auto;
+}
+
+.agent-history {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.agent-empty {
+  margin: auto;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.agent-message {
+  padding: 10px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 6px;
+  background: var(--color-panel-card);
+}
+
+.agent-message div {
+  color: var(--color-text-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.agent-message p {
+  margin: 6px 0 0;
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.agent-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.agent-composer input {
+  height: 30px;
+  padding: 0 9px;
+}
+
+.agent-composer button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text-strong);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.agent-composer button:hover,
+.agent-composer button:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-button-hover);
+}
+
+.agent-composer button:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.settings-list {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 6px;
+  background: var(--color-panel-card);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.settings-row strong {
+  color: var(--color-text-strong);
+  font-size: 12px;
+}
+
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-text-strong);
+  font-size: 12px;
+}
+
+.settings-toggle input {
+  width: 30px;
+  height: 16px;
+  accent-color: var(--color-accent);
 }
 
 .status-bar {
