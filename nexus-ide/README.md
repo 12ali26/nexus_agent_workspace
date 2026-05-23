@@ -1,30 +1,47 @@
 # NEXUS IDE
 
-NEXUS IDE is a universal AI workspace shell built around primitive packs: installable visual and computational building blocks such as tables, charts, equations, 3D objects, audit steps, code editors, and terminal output. The shell stays domain-agnostic; users compose the workspace they need, and agents will drive the same primitives through structured render instructions.
+The universal computational workspace. What VSCode is to code — NEXUS is to knowledge work.
 
-The current app is a React + Vite browser shell that is designed to be wrapped in Electron later. The product direction, architecture, primitive pack model, and current build status are captured in [docs/PRD.md](docs/PRD.md).
+## Quick Install (Ubuntu / EC2)
 
-## Current Status
+```bash
+curl -fsSL https://raw.githubusercontent.com/12ali26/nexus-ide/main/install.sh | bash
+```
 
-- React + Vite web app shell
-- Dark/light IDE-style layout with collapsible activity sidebar
-- Local primitive pack registry with a remote registry seam
-- Draggable, resizable, z-managed primitive blocks
-- File loading for CSV and JSON
-- Canvas persistence via localStorage
-- Primitive implementations for data, math, audit, 3D, and code workflows
-- Pack-based toolbar composition from installed primitive packs
+## Manual Setup
 
-## Quick Start
+### Browser Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Checks
+Open http://localhost:5173
+
+### Desktop App
 
 ```bash
-npm run build
-npm run lint
+npm install
+npm run electron:dev
 ```
+
+### Production Build
+
+```bash
+npm run electron:build
+```
+
+Installer appears in `/release` folder.
+
+## Runtime Dependencies
+
+For full computation support:
+
+- Python 3: https://python.org
+- R: https://r-project.org
+- Node.js: required
+
+## Stack
+
+Electron · React · Vite · Monaco Editor · Three.js · TanStack Table · Recharts · KaTeX · MCP
