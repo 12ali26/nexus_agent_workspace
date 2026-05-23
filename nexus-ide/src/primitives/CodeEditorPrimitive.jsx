@@ -49,9 +49,8 @@ function CodeEditorPrimitive({ data, headerControls }) {
 
     try {
       const result = await runCode(language, code, data)
-      const isElectron = window.nexus?.isElectron
 
-      if (!isElectron) {
+      if (!window.nexus?.isElectron && !result.output && result.error) {
         showToast(result.error)
         return
       }

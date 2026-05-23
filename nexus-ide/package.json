@@ -21,7 +21,9 @@
     "electron:build:linux": "npm run build && electron-builder --linux",
     "electron:build:win": "npm run build && electron-builder --win",
     "electron:build:mac": "npm run build && electron-builder --mac",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server/index.js",
+    "deploy": "npm run build && npm run start"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -29,7 +31,9 @@
     "@react-three/fiber": "^9.6.1",
     "@tanstack/react-table": "^8.21.3",
     "@uiw/react-md-editor": "^4.1.1",
+    "cors": "^2.8.6",
     "electron-is-dev": "^3.0.1",
+    "express": "^5.2.1",
     "katex": "^0.16.47",
     "mathjs": "^15.2.0",
     "papaparse": "^5.5.3",

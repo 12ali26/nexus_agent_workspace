@@ -22,11 +22,10 @@ cd nexus-ide
 # Install project dependencies
 npm install
 
-# Start virtual display for headless Linux servers
-export DISPLAY=:99
-Xvfb :99 -screen 0 1400x900x24 &
+echo "🔨 Building NEXUS..."
+npm run build
 
-# Start NEXUS and expose on network
-npm run dev -- --host
+echo "🚀 Starting NEXUS on port 8080..."
+npm run start
 
-echo "✅ NEXUS IDE running at http://$(curl -s ifconfig.me):5173"
+echo "✅ NEXUS IDE running at http://$(curl -s ifconfig.me):8080"
