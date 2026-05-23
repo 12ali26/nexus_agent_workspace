@@ -4,6 +4,8 @@ import AnnotationPrimitive from '../primitives/AnnotationPrimitive'
 import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
 import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
+import FormulaBlockPrimitive from '../primitives/FormulaBlockPrimitive'
+import ParameterNodePrimitive from '../primitives/ParameterNodePrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import ProseBlockPrimitive from '../primitives/ProseBlockPrimitive'
 import StatsBlockPrimitive from '../primitives/StatsBlockPrimitive'
@@ -25,6 +27,8 @@ const primitiveComponents = {
   chart: ChartPrimitive,
   'code-editor': CodeEditorPrimitive,
   equation: EquationPrimitive,
+  'formula-block': FormulaBlockPrimitive,
+  'parameter-node': ParameterNodePrimitive,
   'progress-step': ProgressStepPrimitive,
   'prose-block': ProseBlockPrimitive,
   'stats-block': StatsBlockPrimitive,
@@ -97,6 +101,7 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
           >
             <PrimitiveComponent
               {...block.data.props}
+              blockId={block.id}
               headerControls={registerHeaderControls}
             />
           </Suspense>

@@ -73,6 +73,20 @@
       "capabilities": ["prose.write", "latex.render"],
       "primitives": ["prose-block"],
       "installed": false
+    },
+    {
+      "id": "simulation-tools",
+      "name": "Simulation Tools",
+      "description": "Parameter nodes and reactive formula evaluation for live simulation",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "capabilities": [
+        "parameter.control",
+        "formula.evaluate",
+        "simulation.run"
+      ],
+      "primitives": ["parameter-node", "formula-block"],
+      "installed": false
     }
   ]
 }

@@ -924,6 +924,204 @@
   color: rgba(134, 239, 172, 0.58);
 }
 
+.parameter-node-primitive {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.parameter-node-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.parameter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  background: var(--color-primitive-panel);
+}
+
+.parameter-row label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-text-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.parameter-row input,
+.parameter-row select,
+.parameter-add-form input,
+.parameter-add-form select,
+.formula-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+.parameter-slider-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.parameter-slider-control input {
+  padding: 0;
+  accent-color: var(--color-accent);
+}
+
+.parameter-slider-control strong {
+  min-width: 54px;
+  color: var(--color-accent-strong);
+  font-size: 12px;
+  text-align: right;
+}
+
+.parameter-delete {
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.parameter-delete:hover,
+.parameter-delete:focus-visible {
+  border-color: var(--color-button-border);
+  background: var(--color-hover);
+  color: var(--color-text-strong);
+}
+
+.parameter-add-button,
+.parameter-add-actions button {
+  min-height: 28px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-button);
+  color: var(--color-text-strong);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.parameter-add-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.parameter-add-form input:first-child,
+.parameter-add-form input[placeholder='Options, comma-separated'],
+.parameter-add-actions {
+  grid-column: 1 / -1;
+}
+
+.parameter-add-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.formula-block-primitive {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  height: 100%;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.formula-field {
+  display: grid;
+  gap: 7px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.formula-field input {
+  min-height: 32px;
+  text-transform: none;
+}
+
+.formula-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.formula-hints span {
+  border: 1px solid var(--color-button-border);
+  border-radius: 999px;
+  background: var(--color-input-bg);
+  color: var(--color-text-muted);
+  font-family:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 11px;
+  padding: 3px 7px;
+}
+
+.formula-hints p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.formula-result-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 16px;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 8px;
+  background: var(--color-primitive-panel);
+}
+
+.formula-result-panel span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.formula-result-panel strong {
+  overflow-wrap: anywhere;
+  color: var(--color-text-strong);
+  font-size: clamp(24px, 5vw, 42px);
+  line-height: 1.1;
+}
+
+.formula-result-panel .formula-error {
+  color: #f87171;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .assumption-flag-primitive {
   display: grid;
   gap: 10px;

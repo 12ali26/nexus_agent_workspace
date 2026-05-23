@@ -14,6 +14,8 @@ const primitiveLabels = {
   chart: 'Chart',
   'code-editor': 'Code Editor',
   equation: 'Equation',
+  'formula-block': 'Formula',
+  'parameter-node': 'Parameters',
   'progress-step': 'Progress Step',
   'prose-block': 'Prose Block',
   'stats-block': 'Stats',
@@ -64,6 +66,26 @@ export function createPrimitivePayload(primitiveType) {
           formula: String.raw`y = mx + b`,
           resolvedValue: 'Ready for formula evaluation',
         },
+      },
+    }
+  }
+
+  if (primitiveType === 'parameter-node') {
+    return {
+      type: 'parameter-node',
+      data: {
+        title: 'Parameters',
+        props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'formula-block') {
+    return {
+      type: 'formula-block',
+      data: {
+        title: 'Formula',
+        props: {},
       },
     }
   }

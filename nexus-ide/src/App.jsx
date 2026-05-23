@@ -5,6 +5,7 @@ import ClearCanvasButton from './ClearCanvasButton'
 import FileOpenButton from './FileOpenButton'
 import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
+import { ParameterProvider } from './context/ParameterContext'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext'
 import { usePackRegistry } from './registry/usePackRegistry'
@@ -36,77 +37,79 @@ function NexusShell() {
   }
 
   return (
-    <RenderBlocksProvider>
-      <ToastContext.Provider value={showToast}>
-        <div className="nexus-shell" data-theme={theme}>
-          <header className="top-bar">
-            <div className="brand-mark" aria-hidden="true">
-              N
-            </div>
-            <div className="brand-text">NEXUS IDE</div>
-            <button
-              className="top-bar-action sidebar-toggle"
-              type="button"
-              aria-pressed={!isActivitySidebarVisible}
-              onClick={() =>
-                setIsActivitySidebarVisible(
-                  (currentVisibility) => !currentVisibility,
-                )
-              }
-            >
-              {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
-            </button>
-            <NewProjectButton />
-            <FileOpenButton onToast={showToast} />
-            <ClearCanvasButton onToast={showToast} />
-          </header>
-
-          <div
-            className={`workbench${
-              isActivitySidebarVisible && activePanel ? ' sidebar-open' : ''
-            }${isActivitySidebarVisible ? '' : ' sidebar-collapsed'}`}
-          >
-            {isActivitySidebarVisible && (
-              <aside
-                className="activity-sidebar"
-                aria-label="Primary navigation"
+    <ParameterProvider>
+      <RenderBlocksProvider>
+        <ToastContext.Provider value={showToast}>
+          <div className="nexus-shell" data-theme={theme}>
+            <header className="top-bar">
+              <div className="brand-mark" aria-hidden="true">
+                N
+              </div>
+              <div className="brand-text">NEXUS IDE</div>
+              <button
+                className="top-bar-action sidebar-toggle"
+                type="button"
+                aria-pressed={!isActivitySidebarVisible}
+                onClick={() =>
+                  setIsActivitySidebarVisible(
+                    (currentVisibility) => !currentVisibility,
+                  )
+                }
               >
-                <ActivityBar
-                  activePanel={activePanel}
-                  onPanelChange={setActivePanel}
-                />
+                {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
+              </button>
+              <NewProjectButton />
+              <FileOpenButton onToast={showToast} />
+              <ClearCanvasButton onToast={showToast} />
+            </header>
 
-                {ActivePanel && <ActivePanel />}
-              </aside>
-            )}
+            <div
+              className={`workbench${
+                isActivitySidebarVisible && activePanel ? ' sidebar-open' : ''
+              }${isActivitySidebarVisible ? '' : ' sidebar-collapsed'}`}
+            >
+              {isActivitySidebarVisible && (
+                <aside
+                  className="activity-sidebar"
+                  aria-label="Primary navigation"
+                >
+                  <ActivityBar
+                    activePanel={activePanel}
+                    onPanelChange={setActivePanel}
+                  />
 
-            <WorkspaceCanvas />
-          </div>
-
-          <footer className="status-bar">
-            <span className="status-pack-list">
-              {activeProject?.projectName ? (
-                <span className="status-project-name">
-                  {activeProject.projectName}
-                </span>
-              ) : installedPacks.length ? (
-                installedPacks.map((pack) => (
-                  <span className="status-pack-badge" key={pack.id}>
-                    {pack.name}
-                  </span>
-                ))
-              ) : (
-                'No Packs Installed'
+                  {ActivePanel && <ActivePanel />}
+                </aside>
               )}
-            </span>
-            <span>{activeCapabilities.length} capabilities active</span>
-            <span>No Agent Connected</span>
-          </footer>
 
-          {toastMessage && <div className="toast">{toastMessage}</div>}
-        </div>
-      </ToastContext.Provider>
-    </RenderBlocksProvider>
+              <WorkspaceCanvas />
+            </div>
+
+            <footer className="status-bar">
+              <span className="status-pack-list">
+                {activeProject?.projectName ? (
+                  <span className="status-project-name">
+                    {activeProject.projectName}
+                  </span>
+                ) : installedPacks.length ? (
+                  installedPacks.map((pack) => (
+                    <span className="status-pack-badge" key={pack.id}>
+                      {pack.name}
+                    </span>
+                  ))
+                ) : (
+                  'No Packs Installed'
+                )}
+              </span>
+              <span>{activeCapabilities.length} capabilities active</span>
+              <span>No Agent Connected</span>
+            </footer>
+
+            {toastMessage && <div className="toast">{toastMessage}</div>}
+          </div>
+        </ToastContext.Provider>
+      </RenderBlocksProvider>
+    </ParameterProvider>
   )
 }
 
