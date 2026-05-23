@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { parseFileToPrimitive } from './fileLoading/fileToPrimitive'
+import { parseProjectManifest } from './project/ProjectManifest'
 import { getPrimitiveLabel } from './primitives/primitivePayloads'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
@@ -8,8 +9,13 @@ const acceptedFileTypes = '.csv,.json,application/json,text/csv'
 
 function FileOpenButton({ onToast }) {
   const fileInputRef = useRef(null)
-  const { activePrimitives, installedPacks } = usePackRegistry()
-  const { addPrimitiveBlock } = useRenderBlocks()
+  const {
+    activePrimitives,
+    installExtensionsForCapabilities,
+    installedPacks,
+    setActiveProject,
+  } = usePackRegistry()
+  const { addPrimitiveBlock, replacePrimitiveBlocks } = useRenderBlocks()
 
   const openFilePicker = () => {
     fileInputRef.current?.click()
@@ -23,12 +29,42 @@ function FileOpenButton({ onToast }) {
       return
     }
 
-    if (!installedPacks.length) {
-      onToast('Install a pack from the Extensions panel before loading a file')
+    const fileText = await file.text()
+
+    let manifest = null
+    const isJsonFile = file.name.toLowerCase().endsWith('.json')
+    const isExplicitProjectManifest = file.name === 'nexus.project.json'
+
+    if (isJsonFile) {
+      try {
+        manifest = parseProjectManifest(file, fileText)
+      } catch {
+        if (isExplicitProjectManifest) {
+          onToast('Could not parse project manifest')
+          return
+        }
+      }
+    }
+
+    if (manifest) {
+      const activatedCount = installExtensionsForCapabilities(
+        manifest.capabilities,
+      )
+      setActiveProject(manifest)
+
+      if (manifest.canvasState) {
+        replacePrimitiveBlocks(manifest.canvasState)
+      }
+
+      onToast(`Project loaded — activated ${activatedCount} extensions`)
       return
     }
 
-    const fileText = await file.text()
+    if (!installedPacks.length) {
+      onToast('Install an extension from the Extensions panel before loading a file')
+      return
+    }
+
     const result = parseFileToPrimitive(file, fileText)
 
     if (result.error === 'empty') {

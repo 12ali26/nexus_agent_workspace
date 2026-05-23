@@ -3,6 +3,7 @@ import './App.css'
 import ActivityBar from './ActivityBar'
 import ClearCanvasButton from './ClearCanvasButton'
 import FileOpenButton from './FileOpenButton'
+import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext'
@@ -18,7 +19,7 @@ function NexusShell() {
     useState(true)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimerRef = useRef(null)
-  const { installedPacks } = usePackRegistry()
+  const { activeCapabilities, activeProject, installedPacks } = usePackRegistry()
   const { theme } = useSettings()
   const ActivePanel = activePanel ? panels[activePanel] : null
 
@@ -55,6 +56,7 @@ function NexusShell() {
             >
               {isActivitySidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
             </button>
+            <NewProjectButton />
             <FileOpenButton onToast={showToast} />
             <ClearCanvasButton onToast={showToast} />
           </header>
@@ -83,7 +85,11 @@ function NexusShell() {
 
           <footer className="status-bar">
             <span className="status-pack-list">
-              {installedPacks.length ? (
+              {activeProject?.projectName ? (
+                <span className="status-project-name">
+                  {activeProject.projectName}
+                </span>
+              ) : installedPacks.length ? (
                 installedPacks.map((pack) => (
                   <span className="status-pack-badge" key={pack.id}>
                     {pack.name}
@@ -93,6 +99,7 @@ function NexusShell() {
                 'No Packs Installed'
               )}
             </span>
+            <span>{activeCapabilities.length} capabilities active</span>
             <span>No Agent Connected</span>
           </footer>
 

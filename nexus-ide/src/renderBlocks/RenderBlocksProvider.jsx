@@ -45,6 +45,14 @@ function restorePrimitiveBlock(block) {
   }
 }
 
+function restorePrimitiveBlocks(blocks) {
+  if (!Array.isArray(blocks)) {
+    return []
+  }
+
+  return blocks.map(restorePrimitiveBlock).filter(Boolean)
+}
+
 function readStoredCanvasState() {
   try {
     const storedValue = localStorage.getItem(canvasStorageKey)
@@ -59,7 +67,7 @@ function readStoredCanvasState() {
       return []
     }
 
-    return parsedValue.map(restorePrimitiveBlock).filter(Boolean)
+    return restorePrimitiveBlocks(parsedValue)
   } catch {
     return []
   }
@@ -191,12 +199,21 @@ export function RenderBlocksProvider({ children }) {
     setPrimitiveBlocks([])
   }, [])
 
+  const replacePrimitiveBlocks = useCallback((blocks) => {
+    const restoredBlocks = restorePrimitiveBlocks(blocks)
+
+    setMaxZ(getHighestZIndex(restoredBlocks))
+    writeStoredCanvasState(restoredBlocks)
+    setPrimitiveBlocks(restoredBlocks)
+  }, [])
+
   const value = useMemo(
     () => ({
       addPrimitiveBlock,
       clearCanvas,
       focusPrimitiveBlock,
       primitiveBlocks,
+      replacePrimitiveBlocks,
       removePrimitiveBlock,
       updatePrimitiveBlockLayout,
     }),
@@ -205,6 +222,7 @@ export function RenderBlocksProvider({ children }) {
       clearCanvas,
       focusPrimitiveBlock,
       primitiveBlocks,
+      replacePrimitiveBlocks,
       removePrimitiveBlock,
       updatePrimitiveBlockLayout,
     ],

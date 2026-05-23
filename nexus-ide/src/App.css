@@ -120,6 +120,54 @@
   padding: 10px 14px;
 }
 
+.project-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.project-dialog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(680px, calc(100svh - 72px));
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 8px;
+  background: var(--color-panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  color: var(--color-text);
+}
+
+.project-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.project-dialog-header h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 14px;
+}
+
+.project-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
 .workbench {
   display: grid;
   grid-template-columns: var(--activity-bar-width) 1fr;
@@ -1082,13 +1130,27 @@
   color: var(--color-text);
 }
 
+.extension-chip-group {
+  display: grid;
+  gap: 6px;
+}
+
+.extension-chip-label {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .extension-renderers {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.extension-renderer-chip {
+.extension-renderer-chip,
+.extension-capability-chip {
   border: 1px solid var(--color-button-border);
   border-radius: 999px;
   padding: 3px 7px;
@@ -1096,6 +1158,11 @@
   color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.2;
+}
+
+.extension-capability-chip {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-button-border));
+  color: var(--color-text);
 }
 
 .panel-empty {
@@ -1300,6 +1367,140 @@
   border-radius: 999px;
   padding: 1px 8px;
   text-overflow: ellipsis;
+}
+
+.status-project-name {
+  overflow: hidden;
+  color: var(--color-status-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.project-modal {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(520px, 100%);
+  max-height: min(680px, calc(100svh - 72px));
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 8px;
+  background: var(--color-panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.project-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.project-modal-header h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 14px;
+}
+
+.project-field {
+  display: grid;
+  gap: 7px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.project-field input {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font-size: 13px;
+  padding: 0 10px;
+  text-transform: none;
+}
+
+.project-field input:focus {
+  border-color: var(--color-focus);
+  outline: none;
+}
+
+.capability-fieldset {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  padding: 14px 16px;
+}
+
+.capability-fieldset legend {
+  margin: 0 0 10px;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.capability-list {
+  display: grid;
+  max-height: 320px;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.capability-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 6px;
+  background: var(--color-panel-card);
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.capability-option input {
+  accent-color: var(--color-accent);
+}
+
+.capability-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 640px) {

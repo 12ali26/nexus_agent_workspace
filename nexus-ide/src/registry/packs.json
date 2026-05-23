@@ -1,49 +1,60 @@
 {
-  "version": "2.0.0",
+  "version": "3.0.0",
   "source": "local",
-  "packs": [
+  "extensions": [
     {
-      "id": "data-pack",
-      "name": "Data Pack",
+      "id": "data-tools",
+      "name": "Data Tools",
       "description": "Tables, charts and file loading for any data analysis work",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "capabilities": ["table.render", "chart.render", "csv.load", "json.load"],
       "primitives": ["table", "chart"],
       "installed": false
     },
     {
-      "id": "math-pack",
-      "name": "Math Pack",
+      "id": "math-tools",
+      "name": "Math Tools",
       "description": "Equation rendering and formula evaluation",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "capabilities": ["equation.render", "formula.evaluate"],
       "primitives": ["equation"],
       "installed": false
     },
     {
-      "id": "code-pack",
-      "name": "Code Pack",
+      "id": "code-tools",
+      "name": "Code Tools",
       "description": "Multi-language code editor and terminal output",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "capabilities": [
+        "javascript.run",
+        "python.run",
+        "r.run",
+        "sql.run",
+        "terminal.open"
+      ],
       "primitives": ["code-editor", "terminal-output"],
       "installed": false
     },
     {
-      "id": "3d-pack",
-      "name": "3D Pack",
+      "id": "3d-tools",
+      "name": "3D Tools",
       "description": "3D object rendering and spatial annotation",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "capabilities": ["3d.render", "annotation.attach"],
       "primitives": ["3d-object", "annotation"],
       "installed": false
     },
     {
-      "id": "audit-pack",
-      "name": "Audit Pack",
+      "id": "audit-tools",
+      "name": "Audit Tools",
       "description": "Assumption flagging and progress tracking for regulated work",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "capabilities": ["assumption.track", "progress.track"],
       "primitives": ["assumption-flag", "progress-step"],
       "installed": false
     }

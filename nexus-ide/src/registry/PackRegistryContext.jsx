@@ -2,11 +2,12 @@ import { useCallback, useMemo, useState } from 'react'
 import { PackRegistryContext } from './packRegistryContext'
 import registry from './packs.json'
 
-const installedPackIdsKey = 'nexus_installed_packs'
+const installedExtensionIdsKey = 'nexus_installed_extensions'
+const activeProjectKey = 'nexus_active_project'
 
-function readStoredInstalledPackIds(validPackIds) {
+function readStoredInstalledExtensionIds(validExtensionIds) {
   try {
-    const storedValue = localStorage.getItem(installedPackIdsKey)
+    const storedValue = localStorage.getItem(installedExtensionIdsKey)
 
     if (!storedValue) {
       return []
@@ -18,87 +19,232 @@ function readStoredInstalledPackIds(validPackIds) {
       return []
     }
 
-    return parsedValue.filter((packId) => validPackIds.has(packId))
+    return parsedValue.filter((extensionId) =>
+      validExtensionIds.has(extensionId),
+    )
   } catch {
     return []
   }
 }
 
-function writeStoredInstalledPackIds(packIds) {
+function readStoredActiveProject() {
   try {
-    localStorage.setItem(installedPackIdsKey, JSON.stringify(packIds))
+    const storedValue = localStorage.getItem(activeProjectKey)
+
+    if (!storedValue) {
+      return null
+    }
+
+    const parsedValue = JSON.parse(storedValue)
+
+    if (!parsedValue || typeof parsedValue.projectName !== 'string') {
+      return null
+    }
+
+    return {
+      capabilities: Array.isArray(parsedValue.capabilities)
+        ? parsedValue.capabilities.filter(
+            (capability) => typeof capability === 'string',
+          )
+        : [],
+      projectName: parsedValue.projectName,
+      version:
+        typeof parsedValue.version === 'string' ? parsedValue.version : '1.0.0',
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeStoredInstalledExtensionIds(extensionIds) {
+  try {
+    localStorage.setItem(
+      installedExtensionIdsKey,
+      JSON.stringify(extensionIds),
+    )
+  } catch {
+    // Local storage can be unavailable in restricted browser contexts.
+  }
+}
+
+function writeStoredActiveProject(project) {
+  try {
+    if (project?.projectName) {
+      localStorage.setItem(activeProjectKey, JSON.stringify(project))
+    } else {
+      localStorage.removeItem(activeProjectKey)
+    }
   } catch {
     // Local storage can be unavailable in restricted browser contexts.
   }
 }
 
 function createInitialRegistryState() {
-  const validPackIds = new Set(registry.packs.map((pack) => pack.id))
-  const installedPackIds = readStoredInstalledPackIds(validPackIds)
+  const validExtensionIds = new Set(
+    registry.extensions.map((extension) => extension.id),
+  )
+  const installedExtensionIds =
+    readStoredInstalledExtensionIds(validExtensionIds)
 
-  return registry.packs.map((pack) => ({
-    ...pack,
-    installed: installedPackIds.includes(pack.id),
+  return registry.extensions.map((extension) => ({
+    ...extension,
+    installed: installedExtensionIds.includes(extension.id),
   }))
 }
 
-function getInstalledPackIds(packs) {
-  return packs.filter((pack) => pack.installed).map((pack) => pack.id)
+function getInstalledExtensionIds(extensions) {
+  return extensions
+    .filter((extension) => extension.installed)
+    .map((extension) => extension.id)
 }
 
-function getActivePrimitives(installedPacks) {
-  return Array.from(
-    new Set(installedPacks.flatMap((pack) => pack.primitives)),
-  )
+function getUniqueValues(extensions, key) {
+  return Array.from(new Set(extensions.flatMap((extension) => extension[key])))
+}
+
+function getExtensionIdsForCapabilities(extensions, capabilities) {
+  const requestedCapabilities = new Set(capabilities)
+
+  return extensions
+    .filter((extension) =>
+      extension.capabilities.some((capability) =>
+        requestedCapabilities.has(capability),
+      ),
+    )
+    .map((extension) => extension.id)
 }
 
 export function PackRegistryProvider({ children }) {
   // Remote registry fetching will plug in here later; consumers should keep
-  // reading normalized pack state instead of importing the JSON directly.
-  const [availablePacks, setAvailablePacks] = useState(createInitialRegistryState)
+  // reading normalized extension state instead of importing the JSON directly.
+  const [availableExtensions, setAvailableExtensions] = useState(
+    createInitialRegistryState,
+  )
+  const [activeProject, setActiveProjectState] = useState(readStoredActiveProject)
 
-  const installedPacks = useMemo(
-    () => availablePacks.filter((pack) => pack.installed),
-    [availablePacks],
+  const installedExtensions = useMemo(
+    () => availableExtensions.filter((extension) => extension.installed),
+    [availableExtensions],
   )
   const activePrimitives = useMemo(
-    () => getActivePrimitives(installedPacks),
-    [installedPacks],
+    () => getUniqueValues(installedExtensions, 'primitives'),
+    [installedExtensions],
+  )
+  // AGENT: query activeCapabilities before generating render instructions — only use capabilities available in this session
+  const activeCapabilities = useMemo(
+    () => getUniqueValues(installedExtensions, 'capabilities'),
+    [installedExtensions],
+  )
+  const allCapabilities = useMemo(
+    () => getUniqueValues(availableExtensions, 'capabilities'),
+    [availableExtensions],
   )
 
-  const installPack = useCallback((packId) => {
-    setAvailablePacks((currentPacks) => {
-      const nextPacks = currentPacks.map((pack) =>
-        pack.id === packId ? { ...pack, installed: true } : pack,
+  const setActiveProject = useCallback((project) => {
+    const nextProject = project?.projectName
+      ? {
+          capabilities: Array.isArray(project.capabilities)
+            ? project.capabilities
+            : [],
+          projectName: project.projectName,
+          version: project.version ?? '1.0.0',
+        }
+      : null
+
+    writeStoredActiveProject(nextProject)
+    setActiveProjectState(nextProject)
+  }, [])
+
+  const installExtension = useCallback((extensionId) => {
+    setAvailableExtensions((currentExtensions) => {
+      const nextExtensions = currentExtensions.map((extension) =>
+        extension.id === extensionId
+          ? { ...extension, installed: true }
+          : extension,
       )
 
-      writeStoredInstalledPackIds(getInstalledPackIds(nextPacks))
+      writeStoredInstalledExtensionIds(
+        getInstalledExtensionIds(nextExtensions),
+      )
 
-      return nextPacks
+      return nextExtensions
     })
   }, [])
 
-  const uninstallPack = useCallback((packId) => {
-    setAvailablePacks((currentPacks) => {
-      const nextPacks = currentPacks.map((pack) =>
-        pack.id === packId ? { ...pack, installed: false } : pack,
+  const uninstallExtension = useCallback((extensionId) => {
+    setAvailableExtensions((currentExtensions) => {
+      const nextExtensions = currentExtensions.map((extension) =>
+        extension.id === extensionId
+          ? { ...extension, installed: false }
+          : extension,
       )
 
-      writeStoredInstalledPackIds(getInstalledPackIds(nextPacks))
+      writeStoredInstalledExtensionIds(
+        getInstalledExtensionIds(nextExtensions),
+      )
 
-      return nextPacks
+      return nextExtensions
     })
   }, [])
+
+  const installExtensionsForCapabilities = useCallback((capabilities) => {
+    const extensionIdsToInstall = new Set(
+      getExtensionIdsForCapabilities(availableExtensions, capabilities),
+    )
+    const activatedCount = availableExtensions.filter(
+      (extension) =>
+        extensionIdsToInstall.has(extension.id) && !extension.installed,
+    ).length
+
+    setAvailableExtensions((currentExtensions) => {
+      const nextExtensions = currentExtensions.map((extension) =>
+        extensionIdsToInstall.has(extension.id)
+          ? {
+              ...extension,
+              installed: true,
+            }
+          : extension,
+      )
+
+      writeStoredInstalledExtensionIds(
+        getInstalledExtensionIds(nextExtensions),
+      )
+
+      return nextExtensions
+    })
+
+    return activatedCount
+  }, [availableExtensions])
 
   const value = useMemo(
     () => ({
+      activeCapabilities,
       activePrimitives,
-      availablePacks,
-      installPack,
-      installedPacks,
-      uninstallPack,
+      activeProject,
+      allCapabilities,
+      availableExtensions,
+      availablePacks: availableExtensions,
+      installExtension,
+      installExtensionsForCapabilities,
+      installPack: installExtension,
+      installedExtensions,
+      installedPacks: installedExtensions,
+      setActiveProject,
+      uninstallExtension,
+      uninstallPack: uninstallExtension,
     }),
-    [activePrimitives, availablePacks, installPack, installedPacks, uninstallPack],
+    [
+      activeCapabilities,
+      activePrimitives,
+      activeProject,
+      allCapabilities,
+      availableExtensions,
+      installExtension,
+      installExtensionsForCapabilities,
+      installedExtensions,
+      setActiveProject,
+      uninstallExtension,
+    ],
   )
 
   return (
