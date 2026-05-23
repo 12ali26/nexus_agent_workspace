@@ -1,6 +1,7 @@
 import Editor from '@monaco-editor/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { runCode } from '../computation/runner'
+import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
 import { useToast } from '../toast/useToast'
 
 const languageOptions = [
@@ -27,7 +28,9 @@ const languageOptions = [
 ]
 
 function CodeEditorPrimitive({ data, headerControls }) {
+  const { addPrimitiveBlock } = useRenderBlocks()
   const showToast = useToast()
+  const [isRunning, setIsRunning] = useState(false)
   const [language, setLanguage] = useState(languageOptions[0].id)
   const activeLanguage = useMemo(
     () =>
@@ -38,10 +41,39 @@ function CodeEditorPrimitive({ data, headerControls }) {
   const [code, setCode] = useState(activeLanguage.defaultCode)
 
   const runCurrentCode = useCallback(async () => {
-    // ELECTRON: replace this with child_process.spawn() call to real language runtime
-    const result = await runCode(language, code, data)
-    showToast(result.output)
-  }, [code, data, language, showToast])
+    if (isRunning) {
+      return
+    }
+
+    setIsRunning(true)
+
+    try {
+      const result = await runCode(language, code, data)
+      const isElectron = window.nexus?.isElectron
+
+      if (!isElectron) {
+        showToast(result.error)
+        return
+      }
+
+      const terminalText = result.success
+        ? result.output || 'Process completed with no output.'
+        : result.error || 'Process failed with no error output.'
+
+      addPrimitiveBlock({
+        type: 'terminal-output',
+        data: {
+          title: result.success ? 'Execution Output' : 'Execution Error',
+          props: {
+            lines: terminalText.trimEnd().split('\n'),
+            tone: result.success ? 'default' : 'error',
+          },
+        },
+      })
+    } finally {
+      setIsRunning(false)
+    }
+  }, [addPrimitiveBlock, code, data, isRunning, language, showToast])
 
   const selectLanguage = useCallback((nextLanguage) => {
     const nextLanguageOption =
@@ -73,14 +105,15 @@ function CodeEditorPrimitive({ data, headerControls }) {
           type="button"
           onMouseDown={(event) => event.stopPropagation()}
           onClick={runCurrentCode}
+          disabled={isRunning}
         >
-          Run
+          {isRunning ? 'Running...' : 'Run'}
         </button>
       </div>,
     )
 
     return () => headerControls?.(null)
-  }, [headerControls, language, runCurrentCode, selectLanguage])
+  }, [headerControls, isRunning, language, runCurrentCode, selectLanguage])
 
   return (
     <div className="code-editor-primitive">

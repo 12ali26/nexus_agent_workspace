@@ -1,16 +1,17 @@
 // This is the computational backbone of NEXUS — agents, code execution, and
 // formula engines all route through here.
 export async function runCode(language, code, data) {
-  void language
-  void code
-  void data
+  // ELECTRON: full computation via IPC.
+  if (window.nexus?.isElectron) {
+    return window.nexus.runCode(language, code, data)
+  }
 
-  // ELECTRON: replace this browser mock with child_process.spawn() calls to
-  // real language runtimes, passing optional canvas/workspace data as needed.
+  // BROWSER: mock response so npm run dev remains fully browser-only.
   return {
     success: false,
-    output: 'Code execution available in NEXUS desktop',
-    error: null,
+    output: '',
+    error:
+      'Code execution is available in NEXUS Desktop. Download the app to run code.',
     renderInstructions: [],
   }
 }

@@ -902,6 +902,10 @@
   line-height: 1.6;
 }
 
+.terminal-output-primitive.is-error {
+  color: #fca5a5;
+}
+
 .terminal-output-line {
   display: flex;
   gap: 8px;
@@ -910,6 +914,10 @@
 
 .terminal-output-line span:first-child {
   color: #22c55e;
+}
+
+.terminal-output-primitive.is-error .terminal-output-line span:first-child {
+  color: #ef4444;
 }
 
 .terminal-output-empty {
