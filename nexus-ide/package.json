@@ -1,7 +1,16 @@
 {
   "name": "nexus-ide",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "NEXUS IDE is a universal AI workspace shell built from installable primitive tools.",
+  "author": {
+    "name": "NEXUS Core",
+    "email": "nexus@example.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexus-ide/nexus-ide.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +18,9 @@
     "lint": "eslint .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder",
+    "electron:build:linux": "npm run build && electron-builder --linux",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:mac": "npm run build && electron-builder --mac",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -46,25 +58,36 @@
   "build": {
     "appId": "com.nexuside.app",
     "productName": "NEXUS IDE",
+    "asar": true,
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico"
     },
     "mac": {
-      "target": "dmg"
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns"
     },
     "linux": {
       "target": [
         "AppImage",
         "deb"
       ],
-      "category": "Development"
+      "category": "Development",
+      "icon": "build/icon.png"
     }
   }
 }
