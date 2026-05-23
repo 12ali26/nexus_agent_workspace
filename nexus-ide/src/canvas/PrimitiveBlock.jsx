@@ -5,6 +5,8 @@ import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
 import ChartPrimitive from '../primitives/ChartPrimitive'
 import EquationPrimitive from '../primitives/EquationPrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
+import ProseBlockPrimitive from '../primitives/ProseBlockPrimitive'
+import StatsBlockPrimitive from '../primitives/StatsBlockPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
 import TerminalOutputPrimitive from '../primitives/TerminalOutputPrimitive'
 
@@ -24,6 +26,8 @@ const primitiveComponents = {
   'code-editor': CodeEditorPrimitive,
   equation: EquationPrimitive,
   'progress-step': ProgressStepPrimitive,
+  'prose-block': ProseBlockPrimitive,
+  'stats-block': StatsBlockPrimitive,
   table: TablePrimitive,
   'terminal-output': TerminalOutputPrimitive,
 }

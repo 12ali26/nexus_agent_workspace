@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { getPrimitiveLabel } from '../primitives/primitivePayloads'
 import { usePackRegistry } from '../registry/usePackRegistry'
 
 function ExtensionSection({ extensions, onInstall, onUninstall, title }) {
@@ -28,28 +27,6 @@ function ExtensionSection({ extensions, onInstall, onUninstall, title }) {
                 <dd>{extension.author}</dd>
               </div>
             </dl>
-
-            <div className="extension-chip-group">
-              <span className="extension-chip-label">Primitives</span>
-              <div className="extension-renderers" aria-label="Included primitives">
-                {extension.primitives.map((primitive) => (
-                  <span className="extension-renderer-chip" key={primitive}>
-                    {getPrimitiveLabel(primitive)}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="extension-chip-group">
-              <span className="extension-chip-label">Capabilities</span>
-              <div className="extension-renderers" aria-label="Included capabilities">
-                {extension.capabilities.map((capability) => (
-                  <span className="extension-capability-chip" key={capability}>
-                    {capability}
-                  </span>
-                ))}
-              </div>
-            </div>
 
             {extension.installed ? (
               <button

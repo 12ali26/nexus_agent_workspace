@@ -15,6 +15,8 @@ const primitiveLabels = {
   'code-editor': 'Code Editor',
   equation: 'Equation',
   'progress-step': 'Progress Step',
+  'prose-block': 'Prose Block',
+  'stats-block': 'Stats',
   table: 'Table',
   'terminal-output': 'Terminal',
 }
@@ -82,6 +84,28 @@ export function createPrimitivePayload(primitiveType) {
       data: {
         title: 'Terminal Output',
         props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'prose-block') {
+    return {
+      type: 'prose-block',
+      data: {
+        title: 'Prose / LaTeX',
+        props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'stats-block') {
+    return {
+      type: 'stats-block',
+      data: {
+        title: 'Descriptive Statistics',
+        props: {
+          data: [],
+        },
       },
     }
   }

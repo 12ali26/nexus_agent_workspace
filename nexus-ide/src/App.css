@@ -686,6 +686,202 @@
   font-weight: 700;
 }
 
+.stats-primitive {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) 90px;
+  gap: 12px;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.stats-empty-state {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.stats-column-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stats-column-control select {
+  min-width: 160px;
+  min-height: 28px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text-strong);
+  font-size: 12px;
+  padding: 0 8px;
+  text-transform: none;
+}
+
+.stats-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.stats-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  background: var(--color-primitive-panel);
+}
+
+.stats-card > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--color-button-border);
+  border-radius: 6px;
+  color: var(--color-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.stats-card div {
+  min-width: 0;
+}
+
+.stats-card strong {
+  display: block;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-card p {
+  margin: 3px 0 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.stats-sparkline {
+  min-height: 0;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  background: var(--color-primitive-panel);
+}
+
+.prose-block-primitive {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-primitive-bg);
+}
+
+.prose-block-primitive:has(.prose-editor-pane:only-child),
+.prose-block-primitive:has(.prose-preview-pane:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.prose-editor-pane,
+.prose-preview-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.prose-editor-pane {
+  border-right: 1px solid var(--color-border);
+}
+
+.prose-editor-pane .w-md-editor {
+  height: 100% !important;
+  border-radius: 0;
+  background: var(--color-primitive-bg);
+  box-shadow: none;
+  color: var(--color-text);
+}
+
+.prose-editor-pane .w-md-editor-text,
+.prose-editor-pane .w-md-editor-text-input,
+.prose-editor-pane .w-md-editor-text-pre {
+  min-height: 100% !important;
+  color: var(--color-text);
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+
+.prose-preview-pane {
+  padding: 18px;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.prose-preview-pane .wmde-markdown {
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.prose-preview-pane .wmde-markdown h2 {
+  margin-top: 0;
+  color: var(--color-text-strong);
+}
+
+.prose-mode-control {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+}
+
+.prose-mode-control button {
+  min-height: 22px;
+  border: 0;
+  border-right: 1px solid var(--color-button-border);
+  background: var(--color-button);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 7px;
+}
+
+.prose-mode-control button:last-child {
+  border-right: 0;
+}
+
+.prose-mode-control button.is-active {
+  background: var(--color-accent);
+  color: var(--color-status-text);
+}
+
+.prose-word-count {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .code-editor-primitive {
   height: 100%;
   min-width: 0;

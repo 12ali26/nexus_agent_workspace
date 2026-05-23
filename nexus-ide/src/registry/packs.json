@@ -8,8 +8,14 @@
       "description": "Tables, charts and file loading for any data analysis work",
       "version": "0.1.0",
       "author": "NEXUS Core",
-      "capabilities": ["table.render", "chart.render", "csv.load", "json.load"],
-      "primitives": ["table", "chart"],
+      "capabilities": [
+        "table.render",
+        "chart.render",
+        "csv.load",
+        "json.load",
+        "stats.describe"
+      ],
+      "primitives": ["table", "chart", "stats-block"],
       "installed": false
     },
     {
@@ -56,6 +62,16 @@
       "author": "NEXUS Core",
       "capabilities": ["assumption.track", "progress.track"],
       "primitives": ["assumption-flag", "progress-step"],
+      "installed": false
+    },
+    {
+      "id": "writing-tools",
+      "name": "Writing Tools",
+      "description": "Prose writing with live LaTeX rendering for documentation and methodology",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "capabilities": ["prose.write", "latex.render"],
+      "primitives": ["prose-block"],
       "installed": false
     }
   ]
