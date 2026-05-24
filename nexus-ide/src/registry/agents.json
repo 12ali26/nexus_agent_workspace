@@ -1,0 +1,101 @@
+{
+  "version": "1.0.0",
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude",
+      "provider": "Anthropic",
+      "description": "Anthropic's Claude — powerful reasoning and analysis",
+      "connection": "api-key",
+      "keyLabel": "Anthropic API Key",
+      "keyPlaceholder": "sk-ant-...",
+      "keyHint": "Get your key at console.anthropic.com",
+      "keyUrl": "https://console.anthropic.com",
+      "models": [
+        "claude-sonnet-4-20250514",
+        "claude-opus-4-20250514",
+        "claude-haiku-4-20250514"
+      ],
+      "defaultModel": "claude-sonnet-4-20250514",
+      "protocol": "anthropic",
+      "color": "#CC785C"
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "provider": "OpenAI",
+      "description": "OpenAI's Codex — optimized for code and technical tasks",
+      "connection": "api-key",
+      "keyLabel": "OpenAI API Key",
+      "keyPlaceholder": "sk-...",
+      "keyHint": "Get your key at platform.openai.com",
+      "keyUrl": "https://platform.openai.com",
+      "models": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
+      "defaultModel": "gpt-4o",
+      "protocol": "openai",
+      "color": "#10A37F"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "provider": "Google",
+      "description": "Google's Gemini — multimodal reasoning and analysis",
+      "connection": "api-key",
+      "keyLabel": "Google AI API Key",
+      "keyPlaceholder": "AIza...",
+      "keyHint": "Get your key at aistudio.google.com",
+      "keyUrl": "https://aistudio.google.com",
+      "models": ["gemini-2.0-flash", "gemini-1.5-pro"],
+      "defaultModel": "gemini-2.0-flash",
+      "protocol": "gemini",
+      "color": "#4285F4"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "provider": "Local",
+      "description": "Run open source models locally — no API key needed",
+      "connection": "local",
+      "endpoint": "http://localhost:11434",
+      "models": ["llama3", "mistral", "phi3", "qwen2"],
+      "defaultModel": "llama3",
+      "protocol": "ollama",
+      "color": "#F97316"
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "provider": "Community",
+      "description": "Community agent — connect via local endpoint",
+      "connection": "local",
+      "endpoint": "http://localhost:3333",
+      "models": ["default"],
+      "defaultModel": "default",
+      "protocol": "mcp",
+      "color": "#8B5CF6"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "provider": "OpenRouter",
+      "description": "Access Claude, GPT-4, Gemini, Llama and 100+ models with one API key",
+      "connection": "api-key",
+      "keyLabel": "OpenRouter API Key",
+      "keyPlaceholder": "sk-or-...",
+      "keyHint": "Get your key at openrouter.ai/keys",
+      "keyUrl": "https://openrouter.ai/keys",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "models": [
+        "anthropic/claude-sonnet-4-5",
+        "anthropic/claude-opus-4",
+        "openai/gpt-4o",
+        "google/gemini-2.0-flash",
+        "meta-llama/llama-3.3-70b-instruct",
+        "mistralai/mistral-7b-instruct"
+      ],
+      "defaultModel": "anthropic/claude-sonnet-4-5",
+      "protocol": "openrouter",
+      "color": "#6366F1"
+    }
+  ]
+}

@@ -5,6 +5,8 @@ import ClearCanvasButton from './ClearCanvasButton'
 import FileOpenButton from './FileOpenButton'
 import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
+import { AgentProvider } from './context/AgentContext'
+import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext'
 import { WorkspaceDataProvider } from './context/WorkspaceDataContext'
 import { panels } from './panels'
@@ -21,6 +23,7 @@ function NexusShell() {
     useState(true)
   const [toastMessage, setToastMessage] = useState('')
   const toastTimerRef = useRef(null)
+  const { activeAgent, isConnected, isThinking } = useAgent()
   const { activeCapabilities, activeProject, installedPacks } = usePackRegistry()
   const { theme } = useSettings()
   const ActivePanel = activePanel ? panels[activePanel] : null
@@ -104,7 +107,18 @@ function NexusShell() {
                 )}
               </span>
               <span>{activeCapabilities.length} capabilities active</span>
-              <span>No Agent Connected</span>
+              <span className="status-agent">
+                {isConnected ? (
+                  <>
+                    <span className="status-agent-dot" aria-hidden="true" />
+                    {isThinking
+                      ? `${activeAgent.name} — Thinking...`
+                      : activeAgent.name}
+                  </>
+                ) : (
+                  'No Agent Connected'
+                )}
+              </span>
             </footer>
 
             {toastMessage && <div className="toast">{toastMessage}</div>}
@@ -120,7 +134,9 @@ function App() {
   return (
     <SettingsProvider>
       <PackRegistryProvider>
-        <NexusShell />
+        <AgentProvider>
+          <NexusShell />
+        </AgentProvider>
       </PackRegistryProvider>
     </SettingsProvider>
   )

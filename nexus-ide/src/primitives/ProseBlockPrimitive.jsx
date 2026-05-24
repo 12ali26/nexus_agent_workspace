@@ -49,8 +49,8 @@ function renderMarkdownWithMath(content) {
     )
 }
 
-function ProseBlockPrimitive({ headerControls }) {
-  const [content, setContent] = useState(defaultContent)
+function ProseBlockPrimitive({ content: initialContent, headerControls }) {
+  const [content, setContent] = useState(initialContent || defaultContent)
   const [mode, setMode] = useState('Split')
   const wordCount = useMemo(() => getWordCount(content), [content])
 

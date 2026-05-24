@@ -5,9 +5,10 @@ import { RenderBlocksContext } from './renderBlocksContext'
 const canvasStorageKey = 'nexus_canvas'
 
 function serializePrimitiveBlocks(blocks) {
-  return blocks.map(({ type, data, position, size, zIndex }) => ({
+  return blocks.map(({ type, data, meta, position, size, zIndex }) => ({
     type,
     data,
+    meta,
     position,
     size,
     zIndex,
@@ -39,6 +40,7 @@ function restorePrimitiveBlock(block) {
     id: crypto.randomUUID(),
     type: block.type,
     data: block.data,
+    meta: block.meta,
     position: block.position,
     size: block.size,
     zIndex: block.zIndex,

@@ -80,7 +80,12 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
     >
       <article className="primitive-block">
         <header className="primitive-block-header">
-          <span>{block.data.title}</span>
+          <span>
+            {block.data.title}
+            {block.meta?.source === 'agent' && (
+              <span className="primitive-agent-badge">Agent</span>
+            )}
+          </span>
           <div className="primitive-block-header-actions">
             {headerControls}
             <button
