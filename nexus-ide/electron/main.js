@@ -34,10 +34,22 @@ function createWindow() {
 }
 
 function createRuntimeScript(language, code, data) {
+  const datasetMap =
+    data?.datasets && typeof data.datasets === 'object' ? data.datasets : {}
+  const safeVariableNames = Object.keys(datasetMap).filter((name) =>
+    /^[A-Za-z_][A-Za-z0-9_]*$/.test(name),
+  )
+  const serializedDatasets = JSON.stringify(datasetMap)
+
   if (language === 'python') {
-    const script = data
-      ? `import json\ndata = json.loads(${JSON.stringify(JSON.stringify(data))})\n${code}`
-      : code
+    const variableLines = safeVariableNames
+      .map((name) => `${name} = datasets.get(${JSON.stringify(name)}, [])`)
+      .join('\n')
+    const script =
+      `import json\n` +
+      `datasets = json.loads(${JSON.stringify(serializedDatasets)})\n` +
+      `${variableLines}\n` +
+      `${code}`
 
     return {
       command: 'python3',
@@ -46,9 +58,9 @@ function createRuntimeScript(language, code, data) {
   }
 
   if (language === 'r') {
-    const script = data
-      ? `data <- jsonlite::fromJSON(${JSON.stringify(JSON.stringify(data))})\n${code}`
-      : code
+    const script =
+      `datasets <- jsonlite::fromJSON(${JSON.stringify(serializedDatasets)})\n` +
+      `${code}`
 
     return {
       command: 'Rscript',
@@ -57,9 +69,17 @@ function createRuntimeScript(language, code, data) {
   }
 
   if (language === 'javascript') {
+    const variableLines = safeVariableNames
+      .map((name) => `const ${name} = datasets[${JSON.stringify(name)}];`)
+      .join('\n')
+    const script =
+      `const datasets = ${serializedDatasets};\n` +
+      `${variableLines}\n` +
+      `${code}`
+
     return {
       command: 'node',
-      args: ['-e', code],
+      args: ['-e', script],
     }
   }
 

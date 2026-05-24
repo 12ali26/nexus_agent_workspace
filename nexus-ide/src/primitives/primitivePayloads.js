@@ -1,10 +1,7 @@
 import {
   sampleAnnotations,
   sampleAssumptions,
-  sampleChartData,
   sampleProgressSteps,
-  sampleTableColumns,
-  sampleTableData,
 } from './sampleData'
 
 const primitiveLabels = {
@@ -33,10 +30,7 @@ export function createPrimitivePayload(primitiveType) {
       type: 'table',
       data: {
         title: 'Data Table',
-        props: {
-          columns: sampleTableColumns,
-          data: sampleTableData,
-        },
+        props: {},
       },
     }
   }
@@ -46,13 +40,7 @@ export function createPrimitivePayload(primitiveType) {
       type: 'chart',
       data: {
         title: 'Trend Chart',
-        props: {
-          data: sampleChartData,
-          lineKey: 'value',
-          title: 'Trend Chart',
-          xKey: 'step',
-          yLabel: 'Value',
-        },
+        props: {},
       },
     }
   }
@@ -63,7 +51,7 @@ export function createPrimitivePayload(primitiveType) {
       data: {
         title: 'Equation',
         props: {
-          formula: String.raw`y = mx + b`,
+          formula: String.raw`q_x = \frac{d_x}{l_x}`,
           resolvedValue: 'Ready for formula evaluation',
         },
       },
@@ -125,9 +113,7 @@ export function createPrimitivePayload(primitiveType) {
       type: 'stats-block',
       data: {
         title: 'Descriptive Statistics',
-        props: {
-          data: [],
-        },
+        props: {},
       },
     }
   }

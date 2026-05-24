@@ -1,6 +1,8 @@
 import Editor from '@monaco-editor/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { runCode } from '../computation/runner'
+import { createDatasetScope } from '../context/workspaceDataUtils'
+import { useWorkspaceData } from '../context/useWorkspaceData'
 import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
 import { useToast } from '../toast/useToast'
 
@@ -29,8 +31,12 @@ const languageOptions = [
 
 function CodeEditorPrimitive({ data, headerControls }) {
   const { addPrimitiveBlock } = useRenderBlocks()
+  const { activeDatasetId, addDataset, datasetAliases, datasets } =
+    useWorkspaceData()
   const showToast = useToast()
   const [isRunning, setIsRunning] = useState(false)
+  const [pendingDatasetRows, setPendingDatasetRows] = useState(null)
+  const [pendingDatasetName, setPendingDatasetName] = useState('code_output')
   const [language, setLanguage] = useState(languageOptions[0].id)
   const activeLanguage = useMemo(
     () =>
@@ -39,6 +45,37 @@ function CodeEditorPrimitive({ data, headerControls }) {
     [language],
   )
   const [code, setCode] = useState(activeLanguage.defaultCode)
+  const executionData = useMemo(
+    () => ({
+      datasets: createDatasetScope(datasets, activeDatasetId).scope,
+      rawDatasets: datasets.map((dataset) => ({
+        columns: dataset.columns,
+        name: dataset.name,
+        rows: dataset.rows,
+      })),
+      ...data,
+    }),
+    [activeDatasetId, data, datasets],
+  )
+
+  const detectDatasetOutput = (output) => {
+    try {
+      const parsedOutput = JSON.parse(output.trim())
+
+      if (
+        Array.isArray(parsedOutput) &&
+        parsedOutput.every(
+          (row) => row && typeof row === 'object' && !Array.isArray(row),
+        )
+      ) {
+        return parsedOutput
+      }
+    } catch {
+      return null
+    }
+
+    return null
+  }
 
   const runCurrentCode = useCallback(async () => {
     if (isRunning) {
@@ -48,9 +85,14 @@ function CodeEditorPrimitive({ data, headerControls }) {
     setIsRunning(true)
 
     try {
-      const result = await runCode(language, code, data)
+      const result = await runCode(language, code, executionData)
 
-      if (!window.nexus?.isElectron && !result.output && result.error) {
+      if (
+        !window.nexus?.isElectron &&
+        !result.output &&
+        result.error &&
+        /server unavailable|Failed to fetch|NetworkError/i.test(result.error)
+      ) {
         showToast(result.error)
         return
       }
@@ -69,10 +111,40 @@ function CodeEditorPrimitive({ data, headerControls }) {
           },
         },
       })
+
+      if (result.success && language === 'python') {
+        const outputRows = detectDatasetOutput(result.output)
+
+        if (outputRows?.length) {
+          setPendingDatasetRows(outputRows)
+          setPendingDatasetName('python_output')
+        }
+      }
     } finally {
       setIsRunning(false)
     }
-  }, [addPrimitiveBlock, code, data, isRunning, language, showToast])
+  }, [
+    addPrimitiveBlock,
+    code,
+    executionData,
+    isRunning,
+    language,
+    showToast,
+  ])
+
+  const registerPendingDataset = () => {
+    if (!pendingDatasetRows?.length) {
+      return
+    }
+
+    addDataset({
+      name: pendingDatasetName || 'code_output',
+      rows: pendingDatasetRows,
+      source: 'code',
+    })
+    setPendingDatasetRows(null)
+    showToast('Code output registered as dataset')
+  }
 
   const selectLanguage = useCallback((nextLanguage) => {
     const nextLanguageOption =
@@ -116,19 +188,52 @@ function CodeEditorPrimitive({ data, headerControls }) {
 
   return (
     <div className="code-editor-primitive">
-      <Editor
-        height="100%"
-        language={language}
-        theme="vs-dark"
-        value={code}
-        options={{
-          automaticLayout: true,
-          fontSize: 13,
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-        }}
-        onChange={(value) => setCode(value ?? '')}
-      />
+      <div className="code-editor-pane">
+        <Editor
+          height="100%"
+          language={language}
+          theme="vs-dark"
+          value={code}
+          options={{
+            automaticLayout: true,
+            fontSize: 13,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+          }}
+          onChange={(value) => setCode(value ?? '')}
+        />
+      </div>
+
+      <aside className="available-data-panel">
+        <h4>Available Data</h4>
+        {datasetAliases.length ? (
+          datasetAliases.map(({ dataset, variableName }) => (
+            <article key={dataset.id}>
+              <strong>{variableName}</strong>
+              <span>{dataset.name}</span>
+              <p>{dataset.columns.join(', ')}</p>
+            </article>
+          ))
+        ) : (
+          <p>No datasets loaded</p>
+        )}
+
+        {pendingDatasetRows?.length > 0 && (
+          <div className="pending-dataset-panel">
+            <label>
+              <span>Register Output</span>
+              <input
+                type="text"
+                value={pendingDatasetName}
+                onChange={(event) => setPendingDatasetName(event.target.value)}
+              />
+            </label>
+            <button type="button" onClick={registerPendingDataset}>
+              Register Dataset
+            </button>
+          </div>
+        )}
+      </aside>
     </div>
   )
 }

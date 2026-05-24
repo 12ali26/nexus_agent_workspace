@@ -13,6 +13,64 @@ app.use(express.json())
 
 // This is the NEXUS computation backbone. All server-side code execution
 // routes through here, while React and the API stay on one port.
+function getDatasetMap(data) {
+  return data?.datasets && typeof data.datasets === 'object' ? data.datasets : {}
+}
+
+function getSafeVariableNames(datasetMap) {
+  return Object.keys(datasetMap).filter((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
+}
+
+function createRuntimeScript(language, code, data) {
+  const datasetMap = getDatasetMap(data)
+  const safeVariableNames = getSafeVariableNames(datasetMap)
+  const serializedDatasets = JSON.stringify(datasetMap)
+
+  if (language === 'python') {
+    const variableLines = safeVariableNames
+      .map((name) => `${name} = datasets.get(${JSON.stringify(name)}, [])`)
+      .join('\n')
+    const fullCode =
+      `import json\n` +
+      `datasets = json.loads(${JSON.stringify(serializedDatasets)})\n` +
+      `${variableLines}\n` +
+      `${code}`
+
+    return {
+      args: ['-c', fullCode],
+      command: 'python3',
+    }
+  }
+
+  if (language === 'r') {
+    const fullCode =
+      `datasets <- jsonlite::fromJSON(${JSON.stringify(serializedDatasets)})\n` +
+      `${code}`
+
+    return {
+      args: ['-e', fullCode],
+      command: 'Rscript',
+    }
+  }
+
+  if (language === 'javascript') {
+    const variableLines = safeVariableNames
+      .map((name) => `const ${name} = datasets[${JSON.stringify(name)}];`)
+      .join('\n')
+    const fullCode =
+      `const datasets = ${serializedDatasets};\n` +
+      `${variableLines}\n` +
+      `${code}`
+
+    return {
+      args: ['-e', fullCode],
+      command: 'node',
+    }
+  }
+
+  return null
+}
+
 app.post('/api/run', async (req, res) => {
   const { language, code, data } = req.body
 
@@ -20,31 +78,15 @@ app.post('/api/run', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
 
-  let command
-  let args
+  const runtime = createRuntimeScript(language, code, data)
 
-  if (language === 'python') {
-    const fullCode = data
-      ? `import json\ndata = ${JSON.stringify(data)}\n${code}`
-      : code
-    command = 'python3'
-    args = ['-c', fullCode]
-  } else if (language === 'r') {
-    const fullCode = data
-      ? `data <- jsonlite::fromJSON('${JSON.stringify(data)}')\n${code}`
-      : code
-    command = 'Rscript'
-    args = ['-e', fullCode]
-  } else if (language === 'javascript') {
-    command = 'node'
-    args = ['-e', code]
-  } else {
+  if (!runtime) {
     res.write(`data: ${JSON.stringify({ error: 'Unsupported language' })}\n\n`)
     res.end()
     return
   }
 
-  const proc = spawn(command, args, { timeout: 30000 })
+  const proc = spawn(runtime.command, runtime.args, { timeout: 30000 })
   let exited = false
 
   proc.stdout.on('data', (chunk) => {

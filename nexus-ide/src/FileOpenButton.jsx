@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useWorkspaceData } from './context/useWorkspaceData'
 import { parseFileToPrimitive } from './fileLoading/fileToPrimitive'
 import { parseProjectManifest } from './project/ProjectManifest'
 import { getPrimitiveLabel } from './primitives/primitivePayloads'
@@ -15,6 +16,7 @@ function FileOpenButton({ onToast }) {
     installedPacks,
     setActiveProject,
   } = usePackRegistry()
+  const { addDataset } = useWorkspaceData()
   const { addPrimitiveBlock, replacePrimitiveBlocks } = useRenderBlocks()
 
   const openFilePicker = () => {
@@ -83,6 +85,22 @@ function FileOpenButton({ onToast }) {
           result.primitive.type,
         )} before loading this file`,
       )
+      return
+    }
+
+    if (result.dataset) {
+      const dataset = addDataset(result.dataset)
+
+      addPrimitiveBlock({
+        ...result.primitive,
+        data: {
+          ...result.primitive.data,
+          props: {
+            ...result.primitive.data.props,
+            datasetId: dataset?.id ?? '',
+          },
+        },
+      })
       return
     }
 

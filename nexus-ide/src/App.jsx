@@ -6,6 +6,7 @@ import FileOpenButton from './FileOpenButton'
 import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
 import { ParameterProvider } from './context/ParameterContext'
+import { WorkspaceDataProvider } from './context/WorkspaceDataContext'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext'
 import { usePackRegistry } from './registry/usePackRegistry'
@@ -38,8 +39,9 @@ function NexusShell() {
 
   return (
     <ParameterProvider>
-      <RenderBlocksProvider>
-        <ToastContext.Provider value={showToast}>
+      <WorkspaceDataProvider>
+        <RenderBlocksProvider>
+          <ToastContext.Provider value={showToast}>
           <div className="nexus-shell" data-theme={theme}>
             <header className="top-bar">
               <div className="brand-mark" aria-hidden="true">
@@ -107,8 +109,9 @@ function NexusShell() {
 
             {toastMessage && <div className="toast">{toastMessage}</div>}
           </div>
-        </ToastContext.Provider>
-      </RenderBlocksProvider>
+          </ToastContext.Provider>
+        </RenderBlocksProvider>
+      </WorkspaceDataProvider>
     </ParameterProvider>
   )
 }

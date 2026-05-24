@@ -1,26 +1,24 @@
 import Papa from 'papaparse'
-
-function createColumnsFromRows(rows) {
-  const firstRow = rows[0] ?? {}
-
-  return Object.keys(firstRow).map((key) => ({
-    accessorKey: key,
-    header: key,
-  }))
-}
+import {
+  createColumnsFromRows,
+  createTableColumns,
+} from '../context/workspaceDataUtils'
 
 function isObjectRow(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
 }
 
-function createTablePrimitive(title, rows) {
+function createTablePrimitive(title, rows, datasetId = '') {
+  const columns = createColumnsFromRows(rows)
+
   return {
     type: 'table',
     data: {
       title,
       props: {
-        columns: createColumnsFromRows(rows),
+        columns: createTableColumns(columns),
         data: rows,
+        datasetId,
       },
     },
   }
@@ -45,7 +43,15 @@ function parseCsvToPrimitive(filename, fileText) {
     throw new Error('Empty CSV')
   }
 
-  return createTablePrimitive(filename, rows)
+  return {
+    dataset: {
+      columns: createColumnsFromRows(rows),
+      name: filename,
+      rows,
+      source: 'file',
+    },
+    primitive: createTablePrimitive(filename, rows),
+  }
 }
 
 function parseJsonToPrimitive(filename, fileText) {
@@ -56,7 +62,15 @@ function parseJsonToPrimitive(filename, fileText) {
       throw new Error('Empty JSON array')
     }
 
-    return createTablePrimitive(filename, parsedJson)
+    return {
+      dataset: {
+        columns: createColumnsFromRows(parsedJson),
+        name: filename,
+        rows: parsedJson,
+        source: 'file',
+      },
+      primitive: createTablePrimitive(filename, parsedJson),
+    }
   }
 
   if (!isObjectRow(parsedJson)) {
@@ -65,12 +79,16 @@ function parseJsonToPrimitive(filename, fileText) {
 
   if ('formula' in parsedJson) {
     return {
-      type: 'equation',
-      data: {
-        title: filename,
-        props: {
-          formula: parsedJson.formula,
-          resolvedValue: parsedJson.resolvedValue ?? parsedJson.resolved ?? '',
+      dataset: null,
+      primitive: {
+        type: 'equation',
+        data: {
+          title: filename,
+          props: {
+            formula: parsedJson.formula,
+            resolvedValue:
+              parsedJson.resolvedValue ?? parsedJson.resolved ?? '',
+          },
         },
       },
     }
@@ -78,11 +96,14 @@ function parseJsonToPrimitive(filename, fileText) {
 
   if (Array.isArray(parsedJson.steps)) {
     return {
-      type: 'progress-step',
-      data: {
-        title: filename,
-        props: {
-          steps: parsedJson.steps,
+      dataset: null,
+      primitive: {
+        type: 'progress-step',
+        data: {
+          title: filename,
+          props: {
+            steps: parsedJson.steps,
+          },
         },
       },
     }
@@ -90,11 +111,14 @@ function parseJsonToPrimitive(filename, fileText) {
 
   if (Array.isArray(parsedJson.assumptions)) {
     return {
-      type: 'assumption-flag',
-      data: {
-        title: filename,
-        props: {
-          assumptions: parsedJson.assumptions,
+      dataset: null,
+      primitive: {
+        type: 'assumption-flag',
+        data: {
+          title: filename,
+          props: {
+            assumptions: parsedJson.assumptions,
+          },
         },
       },
     }
@@ -116,13 +140,13 @@ export function parseFileToPrimitive(file, fileText) {
   try {
     if (lowerFilename.endsWith('.csv')) {
       return {
-        primitive: parseCsvToPrimitive(filename, fileText),
+        ...parseCsvToPrimitive(filename, fileText),
       }
     }
 
     if (lowerFilename.endsWith('.json')) {
       return {
-        primitive: parseJsonToPrimitive(filename, fileText),
+        ...parseJsonToPrimitive(filename, fileText),
       }
     }
   } catch {

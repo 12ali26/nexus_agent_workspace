@@ -1,7 +1,44 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-function AssumptionFlagPrimitive({ assumptions }) {
+function AssumptionFlagPrimitive({ assumptions, headerControls }) {
   const [localAssumptions, setLocalAssumptions] = useState(assumptions)
+  const summary = useMemo(
+    () =>
+      localAssumptions.reduce(
+        (counts, assumption) => {
+          const statusKey = assumption.status.toLowerCase()
+
+          if (statusKey in counts) {
+            counts[statusKey] += 1
+          }
+
+          return counts
+        },
+        {
+          approved: 0,
+          challenged: 0,
+          pending: 0,
+        },
+      ),
+    [localAssumptions],
+  )
+
+  useEffect(() => {
+    headerControls?.(
+      <div className="primitive-header-controls">
+        <button
+          className="primitive-header-action assumption-info"
+          type="button"
+          title="Flag and review assumptions made in your analysis. Approve to accept, Challenge to question."
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          i
+        </button>
+      </div>,
+    )
+
+    return () => headerControls?.(null)
+  }, [headerControls])
 
   const updateStatus = (assumptionId, status) => {
     setLocalAssumptions((currentAssumptions) =>
@@ -37,18 +74,23 @@ function AssumptionFlagPrimitive({ assumptions }) {
               type="button"
               onClick={() => updateStatus(assumption.id, 'Approved')}
             >
-              Approve
+              ✓ Approve
             </button>
             <button
               className="assumption-action"
               type="button"
               onClick={() => updateStatus(assumption.id, 'Challenged')}
             >
-              Challenge
+              ⚠ Challenge
             </button>
           </div>
         </article>
       ))}
+
+      <div className="assumption-summary">
+        {summary.approved} approved · {summary.challenged} challenged ·{' '}
+        {summary.pending} pending
+      </div>
     </div>
   )
 }

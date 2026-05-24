@@ -6,20 +6,10 @@ import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 
 function WorkspaceCanvas() {
   const { activePrimitives, installedPacks } = usePackRegistry()
-  const { addPrimitiveBlock, primitiveBlocks } = useRenderBlocks()
+  const { addPrimitiveBlock } = useRenderBlocks()
 
   const addToolbarPrimitiveBlock = (primitiveType) => {
     const primitive = createPrimitivePayload(primitiveType)
-
-    if (primitiveType === 'stats-block') {
-      const latestTableBlock = [...primitiveBlocks]
-        .reverse()
-        .find((block) => block.type === 'table')
-
-      // Canvas data sharing for Stats is the same mechanism agents will use to
-      // inspect existing blocks before generating render instructions.
-      primitive.data.props.data = latestTableBlock?.data?.props?.data ?? []
-    }
 
     addPrimitiveBlock(primitive)
   }

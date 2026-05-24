@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -7,10 +7,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { createTableColumns } from '../context/workspaceDataUtils'
+import { useWorkspaceData } from '../context/useWorkspaceData'
 
 const pageSize = 20
 
 function TablePrimitive({ columns, data }) {
+  const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
+  const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [columnSizing, setColumnSizing] = useState({})
   const [globalFilter, setGlobalFilter] = useState('')
   const [pagination, setPagination] = useState({
@@ -18,13 +22,27 @@ function TablePrimitive({ columns, data }) {
     pageSize,
   })
   const [sorting, setSorting] = useState([])
+  const selectedDataset =
+    datasets.find((dataset) => dataset.id === selectedDatasetId) ??
+    activeDataset
+  const tableData = useMemo(
+    () => selectedDataset?.rows ?? data ?? [],
+    [data, selectedDataset],
+  )
+  const tableColumns = useMemo(
+    () =>
+      selectedDataset
+        ? createTableColumns(selectedDataset.columns)
+        : (columns ?? createTableColumns(Object.keys(tableData[0] ?? {}))),
+    [columns, selectedDataset, tableData],
+  )
 
   // TanStack Table intentionally returns table helpers that React Compiler flags.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     columnResizeMode: 'onChange',
-    columns,
-    data,
+    columns: tableColumns,
+    data: tableData,
     enableColumnResizing: true,
     enableSortingRemoval: true,
     getCoreRowModel: getCoreRowModel(),
@@ -47,9 +65,36 @@ function TablePrimitive({ columns, data }) {
   const filteredRowCount = table.getFilteredRowModel().rows.length
   const showPagination = filteredRowCount > pageSize
 
+  if (!tableData.length || !tableColumns.length) {
+    return (
+      <div className="stats-empty-state">
+        Load a data file first to render a table
+      </div>
+    )
+  }
+
   return (
     <div className="table-primitive">
       <div className="table-primitive-toolbar">
+        {datasets.length > 0 && (
+          <select
+            className="dataset-select"
+            value={selectedDataset?.id ?? ''}
+            aria-label="Table dataset"
+            onChange={(event) => {
+              setSelectedDatasetId(event.target.value)
+              setActiveDataset(event.target.value)
+              setGlobalFilter('')
+              table.setPageIndex(0)
+            }}
+          >
+            {datasets.map((dataset) => (
+              <option key={dataset.id} value={dataset.id}>
+                {dataset.name}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           className="table-search-input"
           type="search"
