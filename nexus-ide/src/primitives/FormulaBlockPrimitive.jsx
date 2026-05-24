@@ -6,7 +6,11 @@ import { useWorkspaceData } from '../context/useWorkspaceData'
 
 function formatResult(result) {
   if (typeof result === 'number') {
-    return Number.isInteger(result) ? result.toString() : result.toFixed(4)
+    if (!Number.isFinite(result)) {
+      return 'n/a'
+    }
+
+    return Number.isInteger(result) ? result.toString() : result.toFixed(2)
   }
 
   return String(result)
@@ -100,19 +104,19 @@ function FormulaBlockPrimitive() {
       <div className="formula-hint-group">
         <span>Parameters</span>
         <div className="formula-hints" aria-label="Available parameters">
-        {parameterList.length ? (
-          parameterList.map((parameter) => (
-            <button
-              key={`${parameter.sourceId}-${parameter.id}`}
-              type="button"
-              onClick={() => insertToken(parameter.variableName)}
-            >
-              {parameter.variableName}
-            </button>
-          ))
-        ) : (
-          <p>No parameters available</p>
-        )}
+          {parameterList.length ? (
+            parameterList.map((parameter) => (
+              <button
+                key={`${parameter.sourceId}-${parameter.id}`}
+                type="button"
+                onClick={() => insertToken(parameter.variableName)}
+              >
+                {parameter.variableName}
+              </button>
+            ))
+          ) : (
+            <p>No parameters available</p>
+          )}
         </div>
       </div>
 

@@ -63,8 +63,23 @@ function formatStat(value) {
   return Number.isInteger(numberValue) ? numberValue.toString() : numberValue.toFixed(3)
 }
 
+function formatShapeStat(value) {
+  return Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '0.0000'
+}
+
 function getMean(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length
+}
+
+function getPopulationStandardDeviation(values, mean = getMean(values)) {
+  if (!values.length) {
+    return 0
+  }
+
+  return Math.sqrt(
+    values.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) /
+      values.length,
+  )
 }
 
 function getSampleStandardDeviation(values, mean = getMean(values)) {
@@ -267,26 +282,55 @@ function getHistogram(values) {
 }
 
 function getShapeStats(values) {
-  const mean = getMean(values)
-  const standardDeviation = getSampleStandardDeviation(values, mean)
-
-  if (standardDeviation === 0) {
-    return { kurtosis: 0, skewness: 0 }
+  if (values.length < 2) {
+    return {
+      kurtosis: 0,
+      kurtosisInterpretation: 'Mesokurtic (normal-like)',
+      skewness: 0,
+      skewnessInterpretation: 'Approximately symmetric',
+    }
   }
 
-  const moments = values.reduce(
-    (accumulator, value) => {
-      const standardized = (value - mean) / standardDeviation
-      accumulator.third += standardized ** 3
-      accumulator.fourth += standardized ** 4
-      return accumulator
-    },
-    { fourth: 0, third: 0 },
-  )
+  const mean = getMean(values)
+  const standardDeviation = getPopulationStandardDeviation(values, mean)
+
+  if (standardDeviation === 0) {
+    return {
+      kurtosis: 0,
+      kurtosisInterpretation: 'Mesokurtic (normal-like)',
+      skewness: 0,
+      skewnessInterpretation: 'Approximately symmetric',
+    }
+  }
+
+  const skewness =
+    values.reduce(
+      (sum, value) => sum + Math.pow((value - mean) / standardDeviation, 3),
+      0,
+    ) / values.length
+  const kurtosis =
+    values.reduce(
+      (sum, value) => sum + Math.pow((value - mean) / standardDeviation, 4),
+      0,
+    ) /
+      values.length -
+    3
 
   return {
-    kurtosis: moments.fourth / values.length - 3,
-    skewness: moments.third / values.length,
+    kurtosis,
+    kurtosisInterpretation:
+      kurtosis > 1
+        ? 'Leptokurtic (heavy tails)'
+        : kurtosis < -1
+          ? 'Platykurtic (light tails)'
+          : 'Mesokurtic (normal-like)',
+    skewness,
+    skewnessInterpretation:
+      skewness > 0.5
+        ? 'Right skewed'
+        : skewness < -0.5
+          ? 'Left skewed'
+          : 'Approximately symmetric',
   }
 }
 
@@ -474,15 +518,17 @@ function StatsBlockPrimitive({ data = [] }) {
               <article className="stats-card">
                 <span aria-hidden="true">sk</span>
                 <div>
-                  <strong>{formatStat(shapeStats.skewness)}</strong>
+                  <strong>{formatShapeStat(shapeStats.skewness)}</strong>
                   <p>Skewness</p>
+                  <p>{shapeStats.skewnessInterpretation}</p>
                 </div>
               </article>
               <article className="stats-card">
                 <span aria-hidden="true">ku</span>
                 <div>
-                  <strong>{formatStat(shapeStats.kurtosis)}</strong>
+                  <strong>{formatShapeStat(shapeStats.kurtosis)}</strong>
                   <p>Kurtosis</p>
+                  <p>{shapeStats.kurtosisInterpretation}</p>
                 </div>
               </article>
             </div>

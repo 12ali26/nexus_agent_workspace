@@ -49,15 +49,19 @@ function parseNumericValue(value, fallback = 0) {
 
 function ParameterNodePrimitive({ blockId }) {
   const { registerParameterNode, unregisterParameterNode } = useParameters()
-  const [parameters, setParameters] = useState(defaultParameters)
+  const [parameters, setParameters] = useState(() =>
+    defaultParameters.map((parameter) => ({ ...parameter })),
+  )
   const [isAddingParameter, setIsAddingParameter] = useState(false)
   const [draft, setDraft] = useState(emptyDraft)
 
   useEffect(() => {
-    registerParameterNode(blockId, parameters)
-
     return () => unregisterParameterNode(blockId)
-  }, [blockId, parameters, registerParameterNode, unregisterParameterNode])
+  }, [blockId, unregisterParameterNode])
+
+  useEffect(() => {
+    registerParameterNode(blockId, parameters)
+  }, [blockId, parameters, registerParameterNode])
 
   const updateParameterValue = (parameterId, value) => {
     setParameters((currentParameters) =>
