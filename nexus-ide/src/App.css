@@ -2299,6 +2299,205 @@
   background: var(--color-primitive-panel);
 }
 
+.regression-primitive {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-primitive-bg);
+}
+
+.regression-config {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.regression-config label,
+.regression-config fieldset {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.regression-config select,
+.regression-config button {
+  min-width: 0;
+  min-height: 30px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+.regression-config fieldset {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  max-height: 86px;
+  overflow: auto;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--color-primitive-panel);
+}
+
+.regression-config legend {
+  grid-column: 1 / -1;
+  padding: 0;
+  color: var(--color-text-muted);
+}
+
+.regression-config fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.regression-config fieldset p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.regression-config input {
+  accent-color: var(--color-accent);
+}
+
+.regression-config button {
+  justify-self: start;
+  background: var(--color-button);
+  color: var(--color-text-strong);
+  cursor: pointer;
+}
+
+.regression-config button:hover,
+.regression-config button:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-button-hover);
+}
+
+.regression-error {
+  align-self: center;
+  grid-column: 2 / -1;
+  margin: 0;
+  color: #f87171;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.regression-results {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.regression-tab-panel {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  background: var(--color-primitive-panel);
+}
+
+.regression-table-scroll {
+  min-width: 0;
+  overflow: auto;
+}
+
+.regression-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.regression-table th,
+.regression-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.regression-table th:first-child,
+.regression-table td:first-child {
+  text-align: left;
+}
+
+.regression-table th {
+  color: var(--color-text-strong);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.regression-model-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+}
+
+.regression-model-stats span,
+.regression-fit-panel > span {
+  border: 1px solid var(--color-button-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.regression-fit-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  gap: 8px;
+  padding: 8px;
+}
+
+.regression-fit-panel > span {
+  justify-self: start;
+}
+
+.regression-equation {
+  overflow: auto;
+  border: 1px solid var(--color-primitive-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--color-primitive-panel);
+  color: var(--color-text-strong);
+  font-size: 13px;
+}
+
+.regression-equation .katex-display {
+  margin: 0;
+}
+
 .hypothesis-panel {
   display: grid;
   align-content: start;

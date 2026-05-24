@@ -13,9 +13,10 @@
         "chart.render",
         "csv.load",
         "json.load",
-        "stats.describe"
+        "stats.describe",
+        "regression.run"
       ],
-      "primitives": ["table", "chart", "stats-block"],
+      "primitives": ["table", "chart", "stats-block", "regression"],
       "installed": false
     },
     {

@@ -8,6 +8,7 @@ import FormulaBlockPrimitive from '../primitives/FormulaBlockPrimitive'
 import ParameterNodePrimitive from '../primitives/ParameterNodePrimitive'
 import ProgressStepPrimitive from '../primitives/ProgressStepPrimitive'
 import ProseBlockPrimitive from '../primitives/ProseBlockPrimitive'
+import RegressionBlockPrimitive from '../primitives/RegressionBlockPrimitive'
 import StatsBlockPrimitive from '../primitives/StatsBlockPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
 import TerminalOutputPrimitive from '../primitives/TerminalOutputPrimitive'
@@ -31,6 +32,7 @@ const primitiveComponents = {
   'parameter-node': ParameterNodePrimitive,
   'progress-step': ProgressStepPrimitive,
   'prose-block': ProseBlockPrimitive,
+  regression: RegressionBlockPrimitive,
   'stats-block': StatsBlockPrimitive,
   table: TablePrimitive,
   'terminal-output': TerminalOutputPrimitive,

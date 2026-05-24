@@ -41,6 +41,7 @@
     "react-dom": "^19.2.6",
     "react-rnd": "^10.5.3",
     "recharts": "^3.8.1",
+    "simple-statistics": "^7.8.9",
     "three": "^0.184.0"
   },
   "devDependencies": {

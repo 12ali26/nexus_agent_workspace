@@ -15,6 +15,7 @@ const primitiveLabels = {
   'parameter-node': 'Parameters',
   'progress-step': 'Progress Step',
   'prose-block': 'Prose Block',
+  regression: 'Regression',
   'stats-block': 'Stats',
   table: 'Table',
   'terminal-output': 'Terminal',
@@ -113,6 +114,16 @@ export function createPrimitivePayload(primitiveType) {
       type: 'stats-block',
       data: {
         title: 'Descriptive Statistics',
+        props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'regression') {
+    return {
+      type: 'regression',
+      data: {
+        title: 'Regression Analysis',
         props: {},
       },
     }
