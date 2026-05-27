@@ -97,6 +97,10 @@ export function createPrimitivePayload(primitiveType) {
         title: 'Terminal Output',
         props: {},
       },
+      size: {
+        width: 700,
+        height: 400,
+      },
     }
   }
 

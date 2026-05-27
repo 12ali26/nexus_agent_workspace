@@ -2,14 +2,21 @@ const express = require('express')
 const cors = require('cors')
 const { spawn } = require('child_process')
 const path = require('path')
+const http = require('http')
+const { WebSocket, WebSocketServer } = require('ws')
+const pty = require('node-pty')
 
 const app = express()
+const server = http.createServer(app)
 
 app.use(cors())
 app.use(express.json())
 
 // SECURITY: This API executes code on the server.
 // Add authentication before exposing publicly.
+// SECURITY: Each WebSocket connection spawns a real shell.
+// Add authentication before exposing publicly.
+// Current setup is for local/trusted network use only.
 
 // This is the NEXUS computation backbone. All server-side code execution
 // routes through here, while React and the API stay on one port.
@@ -120,6 +127,52 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', runtimes: ['python3', 'node', 'Rscript'] })
 })
 
+const terminalWss = new WebSocketServer({ server, path: '/terminal' })
+
+terminalWss.on('connection', (ws) => {
+  const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash'
+  const ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 80,
+    rows: 24,
+    cwd: process.env.HOME || process.cwd(),
+    env: process.env,
+  })
+
+  ptyProcess.onData((data) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'output', data }))
+    }
+  })
+
+  ws.on('message', (message) => {
+    try {
+      const parsedMessage = JSON.parse(message.toString())
+
+      if (parsedMessage.type === 'input') {
+        ptyProcess.write(parsedMessage.data)
+      }
+
+      if (parsedMessage.type === 'resize') {
+        ptyProcess.resize(parsedMessage.cols, parsedMessage.rows)
+      }
+    } catch {
+      // Ignore malformed terminal messages.
+    }
+  })
+
+  ws.on('close', () => {
+    ptyProcess.kill()
+  })
+
+  ptyProcess.onExit(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'exit' }))
+      ws.close()
+    }
+  })
+})
+
 const distPath = path.join(__dirname, '../dist')
 app.use(express.static(distPath))
 
@@ -128,6 +181,6 @@ app.get(/.*/, (_req, res) => {
 })
 
 const PORT = process.env.PORT || 8080
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`NEXUS IDE running on http://0.0.0.0:${PORT}`)
 })

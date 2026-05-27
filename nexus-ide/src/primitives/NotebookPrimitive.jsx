@@ -15,6 +15,7 @@ import { runCode } from '../computation/runner'
 import { createDatasetScope } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { useToast } from '../toast/useToast'
+import { LiveTerminal } from './TerminalOutputPrimitive'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import 'katex/dist/katex.min.css'
@@ -393,6 +394,8 @@ function NotebookPrimitive({ headerControls }) {
     const cellData =
       type === 'code'
         ? { code: '', executionCount: null, language: 'python' }
+        : type === 'terminal'
+          ? {}
         : type === 'equation'
           ? { formula: String.raw`E = mc^2` }
           : { content: '' }
@@ -489,6 +492,14 @@ function NotebookPrimitive({ headerControls }) {
           onClick={() => addCell('equation')}
         >
           Equation
+        </button>
+        <button
+          className="primitive-header-action"
+          type="button"
+          onMouseDown={(event) => event.stopPropagation()}
+          onClick={() => addCell('terminal')}
+        >
+          Terminal
         </button>
         <button
           className="primitive-header-action"
@@ -665,6 +676,12 @@ function NotebookPrimitive({ headerControls }) {
                       __html: renderMath(cell.data.formula ?? '', true),
                     }}
                   />
+                </div>
+              )}
+
+              {cell.type === 'terminal' && (
+                <div className="notebook-terminal-cell">
+                  <LiveTerminal className="notebook-terminal-instance" />
                 </div>
               )}
 
