@@ -1,5 +1,3 @@
-import { getPrimitiveLabel } from '../primitives/primitivePayloads'
-
 const canvasModes = [
   { icon: '⠿', id: 'float', label: 'Float' },
   { icon: '⊞', id: 'grid', label: 'Grid' },
@@ -9,24 +7,11 @@ const canvasModes = [
 function PrimitiveToolbar({
   canvasMode,
   onCanvasModeChange,
-  onPrimitiveClick,
   onTerminalClick,
-  primitiveTypes,
 }) {
   return (
     <div className="workspace-toolbar" aria-label="Available primitives">
-      <div className="primitive-toolbar-actions">
-        {primitiveTypes.map((primitiveType) => (
-          <button
-            className="renderer-button"
-            key={primitiveType}
-            type="button"
-            onClick={() => onPrimitiveClick?.(primitiveType)}
-          >
-            {getPrimitiveLabel(primitiveType)}
-          </button>
-        ))}
-      </div>
+      <div className="primitive-toolbar-spacer" aria-hidden="true" />
       <div className="canvas-mode-actions" aria-label="Canvas modes">
         {canvasModes.map((mode) => (
           <button

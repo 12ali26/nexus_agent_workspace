@@ -10,7 +10,7 @@ import WorkspaceTerminalPanel from './terminal/WorkspaceTerminalPanel'
 import { useTerminalPanel } from './terminal/useTerminalPanel'
 
 function WorkspaceCanvas() {
-  const { activePrimitives, activeProject } = usePackRegistry()
+  const { activeProject } = usePackRegistry()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
   const { exportSettings } = useSettings()
   const {
@@ -45,11 +45,39 @@ function WorkspaceCanvas() {
     }
   }, [])
 
-  const addToolbarPrimitiveBlock = useCallback((primitiveType) => {
+  const addPrimitiveFromPicker = useCallback((primitiveType, options = {}) => {
     const primitive = createPrimitivePayload(primitiveType)
 
-    addPrimitiveBlock(primitive)
-  }, [addPrimitiveBlock])
+    if (!primitive) {
+      return
+    }
+
+    const canvasElement = document.getElementById('nexus-canvas')
+    const canvasRect = canvasElement?.getBoundingClientRect()
+    const cascadeOffset = (primitiveBlocks.length % 8) * 24
+    const layout = {}
+
+    if (canvasMode === 'float') {
+      const width = primitive.size?.width ?? 480
+      const height = primitive.size?.height ?? 300
+      const fallbackX = canvasRect ? (canvasRect.width - width) / 2 : 80
+      const fallbackY = canvasRect ? (canvasRect.height - height) / 2 : 80
+      const x = options.position?.x ?? fallbackX + cascadeOffset
+      const y = options.position?.y ?? fallbackY + cascadeOffset
+
+      layout.position = {
+        x: Math.max(16, Math.round(x)),
+        y: Math.max(16, Math.round(y)),
+      }
+    }
+
+    addPrimitiveBlock(primitive, {
+      layout,
+      meta: {
+        highlight: true,
+      },
+    })
+  }, [addPrimitiveBlock, canvasMode, primitiveBlocks.length])
 
   const addInstructionPrimitiveBlock = useCallback(
     (instruction) => {
@@ -136,6 +164,25 @@ function WorkspaceCanvas() {
   )
 
   useEffect(() => {
+    const handleAddPrimitive = (event) => {
+      const primitiveType = event.detail?.primitiveType
+
+      if (typeof primitiveType !== 'string') {
+        return
+      }
+
+      addPrimitiveFromPicker(primitiveType, {
+        position: event.detail?.position,
+      })
+    }
+
+    window.addEventListener('nexus-add-primitive', handleAddPrimitive)
+
+    return () =>
+      window.removeEventListener('nexus-add-primitive', handleAddPrimitive)
+  }, [addPrimitiveFromPicker])
+
+  useEffect(() => {
     const handleNexRender = (event) => {
       const instructions = Array.isArray(event.detail) ? event.detail : []
 
@@ -199,13 +246,11 @@ function WorkspaceCanvas() {
         <PrimitiveToolbar
           canvasMode={canvasMode}
           onCanvasModeChange={setCanvasMode}
-          onPrimitiveClick={addToolbarPrimitiveBlock}
-          primitiveTypes={activePrimitives}
           onTerminalClick={openTerminal}
         />
         <BlockCanvas
           canvasMode={canvasMode}
-          emptyMessage="Canvas Ready — Add a primitive or load a file to begin"
+          emptyMessage="Open the Primitives panel to add blocks"
         />
         {isOpen && <WorkspaceTerminalPanel />}
       </div>

@@ -13,7 +13,11 @@ function serializePrimitiveBlocks(blocks) {
   return blocks.map(({ type, data, meta, position, size, zIndex }) => ({
     type,
     data,
-    meta,
+    meta: meta
+      ? Object.fromEntries(
+          Object.entries(meta).filter(([key]) => key !== 'highlight'),
+        )
+      : meta,
     position,
     size,
     zIndex,
@@ -193,7 +197,7 @@ export function RenderBlocksProvider({ children }) {
   )
 
   const addPrimitiveBlock = useCallback(
-    (primitivePayload) => {
+    (primitivePayload, options = {}) => {
       if (!primitivePayload) {
         return
       }
@@ -204,7 +208,10 @@ export function RenderBlocksProvider({ children }) {
         const nextZ = currentMaxZ + 1
 
         commitPrimitiveBlocks((currentBlocks) => {
-          const layout = createBlockLayout(currentBlocks.length)
+          const layout = {
+            ...createBlockLayout(currentBlocks.length),
+            ...options.layout,
+          }
 
           return [
             ...currentBlocks,
@@ -213,6 +220,10 @@ export function RenderBlocksProvider({ children }) {
               zIndex: nextZ,
               ...layout,
               ...primitivePayload,
+              meta: {
+                ...primitivePayload.meta,
+                ...options.meta,
+              },
             },
           ]
         })

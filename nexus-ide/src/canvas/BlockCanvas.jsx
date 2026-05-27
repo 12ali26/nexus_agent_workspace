@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
+import { LayoutGrid } from 'lucide-react'
 import { getPrimitiveLabel } from '../primitives/primitivePayloads'
+import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
 import PrimitiveBlock from './PrimitiveBlock'
 
 function BlockCanvas({ canvasMode, emptyMessage }) {
@@ -41,12 +42,48 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
     primitiveBlocks.find((block) => block.id === activeFocusBlockId) ??
     primitiveBlocks[0]
 
+  const handleDragOver = (event) => {
+    if (event.dataTransfer.types.includes('application/x-nexus-primitive')) {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'copy'
+    }
+  }
+
+  const handleDrop = (event) => {
+    const primitiveType = event.dataTransfer.getData(
+      'application/x-nexus-primitive',
+    )
+
+    if (!primitiveType) {
+      return
+    }
+
+    event.preventDefault()
+
+    const rect = event.currentTarget.getBoundingClientRect()
+
+    window.dispatchEvent(
+      new CustomEvent('nexus-add-primitive', {
+        detail: {
+          position: {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          },
+          primitiveType,
+          source: 'drag',
+        },
+      }),
+    )
+  }
+
   return (
     <div
       id="nexus-canvas"
       className={`domain-canvas-body canvas-mode-${canvasMode}${
         primitiveBlocks.length ? ' has-blocks' : ''
       }`}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       {primitiveBlocks.length && canvasMode === 'focus' ? (
         <div className="focus-canvas-shell">
@@ -100,7 +137,11 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
           />
         ))
       ) : (
-        <p>{emptyMessage}</p>
+        <div className="canvas-empty-picker-hint">
+          <LayoutGrid size={32} strokeWidth={1.7} />
+          <p>{emptyMessage}</p>
+          <span>or type <code>nex add [primitive]</code> in the terminal</span>
+        </div>
       )}
     </div>
   )

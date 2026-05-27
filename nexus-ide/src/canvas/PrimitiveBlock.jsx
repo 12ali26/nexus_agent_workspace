@@ -73,7 +73,7 @@ function PrimitiveBlock({
     <article
       className={`primitive-block${
         mode === 'float' ? '' : ` primitive-block-${mode}`
-      }`}
+      }${block.meta?.highlight ? ' primitive-block-highlight' : ''}`}
       onDragOver={(event) => {
         if (mode === 'grid') {
           event.preventDefault()

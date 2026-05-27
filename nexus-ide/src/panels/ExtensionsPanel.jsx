@@ -65,7 +65,6 @@ function ExtensionsPanel() {
   const filteredExtensions = availableExtensions.filter((extension) =>
     extension.name.toLowerCase().includes(normalizedSearchValue),
   )
-  const coreExtensions = filteredExtensions.filter((extension) => extension.core)
   const communityExtensions = filteredExtensions.filter(
     (extension) => !extension.core,
   )
@@ -86,19 +85,15 @@ function ExtensionsPanel() {
 
       <div className="extensions-scroll">
         <ExtensionSection
-          title="Core"
-          extensions={coreExtensions}
-          onInstall={installExtension}
-          onUninstall={uninstallExtension}
-        />
-        <ExtensionSection
           title="Community"
           extensions={communityExtensions}
           onInstall={installExtension}
           onUninstall={uninstallExtension}
         />
-        {!filteredExtensions.length && (
-          <p className="panel-empty">No extensions found</p>
+        {!communityExtensions.length && (
+          <p className="panel-empty">
+            Core primitives are built in. Community extensions will appear here.
+          </p>
         )}
       </div>
     </section>

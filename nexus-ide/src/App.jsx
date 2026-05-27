@@ -20,7 +20,7 @@ import { TerminalPanelProvider } from './terminal/TerminalPanelContext'
 import { ToastContext } from './toast/toastContext'
 
 function NexusShell() {
-  const [activePanel, setActivePanel] = useState('workspaces')
+  const [activePanel, setActivePanel] = useState('primitives')
   const [isActivitySidebarVisible, setIsActivitySidebarVisible] =
     useState(true)
   const [toastMessage, setToastMessage] = useState('')
@@ -97,7 +97,9 @@ function NexusShell() {
                     onPanelChange={setActivePanel}
                   />
 
-                  {ActivePanel && <ActivePanel />}
+                  {ActivePanel && (
+                    <ActivePanel onClose={() => setActivePanel(null)} />
+                  )}
                 </aside>
               )}
 

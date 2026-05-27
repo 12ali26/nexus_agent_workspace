@@ -38,6 +38,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "katex": "^0.16.47",
+    "lucide-react": "^1.16.0",
     "mathjs": "^15.2.0",
     "node-pty": "^1.1.0",
     "papaparse": "^5.5.3",
