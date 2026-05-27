@@ -3,7 +3,6 @@ import MDEditor from '@uiw/react-md-editor'
 import katex from 'katex'
 import {
   Code2,
-  Database,
   Download,
   Play,
   Sigma,
@@ -274,7 +273,7 @@ function OutputPreview({ output }) {
 }
 
 function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerControls }) {
-  const { activeDatasetId, datasetAliases, datasets } = useWorkspaceData()
+  const { activeDatasetId, datasets } = useWorkspaceData()
   const notebookRef = useRef(null)
   const [cells, setCells] = useState(createDefaultCells)
   const [selectedCellId, setSelectedCellId] = useState('')
@@ -526,20 +525,6 @@ function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerCont
         <button
           className="primitive-header-action"
           type="button"
-          title="Available Data"
-          aria-label="Available data"
-          onMouseDown={stopHeaderAction}
-          onClick={() => {
-            notebookRef.current
-              ?.querySelector('.notebook-data-panel')
-              ?.scrollIntoView({ block: 'nearest' })
-          }}
-        >
-          <Database size={14} strokeWidth={1.9} />
-        </button>
-        <button
-          className="primitive-header-action"
-          type="button"
           title="Clear All Outputs"
           aria-label="Clear all notebook outputs"
           onMouseDown={stopHeaderAction}
@@ -574,19 +559,6 @@ function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerCont
 
   return (
     <div className="notebook-primitive" data-color-mode="dark" ref={notebookRef}>
-      {datasetAliases.length > 0 && (
-        <aside className="notebook-data-panel">
-          <strong>Available Data</strong>
-          <div>
-            {datasetAliases.map(({ dataset, variableName }) => (
-              <span key={dataset.id} title={dataset.columns.join(', ')}>
-                {variableName} ({dataset.columns.length} cols)
-              </span>
-            ))}
-          </div>
-        </aside>
-      )}
-
       <div className="notebook-cell-list">
         {cells.map((cell, index) => (
           <section

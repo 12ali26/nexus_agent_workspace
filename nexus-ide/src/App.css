@@ -1394,47 +1394,13 @@
 
 .notebook-primitive {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   height: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   background: var(--color-primitive-bg);
   color: var(--color-text);
-}
-
-.notebook-data-panel {
-  display: grid;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-primitive-panel);
-}
-
-.notebook-data-panel strong {
-  color: var(--color-text-strong);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.notebook-data-panel div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.notebook-data-panel span {
-  max-width: 220px;
-  overflow: hidden;
-  border: 1px solid var(--color-primitive-border);
-  border-radius: 999px;
-  background: var(--color-primitive-bg);
-  color: var(--color-text-muted);
-  font-size: 11px;
-  padding: 4px 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .notebook-cell-list {
