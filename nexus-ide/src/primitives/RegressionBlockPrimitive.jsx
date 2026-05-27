@@ -534,7 +534,7 @@ function RegressionBlockPrimitive() {
           <legend>Independent Variables (X)</legend>
           {availableXColumns.length ? (
             availableXColumns.map((column) => (
-              <label key={column}>
+              <label key={column} title={column}>
                 <input
                   checked={activeXColumns.includes(column)}
                   type="checkbox"
