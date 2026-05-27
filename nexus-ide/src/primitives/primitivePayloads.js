@@ -12,6 +12,7 @@ const primitiveLabels = {
   'code-editor': 'Code Editor',
   equation: 'Equation',
   'formula-block': 'Formula',
+  notebook: 'Notebook',
   'parameter-node': 'Parameters',
   'progress-step': 'Progress Step',
   'prose-block': 'Prose Block',
@@ -105,6 +106,20 @@ export function createPrimitivePayload(primitiveType) {
       data: {
         title: 'Prose / LaTeX',
         props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'notebook') {
+    return {
+      type: 'notebook',
+      data: {
+        title: 'Analysis Notebook',
+        props: {},
+      },
+      size: {
+        width: 800,
+        height: 600,
       },
     }
   }

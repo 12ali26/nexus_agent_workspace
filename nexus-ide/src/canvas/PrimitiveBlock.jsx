@@ -17,6 +17,8 @@ const CodeEditorPrimitive = lazy(
   () => import('../primitives/CodeEditorPrimitive'),
 )
 
+const NotebookPrimitive = lazy(() => import('../primitives/NotebookPrimitive'))
+
 const ThreeObjectPrimitive = lazy(
   () => import('../primitives/ThreeObjectPrimitive'),
 )
@@ -29,6 +31,7 @@ const primitiveComponents = {
   'code-editor': CodeEditorPrimitive,
   equation: EquationPrimitive,
   'formula-block': FormulaBlockPrimitive,
+  notebook: NotebookPrimitive,
   'parameter-node': ParameterNodePrimitive,
   'progress-step': ProgressStepPrimitive,
   'prose-block': ProseBlockPrimitive,

@@ -71,8 +71,8 @@
       "description": "Prose writing with live LaTeX rendering for documentation and methodology",
       "version": "0.1.0",
       "author": "NEXUS Core",
-      "capabilities": ["prose.write", "latex.render"],
-      "primitives": ["prose-block"],
+      "capabilities": ["prose.write", "latex.render", "notebook.run"],
+      "primitives": ["prose-block", "notebook"],
       "installed": false
     },
     {
