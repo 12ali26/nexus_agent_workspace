@@ -11,6 +11,7 @@ function BlockCanvas({ emptyMessage }) {
 
   return (
     <div
+      id="nexus-canvas"
       className={`domain-canvas-body${primitiveBlocks.length ? ' has-blocks' : ''}`}
     >
       {primitiveBlocks.length ? (

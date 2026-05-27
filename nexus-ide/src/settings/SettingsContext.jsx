@@ -5,6 +5,11 @@ const settingsStorageKey = 'nexus.settings'
 
 const defaultSettings = {
   agentModel: 'Claude Sonnet',
+  exportSettings: {
+    includeCoverPage: true,
+    paperSize: 'A4',
+    resolution: 2,
+  },
   registrySource: 'Local',
   theme: 'dark',
 }
@@ -16,6 +21,25 @@ const validAgentModels = new Set([
 ])
 const validRegistrySources = new Set(['Local'])
 const validThemes = new Set(['dark', 'light'])
+const validPaperSizes = new Set(['A4', 'A3', 'Letter'])
+const validResolutions = new Set([1, 2, 3])
+
+function normalizeExportSettings(value) {
+  const currentValue = value && typeof value === 'object' ? value : {}
+
+  return {
+    includeCoverPage:
+      typeof currentValue.includeCoverPage === 'boolean'
+        ? currentValue.includeCoverPage
+        : defaultSettings.exportSettings.includeCoverPage,
+    paperSize: validPaperSizes.has(currentValue.paperSize)
+      ? currentValue.paperSize
+      : defaultSettings.exportSettings.paperSize,
+    resolution: validResolutions.has(Number(currentValue.resolution))
+      ? Number(currentValue.resolution)
+      : defaultSettings.exportSettings.resolution,
+  }
+}
 
 function normalizeStoredSettings(value) {
   if (!value || typeof value !== 'object') {
@@ -26,6 +50,7 @@ function normalizeStoredSettings(value) {
     agentModel: validAgentModels.has(value.agentModel)
       ? value.agentModel
       : defaultSettings.agentModel,
+    exportSettings: normalizeExportSettings(value.exportSettings),
     registrySource: validRegistrySources.has(value.registrySource)
       ? value.registrySource
       : defaultSettings.registrySource,
@@ -84,20 +109,35 @@ export function SettingsProvider({ children }) {
     [updateSettings],
   )
 
+  const setExportSettings = useCallback(
+    (exportSettings) =>
+      updateSettings({
+        exportSettings: {
+          ...settings.exportSettings,
+          ...exportSettings,
+        },
+      }),
+    [settings.exportSettings, updateSettings],
+  )
+
   const value = useMemo(
     () => ({
       agentModel: settings.agentModel,
+      exportSettings: settings.exportSettings,
       registrySource: settings.registrySource,
       setAgentModel,
+      setExportSettings,
       setRegistrySource,
       setTheme,
       theme: settings.theme,
     }),
     [
       setAgentModel,
+      setExportSettings,
       setRegistrySource,
       setTheme,
       settings.agentModel,
+      settings.exportSettings,
       settings.registrySource,
       settings.theme,
     ],

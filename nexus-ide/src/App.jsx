@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import ActivityBar from './ActivityBar'
 import ClearCanvasButton from './ClearCanvasButton'
+import ExportButton from './ExportButton'
 import FileOpenButton from './FileOpenButton'
 import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
@@ -41,6 +42,16 @@ function NexusShell() {
     }, 3000)
   }
 
+  useEffect(() => {
+    const handleExportToast = (event) => {
+      showToast(event.detail?.message ?? 'Export updated')
+    }
+
+    window.addEventListener('nexus-toast', handleExportToast)
+
+    return () => window.removeEventListener('nexus-toast', handleExportToast)
+  })
+
   return (
     <ParameterProvider>
       <WorkspaceDataProvider>
@@ -67,6 +78,7 @@ function NexusShell() {
               </button>
               <NewProjectButton />
               <FileOpenButton onToast={showToast} />
+              <ExportButton />
               <ClearCanvasButton onToast={showToast} />
             </header>
 

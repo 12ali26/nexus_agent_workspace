@@ -13,6 +13,7 @@ import StatsBlockPrimitive from '../primitives/StatsBlockPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
 import TerminalOutputPrimitive from '../primitives/TerminalOutputPrimitive'
 import TimeSeriesBlockPrimitive from '../primitives/TimeSeriesBlockPrimitive'
+import { useSettings } from '../settings/useSettings'
 
 const CodeEditorPrimitive = lazy(
   () => import('../primitives/CodeEditorPrimitive'),
@@ -50,6 +51,7 @@ const primitiveComponents = {
 
 function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
   const PrimitiveComponent = primitiveComponents[block.type]
+  const { exportSettings } = useSettings()
   const [headerControls, setHeaderControls] = useState(null)
   const registerHeaderControls = useCallback(
     (controls) => setHeaderControls(controls),
@@ -119,6 +121,8 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
             <PrimitiveComponent
               {...block.data.props}
               blockId={block.id}
+              blockTitle={block.data.title}
+              exportSettings={exportSettings}
               headerControls={registerHeaderControls}
             />
           </Suspense>

@@ -1,15 +1,18 @@
 import { useCallback, useEffect } from 'react'
 import BlockCanvas from './canvas/BlockCanvas'
 import PrimitiveToolbar from './canvas/PrimitiveToolbar'
+import { exportCanvasToPDF } from './export/exportToPDF'
 import { createPrimitivePayload } from './primitives/primitivePayloads'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
+import { useSettings } from './settings/useSettings'
 import WorkspaceTerminalPanel from './terminal/WorkspaceTerminalPanel'
 import { useTerminalPanel } from './terminal/useTerminalPanel'
 
 function WorkspaceCanvas() {
-  const { activePrimitives, installedPacks } = usePackRegistry()
+  const { activePrimitives, activeProject, installedPacks } = usePackRegistry()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
+  const { exportSettings } = useSettings()
   const {
     appendOutput,
     clearOutput,
@@ -137,10 +140,10 @@ function WorkspaceCanvas() {
         }
 
         if (instruction.type === 'export') {
-          appendOutput({
-            lines: [`Export ${instruction.data?.format ?? 'pdf'} coming soon`],
-            title: 'Export',
-          })
+          exportCanvasToPDF(
+            activeProject?.projectName || 'NEXUS_Analysis',
+            exportSettings,
+          )
           return
         }
 
@@ -154,8 +157,10 @@ function WorkspaceCanvas() {
   }, [
     addInstructionPrimitiveBlock,
     appendOutput,
+    activeProject,
     clearCanvas,
     clearOutput,
+    exportSettings,
     primitiveBlocks,
   ])
 

@@ -14,7 +14,7 @@ import {
 import { runCode } from '../computation/runner'
 import { createDatasetScope } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useToast } from '../toast/useToast'
+import { exportNotebookToPDF } from '../export/exportToPDF'
 import LiveTerminal from '../terminal/LiveTerminal'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
@@ -263,9 +263,9 @@ function OutputPreview({ output }) {
   return <pre>{output.text}</pre>
 }
 
-function NotebookPrimitive({ headerControls }) {
-  const showToast = useToast()
+function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerControls }) {
   const { activeDatasetId, datasetAliases, datasets } = useWorkspaceData()
+  const notebookRef = useRef(null)
   const [cells, setCells] = useState(createDefaultCells)
   const [selectedCellId, setSelectedCellId] = useState('')
   const [editingMarkdownId, setEditingMarkdownId] = useState('')
@@ -513,7 +513,9 @@ function NotebookPrimitive({ headerControls }) {
           className="primitive-header-action"
           type="button"
           onMouseDown={(event) => event.stopPropagation()}
-          onClick={() => showToast('Export coming soon')}
+          onClick={() =>
+            exportNotebookToPDF(notebookRef.current, blockTitle, exportSettings)
+          }
         >
           Export
         </button>
@@ -521,10 +523,17 @@ function NotebookPrimitive({ headerControls }) {
     )
 
     return () => headerControls?.(null)
-  }, [addCell, clearOutputs, headerControls, runAll, showToast])
+  }, [
+    addCell,
+    blockTitle,
+    clearOutputs,
+    exportSettings,
+    headerControls,
+    runAll,
+  ])
 
   return (
-    <div className="notebook-primitive" data-color-mode="dark">
+    <div className="notebook-primitive" data-color-mode="dark" ref={notebookRef}>
       {datasetAliases.length > 0 && (
         <aside className="notebook-data-panel">
           <strong>Available Data</strong>
