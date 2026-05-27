@@ -84,6 +84,23 @@ function WorkspaceCanvas() {
           ...primitive.data.props,
           selectedColumn: instructionData.column,
         }
+      } else if (instruction.type === 'time-series') {
+        primitive.data.props = {
+          ...primitive.data.props,
+          analysisTab: instructionData.analysisTab,
+          dateColumn: instructionData.dateColumn,
+          valueColumn: instructionData.valueColumn,
+        }
+      } else if (instruction.type === 'monte-carlo') {
+        primitive.data.props = {
+          ...primitive.data.props,
+          formula: instructionData.formula,
+          initialMode: instructionData.initialMode,
+          return: instructionData.return,
+          type: instructionData.type,
+          vol: instructionData.vol,
+          years: instructionData.years,
+        }
       }
 
       addPrimitiveBlock(primitive)

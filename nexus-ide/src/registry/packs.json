@@ -88,6 +88,21 @@
       ],
       "primitives": ["parameter-node", "formula-block"],
       "installed": false
+    },
+    {
+      "id": "simulation-advanced",
+      "name": "Simulation & Forecasting",
+      "description": "Monte Carlo simulation, time series analysis and forecasting",
+      "version": "0.1.0",
+      "author": "NEXUS Core",
+      "capabilities": [
+        "timeseries.analyze",
+        "timeseries.forecast",
+        "montecarlo.run",
+        "simulation.gbm"
+      ],
+      "primitives": ["time-series", "monte-carlo"],
+      "installed": false
     }
   ]
 }

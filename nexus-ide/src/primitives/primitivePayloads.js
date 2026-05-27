@@ -20,6 +20,8 @@ const primitiveLabels = {
   'stats-block': 'Stats',
   table: 'Table',
   'terminal-output': 'Terminal',
+  'time-series': 'Time Series',
+  'monte-carlo': 'Monte Carlo',
 }
 
 export function getPrimitiveLabel(primitiveType) {
@@ -134,6 +136,34 @@ export function createPrimitivePayload(primitiveType) {
       data: {
         title: 'Descriptive Statistics',
         props: {},
+      },
+    }
+  }
+
+  if (primitiveType === 'time-series') {
+    return {
+      type: 'time-series',
+      data: {
+        title: 'Time Series Analysis',
+        props: {},
+      },
+      size: {
+        width: 900,
+        height: 500,
+      },
+    }
+  }
+
+  if (primitiveType === 'monte-carlo') {
+    return {
+      type: 'monte-carlo',
+      data: {
+        title: 'Monte Carlo Simulation',
+        props: {},
+      },
+      size: {
+        width: 900,
+        height: 550,
       },
     }
   }

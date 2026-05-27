@@ -12,12 +12,17 @@ import RegressionBlockPrimitive from '../primitives/RegressionBlockPrimitive'
 import StatsBlockPrimitive from '../primitives/StatsBlockPrimitive'
 import TablePrimitive from '../primitives/TablePrimitive'
 import TerminalOutputPrimitive from '../primitives/TerminalOutputPrimitive'
+import TimeSeriesBlockPrimitive from '../primitives/TimeSeriesBlockPrimitive'
 
 const CodeEditorPrimitive = lazy(
   () => import('../primitives/CodeEditorPrimitive'),
 )
 
 const NotebookPrimitive = lazy(() => import('../primitives/NotebookPrimitive'))
+
+const MonteCarloBlockPrimitive = lazy(
+  () => import('../primitives/MonteCarloBlockPrimitive'),
+)
 
 const ThreeObjectPrimitive = lazy(
   () => import('../primitives/ThreeObjectPrimitive'),
@@ -31,6 +36,7 @@ const primitiveComponents = {
   'code-editor': CodeEditorPrimitive,
   equation: EquationPrimitive,
   'formula-block': FormulaBlockPrimitive,
+  'monte-carlo': MonteCarloBlockPrimitive,
   notebook: NotebookPrimitive,
   'parameter-node': ParameterNodePrimitive,
   'progress-step': ProgressStepPrimitive,
@@ -39,6 +45,7 @@ const primitiveComponents = {
   'stats-block': StatsBlockPrimitive,
   table: TablePrimitive,
   'terminal-output': TerminalOutputPrimitive,
+  'time-series': TimeSeriesBlockPrimitive,
 }
 
 function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {

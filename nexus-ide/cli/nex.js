@@ -90,6 +90,9 @@ Resources & Commands:
     nex regression --y col --x col [col]   Run regression analysis
     nex stats --col column                 Show stats for a column
     nex plot --x col --y col [--type scatter|line|bar]  Plot data
+    nex timeseries --col value_column [--date date_column] Analyze time series
+    nex montecarlo --type portfolio --return 8 --vol 15 --years 20
+    nex montecarlo --type formula --formula "normal(50000, 8000)"
 
   Workspace
     nex clear canvas                       Clear all canvas blocks
@@ -105,6 +108,8 @@ Examples:
   nex regression --y salary --x age years_exp
   nex plot --x age --y salary --type scatter
   nex stats --col age
+  nex timeseries --col price --date date
+  nex montecarlo --type portfolio --return 8 --vol 15 --years 20
   nex add notebook --title "Reserve Analysis"
   nex clear canvas
 `)
@@ -156,6 +161,8 @@ async function main() {
       regression: { type: 'regression', data: {} },
       stats: { type: 'stats', data: { column: options.col || null } },
       table: { type: 'table', data: {} },
+      timeseries: { type: 'time-series', data: {} },
+      montecarlo: { type: 'monte-carlo', data: {} },
     }
 
     if (primitiveMap[action]) {
@@ -210,6 +217,39 @@ async function main() {
       {
         type: 'stats',
         data: { column: options.col || null },
+      },
+    ]
+  } else if (resource === 'timeseries') {
+    if (!options.col) {
+      console.error('Usage: nex timeseries --col <value_column> [--date <date_column>]')
+      return
+    }
+
+    console.log(`Opening time series for column: ${options.col}`)
+    instructions = [
+      {
+        type: 'time-series',
+        data: {
+          dateColumn: options.date || '',
+          valueColumn: options.col,
+        },
+      },
+    ]
+  } else if (resource === 'montecarlo') {
+    const simulationType = options.type || 'portfolio'
+    console.log(`Opening Monte Carlo simulation: ${simulationType}`)
+    instructions = [
+      {
+        type: 'monte-carlo',
+        data: {
+          formula: options.formula,
+          initialMode:
+            simulationType === 'custom' ? 'formula' : simulationType,
+          return: options.return,
+          type: simulationType,
+          vol: options.vol,
+          years: options.years,
+        },
       },
     ]
   } else if (resource === 'clear') {
