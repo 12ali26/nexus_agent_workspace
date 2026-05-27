@@ -113,6 +113,24 @@ function getHighestZIndex(blocks) {
   )
 }
 
+function areValuesEqual(left, right) {
+  if (Object.is(left, right)) {
+    return true
+  }
+
+  try {
+    return JSON.stringify(left) === JSON.stringify(right)
+  } catch {
+    return false
+  }
+}
+
+function hasPropChanges(currentProps, nextProps) {
+  return Object.entries(nextProps).some(
+    ([key, value]) => !areValuesEqual(currentProps?.[key], value),
+  )
+}
+
 export function RenderBlocksProvider({ children }) {
   const { activeProject } = usePackRegistry()
   const projectId = activeProject?.projectId ?? 'project_default'
@@ -189,6 +207,11 @@ export function RenderBlocksProvider({ children }) {
     (updater) => {
       setPrimitiveBlocks((currentBlocks) => {
         const nextBlocks = updater(currentBlocks)
+
+        if (nextBlocks === currentBlocks) {
+          return currentBlocks
+        }
+
         writeStoredCanvasState(nextBlocks, projectId)
         return nextBlocks
       })
@@ -327,6 +350,45 @@ export function RenderBlocksProvider({ children }) {
     [commitPrimitiveBlocks],
   )
 
+  const updatePrimitiveBlockData = useCallback(
+    (blockId, newData) => {
+      if (!blockId || !newData || typeof newData !== 'object') {
+        return
+      }
+
+      commitPrimitiveBlocks((currentBlocks) => {
+        let didUpdate = false
+        const nextBlocks = currentBlocks.map((block) => {
+          if (block.id !== blockId) {
+            return block
+          }
+
+          const currentProps = block.data?.props ?? {}
+
+          if (!hasPropChanges(currentProps, newData)) {
+            return block
+          }
+
+          didUpdate = true
+
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              props: {
+                ...currentProps,
+                ...newData,
+              },
+            },
+          }
+        })
+
+        return didUpdate ? nextBlocks : currentBlocks
+      })
+    },
+    [commitPrimitiveBlocks],
+  )
+
   const focusPrimitiveBlock = useCallback(
     (blockId) => {
       setMaxZ((currentMaxZ) => {
@@ -411,6 +473,7 @@ export function RenderBlocksProvider({ children }) {
       replacePrimitiveBlocks,
       removePrimitiveBlock,
       reorderPrimitiveBlocks,
+      updatePrimitiveBlockData,
       updatePrimitiveBlockLayout,
     }),
     [
@@ -423,6 +486,7 @@ export function RenderBlocksProvider({ children }) {
       replacePrimitiveBlocks,
       removePrimitiveBlock,
       reorderPrimitiveBlocks,
+      updatePrimitiveBlockData,
       updatePrimitiveBlockLayout,
     ],
   )

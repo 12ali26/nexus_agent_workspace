@@ -17,6 +17,7 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
     renamePrimitiveBlock,
     removePrimitiveBlock,
     reorderPrimitiveBlocks,
+    updatePrimitiveBlockData,
     updatePrimitiveBlockLayout,
   } = useRenderBlocks()
   const [activeFocusBlockId, setActiveFocusBlockId] = useState('')
@@ -110,6 +111,7 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
               block={activeFocusBlock}
               mode="focus"
               onFocus={focusPrimitiveBlock}
+              onDataChange={updatePrimitiveBlockData}
               onLayoutChange={updatePrimitiveBlockLayout}
               onDuplicate={duplicatePrimitiveBlock}
               onRemove={removePrimitiveBlock}
@@ -124,6 +126,7 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
             key={block.id}
             mode={canvasMode}
             onFocus={focusPrimitiveBlock}
+            onDataChange={updatePrimitiveBlockData}
             onLayoutChange={updatePrimitiveBlockLayout}
             onDuplicate={duplicatePrimitiveBlock}
             onRemove={removePrimitiveBlock}

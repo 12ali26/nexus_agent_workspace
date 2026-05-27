@@ -14,7 +14,6 @@ import {
 } from 'recharts'
 import { linearRegression } from 'simple-statistics'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 import 'katex/dist/katex.min.css'
 
 const resultTabs = ['Coefficients', 'Residual Plot', 'Fit Plot']
@@ -362,10 +361,9 @@ function validateConfiguration(dataset, numericColumns, yColumn, xColumns, regre
   return ''
 }
 
-function RegressionBlockPrimitive({ blockId }) {
+function RegressionBlockPrimitive({ blockId, updateBlockData }) {
   const { activeDataset, addDataset, datasets, setActiveDataset } =
     useWorkspaceData()
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [activeTab, setActiveTab] = useState(resultTabs[0])
   const [error, setError] = useState('')
   const [regressionType, setRegressionType] = useState('simple')
@@ -386,8 +384,12 @@ function RegressionBlockPrimitive({ blockId }) {
   const availableXColumns = numericColumns.filter(
     (column) => column !== activeYColumn,
   )
-  const activeXColumns = selectedXColumns.filter((column) =>
-    availableXColumns.includes(column),
+  const activeXColumns = useMemo(
+    () =>
+      selectedXColumns.filter((column) =>
+        availableXColumns.includes(column),
+      ),
+    [availableXColumns, selectedXColumns],
   )
   const renderedEquation = results
     ? katex.renderToString(results.equation, {
@@ -410,23 +412,24 @@ function RegressionBlockPrimitive({ blockId }) {
   ]
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'regression',
-      data: {
-        dependentVar: activeYColumn,
-        independentVars: activeXColumns,
-        results,
-      },
+    updateBlockData?.(blockId, {
+      dependentVar: activeYColumn,
+      independentVars: activeXColumns,
+      results: results
+        ? {
+            ...results,
+            adjRSquared: results.adjustedRSquared,
+            fStat: results.fStatistic,
+            modelP: results.modelPValue,
+          }
+        : null,
     })
-
-    return () => unregisterExportSnapshot(blockId)
   }, [
     activeXColumns,
     activeYColumn,
     blockId,
-    registerExportSnapshot,
     results,
-    unregisterExportSnapshot,
+    updateBlockData,
   ])
 
   const toggleXColumn = (column) => {

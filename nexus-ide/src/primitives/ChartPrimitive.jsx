@@ -9,11 +9,19 @@ import {
 } from 'recharts'
 import { useEffect, useMemo, useState } from 'react'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 
-function ChartPrimitive({ blockId, data, lineKey, title, xKey, yLabel }) {
+function ChartPrimitive({
+  blockId,
+  chartData: persistedChartData,
+  data,
+  lineKey,
+  title,
+  updateBlockData,
+  xKey,
+  yKey,
+  yLabel,
+}) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [selectedXKey, setSelectedXKey] = useState('')
   const [selectedYKey, setSelectedYKey] = useState('')
@@ -21,11 +29,14 @@ function ChartPrimitive({ blockId, data, lineKey, title, xKey, yLabel }) {
     datasets.find((dataset) => dataset.id === selectedDatasetId) ??
     activeDataset
   const fallbackColumns = useMemo(
-    () => Object.keys((data ?? [])[0] ?? {}),
-    [data],
+    () => Object.keys((persistedChartData ?? data ?? [])[0] ?? {}),
+    [data, persistedChartData],
   )
   const columns = selectedDataset?.columns ?? fallbackColumns
-  const chartData = selectedDataset?.rows ?? data ?? []
+  const chartData = useMemo(
+    () => selectedDataset?.rows ?? persistedChartData ?? data ?? [],
+    [data, persistedChartData, selectedDataset],
+  )
   const numericColumns = columns.filter((column) =>
     chartData.some((row) => Number.isFinite(Number(row?.[column]))),
   )
@@ -35,33 +46,28 @@ function ChartPrimitive({ blockId, data, lineKey, title, xKey, yLabel }) {
     ? selectedYKey
     : numericColumns.includes(lineKey)
       ? lineKey
+      : numericColumns.includes(yKey)
+        ? yKey
       : numericColumns[0] ?? ''
   const chartRows = chartData.map((row) => ({
     ...row,
     [activeYKey]: Number(row?.[activeYKey]),
   }))
+  const activeTitle = title ?? `${activeYKey} by ${activeXKey}`
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'chart',
-      data: {
-        rows: chartRows,
-        title: title ?? `${activeYKey} by ${activeXKey}`,
-        xKey: activeXKey,
-        yKey: activeYKey,
-      },
-    })
+    const exportRows = chartData.map((row) => ({
+      ...row,
+      [activeYKey]: Number(row?.[activeYKey]),
+    }))
 
-    return () => unregisterExportSnapshot(blockId)
-  }, [
-    activeXKey,
-    activeYKey,
-    blockId,
-    chartRows,
-    registerExportSnapshot,
-    title,
-    unregisterExportSnapshot,
-  ])
+    updateBlockData?.(blockId, {
+      chartData: exportRows,
+      title: activeTitle,
+      xKey: activeXKey,
+      yKey: activeYKey,
+    })
+  })
 
   if (!chartData.length || !columns.length) {
     return (
@@ -130,7 +136,7 @@ function ChartPrimitive({ blockId, data, lineKey, title, xKey, yLabel }) {
         </label>
       </div>
       <div className="primitive-chart-title">
-        {title ?? `${activeYKey} by ${activeXKey}`}
+        {activeTitle}
       </div>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartRows} margin={{ top: 10, right: 18, bottom: 8, left: 8 }}>

@@ -93,7 +93,10 @@ export function estimateBlockHeight(block) {
   const data = block.data ?? {}
 
   if (block.type === 'table' || block.type === 'chart') {
-    return Math.min((data.rows?.length ?? 1) * 6 + 28, 115)
+    return Math.min(
+      ((data.rows ?? data.chartData ?? data.data)?.length ?? 1) * 6 + 28,
+      115,
+    )
   }
 
   if (block.type === 'regression') {
@@ -106,6 +109,10 @@ export function estimateBlockHeight(block) {
 
   if (block.type === 'assumption-flag' || block.type === 'progress-step') {
     return Math.min((data.assumptions?.length ?? data.steps?.length ?? 1) * 12 + 22, 110)
+  }
+
+  if (block.type === 'time-series') {
+    return 110
   }
 
   return 70
@@ -161,9 +168,10 @@ export function renderTableBlock(doc, block, x, y, width) {
 }
 
 export function renderChartBlock(doc, block, x, y, width) {
-  const { rows = [], title, xKey, yKey } = block.data ?? {}
-  const columns = Object.keys(rows[0] ?? {})
-  const height = Math.min(rows.length * 6 + 38, 115)
+  const { chartData, data, rows, title, xKey, yKey } = block.data ?? {}
+  const exportRows = rows ?? chartData ?? data ?? []
+  const columns = Object.keys(exportRows[0] ?? {})
+  const height = Math.min(exportRows.length * 6 + 38, 115)
   const contentY = drawBlockContainer(
     doc,
     x,
@@ -180,7 +188,7 @@ export function renderChartBlock(doc, block, x, y, width) {
   doc.text('Chart visualization available in NEXUS IDE.', x + 4, contentY + 3)
   doc.text(`Axes: ${xKey || 'x'} by ${yKey || 'y'}`, x + 4, contentY + 8)
 
-  if (!columns.length || !rows.length) {
+  if (!columns.length || !exportRows.length) {
     return y + height + 4
   }
 
@@ -194,7 +202,7 @@ export function renderChartBlock(doc, block, x, y, width) {
         dataKey: column,
         header: String(column).toUpperCase(),
       })),
-      rows.slice(0, 12).map((row) =>
+      exportRows.slice(0, 12).map((row) =>
         Object.fromEntries(columns.map((column) => [column, valueOrDash(row?.[column])])),
       ),
     ) + 6
@@ -488,6 +496,107 @@ export function renderMonteCarloBlock(doc, block, x, y, width) {
     doc.setFontSize(7)
     doc.setTextColor(...COLORS.green)
     doc.text(results.probabilityStatement, x + 4, contentY + 39)
+  }
+
+  return y + height + 4
+}
+
+export function renderTimeSeriesBlock(doc, block, x, y, width) {
+  const {
+    analysisTab,
+    correlationData = [],
+    datasetName,
+    dateColumn,
+    forecastData = [],
+    stats,
+    title,
+    trendData = [],
+    valueColumn,
+  } = block.data ?? {}
+
+  if (!valueColumn && !trendData.length && !forecastData.length) {
+    return renderPlaceholderBlock(doc, block, x, y, width, 'No time series data available')
+  }
+
+  const height = 110
+  const contentY = drawBlockContainer(
+    doc,
+    x,
+    y,
+    width,
+    height,
+    title || 'Time Series Analysis',
+    COLORS.green,
+  )
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLORS.textMuted)
+  doc.text(`Dataset: ${datasetName || 'workspace data'}`, x + 4, contentY + 3)
+  doc.text(`Value: ${valueColumn || 'n/a'}   Time: ${dateColumn || 'row index'}   Tab: ${analysisTab || 'Trend'}`, x + 4, contentY + 8)
+
+  if (stats) {
+    const metrics = [
+      { label: 'Mean', value: stats.mean },
+      { label: 'Std Dev', value: stats.stdDev },
+      { label: 'Min', value: stats.min },
+      { label: 'Max', value: stats.max },
+      { label: 'Trend', value: stats.trendDirection },
+    ]
+    const cardWidth = (width - 8) / metrics.length
+
+    metrics.forEach((metric, index) => {
+      const cx = x + 4 + index * cardWidth
+      const cy = contentY + 13
+
+      doc.setFillColor(...COLORS.bg)
+      doc.roundedRect(cx, cy, cardWidth - 2, 15, 2, 2, 'F')
+      doc.setFont('courier', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(...COLORS.text)
+      doc.text(formatNumber(metric.value, 3), cx + (cardWidth - 2) / 2, cy + 8, {
+        align: 'center',
+        maxWidth: cardWidth - 4,
+      })
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(6)
+      doc.setTextColor(...COLORS.textMuted)
+      doc.text(metric.label.toUpperCase(), cx + (cardWidth - 2) / 2, cy + 13, {
+        align: 'center',
+        maxWidth: cardWidth - 4,
+      })
+    })
+  }
+
+  const rows = trendData.length ? trendData : forecastData
+  const columns = ['label', 'value', 'trend', 'movingAverage', 'forecast']
+    .filter((column) => rows.some((row) => row?.[column] !== undefined))
+
+  if (rows.length && columns.length) {
+    renderAutoTable(
+      doc,
+      x,
+      contentY + 34,
+      width,
+      columns.map((column) => ({
+        dataKey: column,
+        header: String(column).toUpperCase(),
+      })),
+      rows.slice(0, 8).map((row) =>
+        Object.fromEntries(columns.map((column) => [column, valueOrDash(row?.[column])])),
+      ),
+    )
+  }
+
+  if (correlationData.length) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(...COLORS.textMuted)
+    const significant = correlationData
+      .filter((row) => Math.abs(Number(row.acf)) > 0.1)
+      .slice(0, 6)
+      .map((row) => row.lag)
+    doc.text(`ACF lags sampled: ${significant.join(', ') || 'none'}`, x + 4, y + height - 5)
   }
 
   return y + height + 4

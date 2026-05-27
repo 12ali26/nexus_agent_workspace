@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -146,7 +146,9 @@ function format(value) {
 
 function TimeSeriesBlockPrimitive({
   analysisTab,
+  blockId,
   dateColumn,
+  updateBlockData,
   valueColumn,
 }) {
   const chartTheme = getChartTheme()
@@ -216,7 +218,7 @@ function TimeSeriesBlockPrimitive({
     }
   })
   const confidence = values.length ? 1.96 / Math.sqrt(values.length) : 0
-  const correlationRows = Array.from({ length: Math.min(20, values.length - 1) }, (_, index) => {
+  const correlationRows = Array.from({ length: Math.max(0, Math.min(20, values.length - 1)) }, (_, index) => {
     const lag = index + 1
     return {
       acf: autocorrelation(values, lag),
@@ -232,6 +234,30 @@ function TimeSeriesBlockPrimitive({
     ...series.map((point) => ({ ...point, historical: point.value })),
     ...forecast.forecast,
   ]
+
+  useEffect(() => {
+    if (!rows.length || !numericColumns.length || !activeValueColumn) {
+      return
+    }
+
+    updateBlockData?.(blockId, {
+      analysisTab: activeTab,
+      correlationData: correlationRows,
+      datasetName: selectedDataset?.name ?? '',
+      dateColumn: activeDateColumn,
+      decompositionData: decomposition,
+      forecastData: forecastRows,
+      stats: {
+        max: stats.max,
+        mean: stats.mean,
+        min: stats.min,
+        stdDev: stats.stdDev,
+        trendDirection: trend.direction,
+      },
+      trendData: trendRows,
+      valueColumn: activeValueColumn,
+    })
+  })
 
   if (!rows.length || !numericColumns.length) {
     return (

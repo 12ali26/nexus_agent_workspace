@@ -11,7 +11,6 @@ import {
   YAxis,
 } from 'recharts'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 
 const tabs = ['Descriptive', 'Distribution', 'Hypothesis Test', 'Correlation']
 
@@ -377,9 +376,25 @@ function getHeatColor(value) {
   return `color-mix(in srgb, var(--accent-blue) ${opacity}%, transparent)`
 }
 
-function StatsBlockPrimitive({ blockId, data = [] }) {
+function statsArrayToExportObject(stats) {
+  const statMap = Object.fromEntries(
+    stats.map((stat) => [String(stat.name).toLowerCase(), stat.value]),
+  )
+
+  return {
+    count: statMap.count,
+    mean: statMap.mean,
+    median: statMap.median,
+    stdDev: statMap['std dev'],
+    min: statMap.min,
+    max: statMap.max,
+    q1: statMap['25th percentile'],
+    q3: statMap['75th percentile'],
+  }
+}
+
+function StatsBlockPrimitive({ blockId, data = [], updateBlockData }) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [selectedColumn, setSelectedColumn] = useState('')
   const [activeTab, setActiveTab] = useState(tabs[0])
@@ -398,6 +413,7 @@ function StatsBlockPrimitive({ blockId, data = [] }) {
     [activeColumn, statsData],
   )
   const stats = useMemo(() => (values.length ? getStats(values) : []), [values])
+  const exportStats = useMemo(() => statsArrayToExportObject(stats), [stats])
   const sparklineData = values.map((value, index) => ({ index, value }))
   const histogramData = useMemo(() => getHistogram(values), [values])
   const shapeStats = useMemo(() => getShapeStats(values), [values])
@@ -407,23 +423,17 @@ function StatsBlockPrimitive({ blockId, data = [] }) {
   )
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'stats-block',
-      data: {
-        column: activeColumn,
-        datasetName: selectedDataset?.name ?? '',
-        stats,
-      },
+    updateBlockData?.(blockId, {
+      column: activeColumn,
+      datasetName: selectedDataset?.name ?? '',
+      stats: exportStats,
     })
-
-    return () => unregisterExportSnapshot(blockId)
   }, [
     activeColumn,
     blockId,
-    registerExportSnapshot,
+    exportStats,
     selectedDataset?.name,
-    stats,
-    unregisterExportSnapshot,
+    updateBlockData,
   ])
 
   if (!Array.isArray(statsData) || !statsData.length) {

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import BlockCanvas from './canvas/BlockCanvas'
 import PrimitiveToolbar from './canvas/PrimitiveToolbar'
 import { exportCanvasToPDF } from './export/exportToPDF'
-import { useExportSnapshots } from './export/useExportSnapshots'
 import { createPrimitivePayload } from './primitives/primitivePayloads'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
@@ -12,7 +11,6 @@ import { useTerminalPanel } from './terminal/useTerminalPanel'
 
 function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
   const { activeProject } = usePackRegistry()
-  const { getExportBlocks } = useExportSnapshots()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
   const { exportSettings } = useSettings()
   const {
@@ -216,7 +214,7 @@ function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
         if (instruction.type === 'export') {
           exportCanvasToPDF(
             activeProject?.projectName || 'NEXUS_Analysis',
-            getExportBlocks(primitiveBlocks),
+            primitiveBlocks,
             exportSettings,
           )
           return
@@ -236,7 +234,6 @@ function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
     clearCanvas,
     clearOutput,
     exportSettings,
-    getExportBlocks,
     primitiveBlocks,
   ])
 

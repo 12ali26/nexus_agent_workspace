@@ -12,7 +12,6 @@ import {
 } from 'recharts'
 import { useParameters } from '../context/useParameters'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 import { getChartTheme } from '../styles/themeTokens'
 
 const modes = [
@@ -33,11 +32,11 @@ function MonteCarloBlockPrimitive({
   initialMode,
   return: expectedReturnProp,
   type,
+  updateBlockData,
   vol,
   years,
 }) {
   const chartTheme = getChartTheme()
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const { parameters } = useParameters()
   const { addDataset } = useWorkspaceData()
   const [mode, setMode] = useState(initialMode ?? type ?? 'formula')
@@ -149,23 +148,29 @@ function MonteCarloBlockPrimitive({
   const summary = result?.summary
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'monte-carlo',
-      data: {
-        formula,
-        results: summary,
-        simulations,
-      },
+    updateBlockData?.(blockId, {
+      formula,
+      results: summary
+        ? {
+            mean: summary.mean,
+            median: summary.median,
+            p95: summary.p95,
+            probabilityStatement: `P(outcome > ${format(target)}) = ${format(
+              summary.probabilityAboveTarget * 100,
+            )}%`,
+            stdDev: summary.stdDev,
+            var95: summary.p5,
+          }
+        : null,
+      simulations,
     })
-
-    return () => unregisterExportSnapshot(blockId)
   }, [
     blockId,
     formula,
-    registerExportSnapshot,
     simulations,
     summary,
-    unregisterExportSnapshot,
+    target,
+    updateBlockData,
   ])
   const pathRows = useMemo(() => {
     if (!result?.paths?.length) return []

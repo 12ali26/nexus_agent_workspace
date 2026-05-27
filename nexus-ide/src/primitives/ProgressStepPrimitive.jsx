@@ -1,23 +1,19 @@
 import { useEffect } from 'react'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 
-function ProgressStepPrimitive({ blockId, steps }) {
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
+function ProgressStepPrimitive({ blockId, steps, updateBlockData }) {
+  const safeSteps = Array.isArray(steps) ? steps : []
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'progress-step',
-      data: {
-        steps,
-      },
-    })
+    const exportSteps = Array.isArray(steps) ? steps : []
 
-    return () => unregisterExportSnapshot(blockId)
-  }, [blockId, registerExportSnapshot, steps, unregisterExportSnapshot])
+    updateBlockData?.(blockId, {
+      steps: exportSteps,
+    })
+  }, [blockId, steps, updateBlockData])
 
   return (
     <div className="progress-step-primitive">
-      {steps.map((step) => (
+      {safeSteps.map((step) => (
         <article
           className={`progress-step status-${step.status.toLowerCase()}`}
           key={step.id}

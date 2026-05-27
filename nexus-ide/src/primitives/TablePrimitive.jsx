@@ -9,13 +9,11 @@ import {
 } from '@tanstack/react-table'
 import { createTableColumns } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 
 const pageSize = 20
 
-function TablePrimitive({ blockId, columns, data }) {
+function TablePrimitive({ blockId, columns, data, rows, updateBlockData }) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [columnSizing, setColumnSizing] = useState({})
   const [globalFilter, setGlobalFilter] = useState('')
@@ -28,14 +26,21 @@ function TablePrimitive({ blockId, columns, data }) {
     datasets.find((dataset) => dataset.id === selectedDatasetId) ??
     activeDataset
   const tableData = useMemo(
-    () => selectedDataset?.rows ?? data ?? [],
-    [data, selectedDataset],
+    () => selectedDataset?.rows ?? rows ?? data ?? [],
+    [data, rows, selectedDataset],
   )
   const tableColumns = useMemo(
-    () =>
-      selectedDataset
-        ? createTableColumns(selectedDataset.columns)
-        : (columns ?? createTableColumns(Object.keys(tableData[0] ?? {}))),
+    () => {
+      if (selectedDataset) {
+        return createTableColumns(selectedDataset.columns)
+      }
+
+      if (Array.isArray(columns) && columns.every((column) => typeof column === 'string')) {
+        return createTableColumns(columns)
+      }
+
+      return columns ?? createTableColumns(Object.keys(tableData[0] ?? {}))
+    },
     [columns, selectedDataset, tableData],
   )
 
@@ -66,26 +71,23 @@ function TablePrimitive({ blockId, columns, data }) {
 
   const filteredRowCount = table.getFilteredRowModel().rows.length
   const showPagination = filteredRowCount > pageSize
-  const exportColumns = tableColumns.map((column) => column.id)
+  const exportColumns = useMemo(
+    () => tableColumns.map((column) => column.id),
+    [tableColumns],
+  )
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'table',
-      data: {
-        columns: exportColumns,
-        name: selectedDataset?.name ?? 'Data Table',
-        rows: tableData,
-      },
+    updateBlockData?.(blockId, {
+      columns: exportColumns,
+      name: selectedDataset?.name ?? 'Data Table',
+      rows: tableData,
     })
-
-    return () => unregisterExportSnapshot(blockId)
   }, [
     blockId,
     exportColumns,
-    registerExportSnapshot,
     selectedDataset?.name,
     tableData,
-    unregisterExportSnapshot,
+    updateBlockData,
   ])
 
   if (!tableData.length || !tableColumns.length) {

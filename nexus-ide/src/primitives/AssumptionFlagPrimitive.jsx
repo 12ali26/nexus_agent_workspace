@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 
-function AssumptionFlagPrimitive({ assumptions, blockId, headerControls }) {
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
-  const [localAssumptions, setLocalAssumptions] = useState(assumptions)
+function AssumptionFlagPrimitive({
+  assumptions,
+  blockId,
+  headerControls,
+  updateBlockData,
+}) {
+  const [localAssumptions, setLocalAssumptions] = useState(
+    Array.isArray(assumptions) ? assumptions : [],
+  )
   const summary = useMemo(
     () =>
       localAssumptions.reduce(
@@ -43,20 +48,10 @@ function AssumptionFlagPrimitive({ assumptions, blockId, headerControls }) {
   }, [headerControls])
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'assumption-flag',
-      data: {
-        assumptions: localAssumptions,
-      },
+    updateBlockData?.(blockId, {
+      assumptions: localAssumptions,
     })
-
-    return () => unregisterExportSnapshot(blockId)
-  }, [
-    blockId,
-    localAssumptions,
-    registerExportSnapshot,
-    unregisterExportSnapshot,
-  ])
+  }, [blockId, localAssumptions, updateBlockData])
 
   const updateStatus = (assumptionId, status) => {
     setLocalAssumptions((currentAssumptions) =>

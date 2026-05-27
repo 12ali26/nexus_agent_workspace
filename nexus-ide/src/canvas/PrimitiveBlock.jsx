@@ -1,5 +1,6 @@
 import {
   lazy,
+  Component,
   Suspense,
   useCallback,
   useEffect,
@@ -69,6 +70,34 @@ const primitiveComponents = {
 
 const dataBlockTypes = new Set(['table', 'stats-block', 'regression'])
 
+class PrimitiveErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error(`Primitive render error (${this.props.blockType}):`, error, errorInfo)
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="primitive-error-state">
+          <strong>Block failed to render</strong>
+          <span>{this.state.error.message}</span>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
 function getBlockSummary(block) {
   const props = block.data?.props ?? {}
 
@@ -117,6 +146,7 @@ function BlockMenuItem({ children, onClick }) {
 function PrimitiveBlock({
   block,
   mode = 'float',
+  onDataChange,
   onDuplicate,
   onFocus,
   onLayoutChange,
@@ -390,13 +420,16 @@ function PrimitiveBlock({
             <div className="primitive-loading">Loading renderer...</div>
           }
         >
-          <PrimitiveComponent
-            {...block.data.props}
-            blockId={block.id}
-            blockTitle={blockTitle}
-            exportSettings={exportSettings}
-            headerControls={registerHeaderControls}
-          />
+          <PrimitiveErrorBoundary blockType={block.type}>
+            <PrimitiveComponent
+              {...block.data.props}
+              blockId={block.id}
+              blockTitle={blockTitle}
+              exportSettings={exportSettings}
+              headerControls={registerHeaderControls}
+              updateBlockData={onDataChange}
+            />
+          </PrimitiveErrorBoundary>
         </Suspense>
       </div>
     </article>

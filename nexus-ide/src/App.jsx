@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Component, useCallback, useEffect, useRef, useState } from 'react'
 import { MoreHorizontal, Search } from 'lucide-react'
 import './App.css'
 import ActivityBar from './ActivityBar'
@@ -11,7 +11,6 @@ import { AgentProvider } from './context/AgentContext'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext'
 import { WorkspaceDataProvider } from './context/WorkspaceDataContext'
-import { ExportSnapshotProvider } from './export/ExportSnapshotProvider'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext'
 import { usePackRegistry } from './registry/usePackRegistry'
@@ -29,6 +28,40 @@ function TopMenuItem({ children, onClick, shortcut }) {
       {shortcut && <span className="shortcut">{shortcut}</span>}
     </button>
   )
+}
+
+class AppErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('NEXUS render error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="app-error-screen">
+          <div className="brand-mark" aria-hidden="true">
+            N
+          </div>
+          <h1>NEXUS failed to render</h1>
+          <p>{this.state.error.message}</p>
+          <button type="button" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
 }
 
 function NexusWorkbench() {
@@ -380,9 +413,7 @@ function NexusShell() {
       <WorkspaceDataProvider>
         <TerminalPanelProvider>
           <RenderBlocksProvider>
-            <ExportSnapshotProvider>
-              <NexusWorkbench />
-            </ExportSnapshotProvider>
+            <NexusWorkbench />
           </RenderBlocksProvider>
         </TerminalPanelProvider>
       </WorkspaceDataProvider>
@@ -392,13 +423,15 @@ function NexusShell() {
 
 function App() {
   return (
-    <SettingsProvider>
-      <PackRegistryProvider>
-        <AgentProvider>
-          <NexusShell />
-        </AgentProvider>
-      </PackRegistryProvider>
-    </SettingsProvider>
+    <AppErrorBoundary>
+      <SettingsProvider>
+        <PackRegistryProvider>
+          <AgentProvider>
+            <NexusShell />
+          </AgentProvider>
+        </PackRegistryProvider>
+      </SettingsProvider>
+    </AppErrorBoundary>
   )
 }
 

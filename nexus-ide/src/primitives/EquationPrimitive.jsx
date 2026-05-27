@@ -1,31 +1,25 @@
 import katex from 'katex'
 import { useEffect } from 'react'
-import { useExportSnapshots } from '../export/useExportSnapshots'
 import 'katex/dist/katex.min.css'
 
-function EquationPrimitive({ blockId, formula, resolvedValue }) {
-  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
-  const renderedFormula = katex.renderToString(formula, {
+function EquationPrimitive({ blockId, formula, resolved, resolvedValue, updateBlockData }) {
+  const activeFormula = formula ?? ''
+  const activeResolved = resolvedValue ?? resolved
+  const renderedFormula = katex.renderToString(activeFormula, {
     displayMode: true,
     throwOnError: false,
   })
 
   useEffect(() => {
-    registerExportSnapshot(blockId, {
-      type: 'equation',
-      data: {
-        formula,
-        resolved: resolvedValue,
-      },
+    updateBlockData?.(blockId, {
+      formula: activeFormula,
+      resolved: activeResolved,
     })
-
-    return () => unregisterExportSnapshot(blockId)
   }, [
+    activeResolved,
     blockId,
-    formula,
-    registerExportSnapshot,
-    resolvedValue,
-    unregisterExportSnapshot,
+    activeFormula,
+    updateBlockData,
   ])
 
   return (
@@ -34,7 +28,7 @@ function EquationPrimitive({ blockId, formula, resolvedValue }) {
         className="equation-render"
         dangerouslySetInnerHTML={{ __html: renderedFormula }}
       />
-      <div className="equation-resolved">{resolvedValue}</div>
+      <div className="equation-resolved">{activeResolved}</div>
     </div>
   )
 }

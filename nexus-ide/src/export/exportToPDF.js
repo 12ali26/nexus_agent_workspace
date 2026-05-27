@@ -13,6 +13,7 @@ import {
   renderRegressionBlock,
   renderStatsBlock,
   renderTableBlock,
+  renderTimeSeriesBlock,
 } from './blockRenderers'
 import { getThemeToken } from '../styles/themeTokens'
 
@@ -79,6 +80,8 @@ function renderBlock(doc, block, x, y, width) {
       return renderMonteCarloBlock(doc, block, x, y, width)
     case 'progress-step':
       return renderProgressBlock(doc, block, x, y, width)
+    case 'time-series':
+      return renderTimeSeriesBlock(doc, block, x, y, width)
     default:
       return renderPlaceholderBlock(
         doc,
@@ -88,6 +91,18 @@ function renderBlock(doc, block, x, y, width) {
         width,
         `${block.type} visual export not yet supported`,
       )
+  }
+}
+
+function normalizeExportBlock(block) {
+  const props = block.data?.props ?? {}
+
+  return {
+    ...block,
+    data: {
+      ...props,
+      title: props.title ?? block.data?.title ?? block.title,
+    },
   }
 }
 
@@ -149,6 +164,7 @@ export async function exportCanvasToPDF(
   dispatchExportToast('Generating PDF...')
 
   try {
+    const exportBlocks = blocks.map(normalizeExportBlock)
     const paperSize = options.paperSize || 'A4'
     const includeCoverPage = options.includeCoverPage !== false
     const pageSize = getPageSize(paperSize)
@@ -191,14 +207,14 @@ export async function exportCanvasToPDF(
         margin,
         100,
       )
-      doc.text(`${blocks.length} analysis block${blocks.length !== 1 ? 's' : ''}`, margin, 108)
+      doc.text(`${exportBlocks.length} analysis block${exportBlocks.length !== 1 ? 's' : ''}`, margin, 108)
       doc.setDrawColor(...COLORS.border)
       doc.setLineWidth(0.3)
       doc.line(margin, 115, pageWidth - margin, 115)
       doc.setFontSize(8)
       doc.text('CONTENTS', margin, 125)
 
-      blocks.slice(0, 17).forEach((block, index) => {
+      exportBlocks.slice(0, 17).forEach((block, index) => {
         const label = block.data?.name || block.data?.title || block.title || block.type
         const y = 133 + index * 8
         doc.setFontSize(9)
@@ -210,10 +226,10 @@ export async function exportCanvasToPDF(
         doc.text(block.type, pageWidth - margin, y, { align: 'right' })
       })
 
-      if (blocks.length > 17) {
+      if (exportBlocks.length > 17) {
         doc.setFontSize(8)
         doc.setTextColor(...COLORS.textMuted)
-        doc.text(`+ ${blocks.length - 17} more blocks`, margin + 4, 133 + 17 * 8)
+        doc.text(`+ ${exportBlocks.length - 17} more blocks`, margin + 4, 133 + 17 * 8)
       }
 
       doc.setFontSize(7)
@@ -240,7 +256,7 @@ export async function exportCanvasToPDF(
       currentY = margin + 5
     }
 
-    blocks.forEach((block) => {
+    exportBlocks.forEach((block) => {
       addPageIfNeeded(estimateBlockHeight(block))
 
       const previousY = currentY
