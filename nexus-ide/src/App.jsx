@@ -15,6 +15,7 @@ import { usePackRegistry } from './registry/usePackRegistry'
 import { RenderBlocksProvider } from './renderBlocks/RenderBlocksProvider'
 import { SettingsProvider } from './settings/SettingsContext'
 import { useSettings } from './settings/useSettings'
+import { TerminalPanelProvider } from './terminal/TerminalPanelContext'
 import { ToastContext } from './toast/toastContext'
 
 function NexusShell() {
@@ -43,8 +44,9 @@ function NexusShell() {
   return (
     <ParameterProvider>
       <WorkspaceDataProvider>
-        <RenderBlocksProvider>
-          <ToastContext.Provider value={showToast}>
+        <TerminalPanelProvider>
+          <RenderBlocksProvider>
+            <ToastContext.Provider value={showToast}>
           <div className="nexus-shell" data-theme={theme}>
             <header className="top-bar">
               <div className="brand-mark" aria-hidden="true">
@@ -123,8 +125,9 @@ function NexusShell() {
 
             {toastMessage && <div className="toast">{toastMessage}</div>}
           </div>
-          </ToastContext.Provider>
-        </RenderBlocksProvider>
+            </ToastContext.Provider>
+          </RenderBlocksProvider>
+        </TerminalPanelProvider>
       </WorkspaceDataProvider>
     </ParameterProvider>
   )

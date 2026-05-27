@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { runCode } from '../computation/runner'
 import { createDatasetScope } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
-import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
+import { useTerminalPanel } from '../terminal/useTerminalPanel'
 import { useToast } from '../toast/useToast'
 
 const languageOptions = [
@@ -30,9 +30,9 @@ const languageOptions = [
 ]
 
 function CodeEditorPrimitive({ data, headerControls }) {
-  const { addPrimitiveBlock } = useRenderBlocks()
   const { activeDatasetId, addDataset, datasetAliases, datasets } =
     useWorkspaceData()
+  const { appendOutput, openOutput } = useTerminalPanel()
   const showToast = useToast()
   const [isRunning, setIsRunning] = useState(false)
   const [pendingDatasetRows, setPendingDatasetRows] = useState(null)
@@ -83,6 +83,7 @@ function CodeEditorPrimitive({ data, headerControls }) {
     }
 
     setIsRunning(true)
+    openOutput()
 
     try {
       const result = await runCode(language, code, executionData)
@@ -101,15 +102,11 @@ function CodeEditorPrimitive({ data, headerControls }) {
         ? result.output || 'Process completed with no output.'
         : result.error || 'Process failed with no error output.'
 
-      addPrimitiveBlock({
-        type: 'terminal-output',
-        data: {
-          title: result.success ? 'Execution Output' : 'Execution Error',
-          props: {
-            lines: terminalText.trimEnd().split('\n'),
-            tone: result.success ? 'default' : 'error',
-          },
-        },
+      appendOutput({
+        language,
+        lines: terminalText.trimEnd().split('\n'),
+        title: result.success ? 'Execution Output' : 'Execution Error',
+        tone: result.success ? 'default' : 'error',
       })
 
       if (result.success && language === 'python') {
@@ -124,11 +121,12 @@ function CodeEditorPrimitive({ data, headerControls }) {
       setIsRunning(false)
     }
   }, [
-    addPrimitiveBlock,
+    appendOutput,
     code,
     executionData,
     isRunning,
     language,
+    openOutput,
     showToast,
   ])
 

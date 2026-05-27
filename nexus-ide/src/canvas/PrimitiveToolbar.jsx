@@ -1,6 +1,6 @@
 import { getPrimitiveLabel } from '../primitives/primitivePayloads'
 
-function PrimitiveToolbar({ onPrimitiveClick, primitiveTypes }) {
+function PrimitiveToolbar({ onPrimitiveClick, onTerminalClick, primitiveTypes }) {
   return (
     <div className="workspace-toolbar" aria-label="Available primitives">
       {primitiveTypes.map((primitiveType) => (
@@ -13,6 +13,13 @@ function PrimitiveToolbar({ onPrimitiveClick, primitiveTypes }) {
           {getPrimitiveLabel(primitiveType)}
         </button>
       ))}
+      <button
+        className="renderer-button workspace-terminal-button"
+        type="button"
+        onClick={onTerminalClick}
+      >
+        Terminal
+      </button>
     </div>
   )
 }

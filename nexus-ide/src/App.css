@@ -280,6 +280,12 @@
   min-height: 0;
 }
 
+.domain-workspace.has-workspace-bottom-panel {
+  grid-template-rows:
+    var(--workspace-toolbar-height) minmax(0, 1fr)
+    var(--terminal-panel-height, 280px);
+}
+
 .workspace-toolbar {
   display: flex;
   align-items: center;
@@ -312,6 +318,10 @@
 .renderer-button:focus-visible {
   outline: 1px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+.workspace-terminal-button {
+  margin-left: auto;
 }
 
 .domain-canvas-body {
@@ -956,6 +966,143 @@
 
 .live-terminal-container .xterm-viewport {
   overflow-y: auto;
+}
+
+.workspace-bottom-panel {
+  position: relative;
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  border-top: 1px solid var(--color-border);
+  background: #0d0d0d;
+}
+
+.workspace-bottom-resizer {
+  position: absolute;
+  z-index: 3;
+  top: -3px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.workspace-bottom-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-primitive-bg);
+}
+
+.workspace-bottom-tabs {
+  display: inline-flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.workspace-bottom-tabs button,
+.workspace-bottom-actions button {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.workspace-bottom-tabs button {
+  border-bottom: 2px solid transparent;
+  padding: 0 16px;
+  text-transform: uppercase;
+}
+
+.workspace-bottom-tabs button.is-active {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text-strong);
+}
+
+.workspace-bottom-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.workspace-bottom-actions button {
+  min-height: 24px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0 8px;
+}
+
+.workspace-bottom-actions button:hover,
+.workspace-bottom-actions button:focus-visible {
+  border-color: var(--color-button-border);
+  background: var(--color-hover);
+  color: var(--color-text-strong);
+}
+
+.workspace-bottom-panel-body {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace-native-terminal {
+  height: 100%;
+}
+
+.workspace-output-log {
+  height: 100%;
+  overflow: auto;
+  padding: 10px 12px;
+  background: #0d0d0d;
+  color: #86efac;
+  font-family:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.workspace-output-entry {
+  display: grid;
+  gap: 6px;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid rgba(134, 239, 172, 0.14);
+}
+
+.workspace-output-entry header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #bbf7d0;
+}
+
+.workspace-output-entry header span {
+  color: rgba(187, 247, 208, 0.54);
+  font-size: 11px;
+}
+
+.workspace-output-entry pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.workspace-output-entry.is-error {
+  color: #fca5a5;
+}
+
+.workspace-output-entry.is-error header {
+  color: #fecaca;
+}
+
+.workspace-output-empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: rgba(134, 239, 172, 0.58);
 }
 
 .notebook-header-controls {

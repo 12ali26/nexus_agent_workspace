@@ -42,7 +42,7 @@
         "sql.run",
         "terminal.open"
       ],
-      "primitives": ["code-editor", "terminal-output"],
+      "primitives": ["code-editor"],
       "installed": false
     },
     {
