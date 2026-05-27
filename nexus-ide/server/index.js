@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { spawn } = require('child_process')
+const { execSync, spawn } = require('child_process')
 const path = require('path')
 const http = require('http')
 const { WebSocket, WebSocketServer } = require('ws')
@@ -8,6 +8,7 @@ const pty = require('node-pty')
 
 const app = express()
 const server = http.createServer(app)
+const terminalWss = new WebSocketServer({ server, path: '/terminal' })
 
 app.use(cors())
 app.use(express.json())
@@ -127,7 +128,29 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', runtimes: ['python3', 'node', 'Rscript'] })
 })
 
-const terminalWss = new WebSocketServer({ server, path: '/terminal' })
+// NEX CLI endpoint — receives commands from terminal and broadcasts to canvas.
+// AGENT: agents can also POST here to push render instructions.
+app.post('/api/nex', (req, res) => {
+  const { instructions } = req.body
+
+  if (!Array.isArray(instructions)) {
+    res.status(400).json({ error: 'Invalid instructions' })
+    return
+  }
+
+  terminalWss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: 'nex-render',
+          instructions,
+        }),
+      )
+    }
+  })
+
+  res.json({ success: true, count: instructions.length })
+})
 
 terminalWss.on('connection', (ws) => {
   const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash'
@@ -182,5 +205,12 @@ app.get(/.*/, (_req, res) => {
 
 const PORT = process.env.PORT || 8080
 server.listen(PORT, '0.0.0.0', () => {
+  try {
+    execSync('cp cli/nex.js /usr/local/bin/nex && chmod +x /usr/local/bin/nex')
+    console.log('nex CLI installed')
+  } catch {
+    console.log('nex CLI install skipped')
+  }
+
   console.log(`NEXUS IDE running on http://0.0.0.0:${PORT}`)
 })

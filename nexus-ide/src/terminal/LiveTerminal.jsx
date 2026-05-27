@@ -78,6 +78,14 @@ function LiveTerminal({ className = '' }) {
         if (message.type === 'exit') {
           term.writeln('\x1b[31m\r\n[Process exited]\x1b[0m')
         }
+
+        if (message.type === 'nex-render') {
+          window.dispatchEvent(
+            new CustomEvent('nex-render', {
+              detail: message.instructions,
+            }),
+          )
+        }
       } catch {
         // Ignore malformed terminal frames.
       }

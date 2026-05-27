@@ -22,6 +22,10 @@ cd nexus-ide
 # Install project dependencies
 npm install
 
+sudo cp cli/nex.js /usr/local/bin/nex
+sudo chmod +x /usr/local/bin/nex
+echo "✓ nex CLI installed"
+
 echo "🔨 Building NEXUS..."
 npm run build
 
