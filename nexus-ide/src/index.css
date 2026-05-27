@@ -58,11 +58,11 @@
   --transition-slow: 350ms ease;
 
   /* Existing app sizing */
-  --top-bar-height: 44px;
+  --top-bar-height: 40px;
   --activity-bar-width: 52px;
   --workspace-sidebar-width: 292px;
-  --workspace-toolbar-height: 40px;
-  --status-bar-height: 24px;
+  --workspace-toolbar-height: 32px;
+  --status-bar-height: 20px;
 
   /* Compatibility aliases for the existing component CSS */
   --color-top-bar: var(--bg-panel);

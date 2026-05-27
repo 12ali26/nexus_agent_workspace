@@ -9,13 +9,14 @@ import { useSettings } from './settings/useSettings'
 import WorkspaceTerminalPanel from './terminal/WorkspaceTerminalPanel'
 import { useTerminalPanel } from './terminal/useTerminalPanel'
 
-function WorkspaceCanvas() {
+function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
   const { activeProject } = usePackRegistry()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
   const { exportSettings } = useSettings()
   const {
     appendOutput,
     clearOutput,
+    closePanel,
     isOpen,
     openTerminal,
     panelHeight,
@@ -246,7 +247,8 @@ function WorkspaceCanvas() {
         <PrimitiveToolbar
           canvasMode={canvasMode}
           onCanvasModeChange={setCanvasMode}
-          onTerminalClick={openTerminal}
+          onPrimitivePanelClick={onOpenPrimitivesPanel}
+          onTerminalClick={() => (isOpen ? closePanel() : openTerminal())}
         />
         <BlockCanvas
           canvasMode={canvasMode}

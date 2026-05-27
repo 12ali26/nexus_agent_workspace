@@ -4359,6 +4359,355 @@
   }
 }
 
+/* Step 36: icon-first shell */
+.top-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(120px, auto) minmax(160px, 1fr);
+  height: var(--top-bar-height);
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+.top-bar-brand,
+.top-bar-actions {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.top-bar-actions {
+  justify-content: flex-end;
+}
+
+.top-bar-project {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.project-name-button {
+  max-width: min(360px, 34vw);
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px var(--space-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-name-button:hover,
+.project-name-button:focus-visible {
+  border-color: var(--border-default);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.project-name-input {
+  width: min(360px, 34vw);
+  height: 26px;
+  text-align: center;
+}
+
+.top-icon-btn,
+.toolbar-icon-btn,
+.mode-icon-btn,
+.block-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.top-icon-btn:hover,
+.top-icon-btn:focus-visible,
+.top-icon-btn.is-active,
+.toolbar-icon-btn:hover,
+.toolbar-icon-btn:focus-visible,
+.mode-icon-btn:hover,
+.mode-icon-btn:focus-visible,
+.block-icon-btn:hover,
+.block-icon-btn:focus-visible {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.mode-icon-btn.is-active {
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.top-icon-btn:focus-visible,
+.toolbar-icon-btn:focus-visible,
+.mode-icon-btn:focus-visible,
+.block-icon-btn:focus-visible,
+.project-name-button:focus-visible {
+  outline: 1px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+.top-menu-anchor,
+.block-options-anchor {
+  position: relative;
+}
+
+.top-menu-dropdown,
+.block-options-menu {
+  position: absolute;
+  z-index: 1000;
+  width: 220px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-float);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+}
+
+.top-menu-dropdown {
+  top: calc(100% + 4px);
+  right: 0;
+}
+
+.menu-item,
+.block-menu-item {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 0 var(--space-3);
+  text-align: left;
+}
+
+.menu-item:hover,
+.block-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.menu-item .shortcut {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.menu-divider,
+.block-menu-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border-subtle);
+}
+
+.top-bar-hidden-actions,
+.top-bar-hidden-trigger {
+  display: none;
+}
+
+.workspace-toolbar {
+  height: var(--workspace-toolbar-height);
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  overflow: visible;
+}
+
+.canvas-mode-actions {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.workspace-terminal-button {
+  margin-left: var(--space-1);
+}
+
+.primitive-block {
+  grid-template-rows: 28px minmax(0, 1fr);
+}
+
+.primitive-block.is-collapsed {
+  grid-template-rows: 28px 0;
+}
+
+.primitive-block-header {
+  min-height: 28px;
+  height: 28px;
+  gap: 6px;
+  padding: 0 6px 0 8px;
+}
+
+.block-drag-handle {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.block-type-icon {
+  flex: 0 0 auto;
+}
+
+.block-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block-summary {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block-controls {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.primitive-block:hover .block-controls,
+.primitive-block:focus-within .block-controls {
+  opacity: 1;
+}
+
+.primitive-header-controls {
+  gap: 2px;
+}
+
+.primitive-header-action {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.primitive-header-action:hover,
+.primitive-header-action:focus-visible {
+  background: var(--bg-hover);
+  color: var(--accent-orange);
+}
+
+.block-options-menu {
+  top: calc(100% + 5px);
+  right: 0;
+}
+
+.primitive-close:hover,
+.primitive-close:focus-visible {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
+.primitive-block-content {
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    opacity var(--transition-fast),
+    padding var(--transition-fast);
+}
+
+.primitive-block-content.is-collapsed {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.focus-canvas-shell {
+  grid-template-rows: 28px minmax(0, 1fr);
+}
+
+.focus-tab-bar {
+  height: 28px;
+  gap: 2px;
+  padding: 0 var(--space-2);
+}
+
+.focus-tab {
+  max-width: 150px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.focus-tab-main {
+  min-height: 28px;
+  gap: 5px;
+  padding: 0 8px;
+}
+
+.focus-tab-main strong {
+  max-width: 90px;
+  font-size: 11px;
+}
+
+.focus-tab-close {
+  width: 20px;
+  height: 20px;
+  margin-right: 2px;
+  opacity: 0;
+}
+
+.focus-tab:hover .focus-tab-close,
+.focus-tab:focus-within .focus-tab-close {
+  opacity: 1;
+}
+
+.status-bar {
+  height: var(--status-bar-height);
+  padding: 0 var(--space-3);
+  border-top: 0;
+  font-size: 10px;
+}
+
+.status-project-name,
+.status-capabilities,
+.status-agent {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.status-project-name {
+  max-width: 34vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { LayoutGrid } from 'lucide-react'
+import { getPrimitiveDefinition } from '../config/primitives'
 import { getPrimitiveLabel } from '../primitives/primitivePayloads'
 import { useRenderBlocks } from '../renderBlocks/useRenderBlocks'
 import PrimitiveBlock from './PrimitiveBlock'
 
+function truncateTitle(title) {
+  return title.length > 12 ? `${title.slice(0, 12)}…` : title
+}
+
 function BlockCanvas({ canvasMode, emptyMessage }) {
   const {
     focusPrimitiveBlock,
+    duplicatePrimitiveBlock,
     primitiveBlocks,
+    renamePrimitiveBlock,
     removePrimitiveBlock,
     reorderPrimitiveBlocks,
     updatePrimitiveBlockLayout,
@@ -89,29 +96,13 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
         <div className="focus-canvas-shell">
           <div className="focus-tab-bar" aria-label="Canvas focus tabs">
             {primitiveBlocks.map((block) => (
-              <div
-                className={`focus-tab${
-                  activeFocusBlock?.id === block.id ? ' is-active' : ''
-                }`}
+              <FocusTab
+                block={block}
+                isActive={activeFocusBlock?.id === block.id}
                 key={block.id}
-              >
-                <button
-                  className="focus-tab-main"
-                  type="button"
-                  onClick={() => setActiveFocusBlockId(block.id)}
-                >
-                  <span>{getPrimitiveLabel(block.type)}</span>
-                  <strong>{block.data?.title ?? block.type}</strong>
-                </button>
-                <button
-                  className="focus-tab-close"
-                  type="button"
-                  aria-label={`Remove ${block.data?.title ?? block.type}`}
-                  onClick={() => removePrimitiveBlock(block.id)}
-                >
-                  x
-                </button>
-              </div>
+                onClose={() => removePrimitiveBlock(block.id)}
+                onSelect={() => setActiveFocusBlockId(block.id)}
+              />
             ))}
           </div>
           {activeFocusBlock && (
@@ -120,7 +111,9 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
               mode="focus"
               onFocus={focusPrimitiveBlock}
               onLayoutChange={updatePrimitiveBlockLayout}
+              onDuplicate={duplicatePrimitiveBlock}
               onRemove={removePrimitiveBlock}
+              onRename={renamePrimitiveBlock}
             />
           )}
         </div>
@@ -132,7 +125,9 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
             mode={canvasMode}
             onFocus={focusPrimitiveBlock}
             onLayoutChange={updatePrimitiveBlockLayout}
+            onDuplicate={duplicatePrimitiveBlock}
             onRemove={removePrimitiveBlock}
+            onRename={renamePrimitiveBlock}
             onReorder={reorderPrimitiveBlocks}
           />
         ))
@@ -143,6 +138,41 @@ function BlockCanvas({ canvasMode, emptyMessage }) {
           <span>or type <code>nex add [primitive]</code> in the terminal</span>
         </div>
       )}
+    </div>
+  )
+}
+
+function FocusTab({ block, isActive, onClose, onSelect }) {
+  const primitiveDefinition = getPrimitiveDefinition(block.type)
+  const Icon = primitiveDefinition?.icon
+  const title = block.data?.title ?? getPrimitiveLabel(block.type)
+
+  return (
+    <div className={`focus-tab${isActive ? ' is-active' : ''}`}>
+      <button
+        className="focus-tab-main"
+        type="button"
+        title={title}
+        onClick={onSelect}
+      >
+        {Icon && (
+          <Icon
+            size={14}
+            strokeWidth={1.9}
+            style={{ color: primitiveDefinition.color }}
+            aria-hidden="true"
+          />
+        )}
+        <strong>{truncateTitle(title)}</strong>
+      </button>
+      <button
+        className="focus-tab-close"
+        type="button"
+        aria-label={`Remove ${title}`}
+        onClick={onClose}
+      >
+        ×
+      </button>
     </div>
   )
 }

@@ -2,13 +2,18 @@ import { exportCanvasToPDF } from './export/exportToPDF'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useSettings } from './settings/useSettings'
 
-function ExportButton() {
+function ExportButton({
+  buttonClassName = 'top-bar-action',
+  buttonLabel = 'Export',
+  buttonRef,
+}) {
   const { activeProject } = usePackRegistry()
   const { exportSettings } = useSettings()
 
   return (
     <button
-      className="top-bar-action"
+      ref={buttonRef}
+      className={buttonClassName}
       type="button"
       onClick={() =>
         exportCanvasToPDF(
@@ -17,7 +22,7 @@ function ExportButton() {
         )
       }
     >
-      Export
+      {buttonLabel}
     </button>
   )
 }

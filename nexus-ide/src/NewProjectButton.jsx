@@ -18,7 +18,11 @@ function downloadManifest(manifest) {
   URL.revokeObjectURL(url)
 }
 
-function NewProjectButton() {
+function NewProjectButton({
+  buttonClassName = 'top-bar-action',
+  buttonLabel = 'New Project',
+  buttonRef,
+}) {
   const {
     allCapabilities,
     installExtensionsForCapabilities,
@@ -71,11 +75,12 @@ function NewProjectButton() {
   return (
     <>
       <button
-        className="top-bar-action"
+        ref={buttonRef}
+        className={buttonClassName}
         type="button"
         onClick={() => setIsModalOpen(true)}
       >
-        New Project
+        {buttonLabel}
       </button>
 
       {isModalOpen &&

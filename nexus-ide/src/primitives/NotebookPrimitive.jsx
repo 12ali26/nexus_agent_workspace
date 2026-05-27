@@ -1,6 +1,16 @@
 import Editor from '@monaco-editor/react'
 import MDEditor from '@uiw/react-md-editor'
 import katex from 'katex'
+import {
+  Code2,
+  Database,
+  Download,
+  Play,
+  Sigma,
+  TerminalSquare,
+  Trash2,
+  Type,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CartesianGrid,
@@ -459,65 +469,95 @@ function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerCont
   }, [runCell])
 
   useEffect(() => {
+    const stopHeaderAction = (event) => event.stopPropagation()
+
     headerControls?.(
       <div className="primitive-header-controls notebook-header-controls">
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Run All"
+          aria-label="Run all notebook cells"
+          onMouseDown={stopHeaderAction}
           onClick={runAll}
         >
-          Run All
+          <Play size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Add Markdown"
+          aria-label="Add markdown cell"
+          onMouseDown={stopHeaderAction}
           onClick={() => addCell('markdown')}
         >
-          Markdown
+          <Type size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Add Code"
+          aria-label="Add code cell"
+          onMouseDown={stopHeaderAction}
           onClick={() => addCell('code')}
         >
-          Code
+          <Code2 size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Add Equation"
+          aria-label="Add equation cell"
+          onMouseDown={stopHeaderAction}
           onClick={() => addCell('equation')}
         >
-          Equation
+          <Sigma size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Add Terminal"
+          aria-label="Add terminal cell"
+          onMouseDown={stopHeaderAction}
           onClick={() => addCell('terminal')}
         >
-          Terminal
+          <TerminalSquare size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Available Data"
+          aria-label="Available data"
+          onMouseDown={stopHeaderAction}
+          onClick={() => {
+            notebookRef.current
+              ?.querySelector('.notebook-data-panel')
+              ?.scrollIntoView({ block: 'nearest' })
+          }}
+        >
+          <Database size={14} strokeWidth={1.9} />
+        </button>
+        <button
+          className="primitive-header-action"
+          type="button"
+          title="Clear All Outputs"
+          aria-label="Clear all notebook outputs"
+          onMouseDown={stopHeaderAction}
           onClick={clearOutputs}
         >
-          Clear Outputs
+          <Trash2 size={14} strokeWidth={1.9} />
         </button>
         <button
           className="primitive-header-action"
           type="button"
-          onMouseDown={(event) => event.stopPropagation()}
+          title="Export Notebook"
+          aria-label="Export notebook"
+          onMouseDown={stopHeaderAction}
           onClick={() =>
             exportNotebookToPDF(notebookRef.current, blockTitle, exportSettings)
           }
         >
-          Export
+          <Download size={14} strokeWidth={1.9} />
         </button>
       </div>,
     )

@@ -243,6 +243,74 @@ export function RenderBlocksProvider({ children }) {
     [commitPrimitiveBlocks],
   )
 
+  const renamePrimitiveBlock = useCallback(
+    (blockId, title) => {
+      const nextTitle = title.trim()
+
+      if (!nextTitle) {
+        return
+      }
+
+      commitPrimitiveBlocks((currentBlocks) =>
+        currentBlocks.map((block) =>
+          block.id === blockId
+            ? {
+                ...block,
+                data: {
+                  ...block.data,
+                  title: nextTitle,
+                },
+              }
+            : block,
+        ),
+      )
+    },
+    [commitPrimitiveBlocks],
+  )
+
+  const duplicatePrimitiveBlock = useCallback(
+    (blockId) => {
+      setMaxZ((currentMaxZ) => {
+        const nextZ = currentMaxZ + 1
+
+        commitPrimitiveBlocks((currentBlocks) => {
+          const sourceBlock = currentBlocks.find((block) => block.id === blockId)
+
+          if (!sourceBlock) {
+            return currentBlocks
+          }
+
+          return [
+            ...currentBlocks,
+            {
+              ...sourceBlock,
+              id: crypto.randomUUID(),
+              data: {
+                ...sourceBlock.data,
+                props: {
+                  ...sourceBlock.data?.props,
+                },
+                title: `${sourceBlock.data?.title ?? sourceBlock.type} Copy`,
+              },
+              meta: {
+                ...sourceBlock.meta,
+                highlight: true,
+              },
+              position: {
+                x: Number(sourceBlock.position?.x ?? 64) + 24,
+                y: Number(sourceBlock.position?.y ?? 64) + 24,
+              },
+              zIndex: nextZ,
+            },
+          ]
+        })
+
+        return nextZ
+      })
+    },
+    [commitPrimitiveBlocks],
+  )
+
   const updatePrimitiveBlockLayout = useCallback(
     (blockId, layout) => {
       commitPrimitiveBlocks((currentBlocks) =>
@@ -336,8 +404,10 @@ export function RenderBlocksProvider({ children }) {
     () => ({
       addPrimitiveBlock,
       clearCanvas,
+      duplicatePrimitiveBlock,
       focusPrimitiveBlock,
       primitiveBlocks,
+      renamePrimitiveBlock,
       replacePrimitiveBlocks,
       removePrimitiveBlock,
       reorderPrimitiveBlocks,
@@ -346,8 +416,10 @@ export function RenderBlocksProvider({ children }) {
     [
       addPrimitiveBlock,
       clearCanvas,
+      duplicatePrimitiveBlock,
       focusPrimitiveBlock,
       primitiveBlocks,
+      renamePrimitiveBlock,
       replacePrimitiveBlocks,
       removePrimitiveBlock,
       reorderPrimitiveBlocks,

@@ -8,7 +8,12 @@ import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 
 const acceptedFileTypes = '.csv,.json,application/json,text/csv'
 
-function FileOpenButton({ onToast }) {
+function FileOpenButton({
+  buttonClassName = 'top-bar-action',
+  buttonLabel = 'Open File',
+  buttonRef,
+  onToast,
+}) {
   const fileInputRef = useRef(null)
   const {
     activePrimitives,
@@ -109,8 +114,13 @@ function FileOpenButton({ onToast }) {
 
   return (
     <>
-      <button className="top-bar-action" type="button" onClick={openFilePicker}>
-        Open File
+      <button
+        ref={buttonRef}
+        className={buttonClassName}
+        type="button"
+        onClick={openFilePicker}
+      >
+        {buttonLabel}
       </button>
       <input
         ref={fileInputRef}

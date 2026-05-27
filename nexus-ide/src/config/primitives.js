@@ -141,3 +141,7 @@ export const PRIMITIVES = [
     name: 'Notebook',
   },
 ]
+
+export function getPrimitiveDefinition(primitiveType) {
+  return PRIMITIVES.find((primitive) => primitive.id === primitiveType) ?? null
+}

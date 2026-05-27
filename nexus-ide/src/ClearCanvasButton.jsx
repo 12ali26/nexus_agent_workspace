@@ -1,6 +1,11 @@
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 
-function ClearCanvasButton({ onToast }) {
+function ClearCanvasButton({
+  buttonClassName = 'top-bar-action',
+  buttonLabel = 'Clear Canvas',
+  buttonRef,
+  onToast,
+}) {
   const { clearCanvas } = useRenderBlocks()
 
   const handleClearCanvas = () => {
@@ -10,11 +15,12 @@ function ClearCanvasButton({ onToast }) {
 
   return (
     <button
-      className="top-bar-action"
+      ref={buttonRef}
+      className={buttonClassName}
       type="button"
       onClick={handleClearCanvas}
     >
-      Clear Canvas
+      {buttonLabel}
     </button>
   )
 }
