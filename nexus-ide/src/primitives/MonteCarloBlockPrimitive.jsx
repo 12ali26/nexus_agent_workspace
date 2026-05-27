@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { useParameters } from '../context/useParameters'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { getChartTheme } from '../styles/themeTokens'
 
 const modes = [
   { id: 'formula', label: 'Custom Formula' },
@@ -33,6 +34,7 @@ function MonteCarloBlockPrimitive({
   vol,
   years,
 }) {
+  const chartTheme = getChartTheme()
   const { parameters } = useParameters()
   const { addDataset } = useWorkspaceData()
   const [mode, setMode] = useState(initialMode ?? type ?? 'formula')
@@ -218,8 +220,8 @@ function MonteCarloBlockPrimitive({
                 <XAxis dataKey="bin" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#60a5fa" />
-                <Line dataKey="normal" stroke="#f97316" dot={false} />
+                <Bar dataKey="count" fill={chartTheme.blue} />
+                <Line dataKey="normal" stroke={chartTheme.orange} dot={false} />
               </BarChart>
             </ResponsiveContainer>
             <div className="analytics-stat-grid">
@@ -242,9 +244,9 @@ function MonteCarloBlockPrimitive({
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
                 {result.paths.map((_, index) => (
-                  <Line key={index} dataKey={`path_${index}`} stroke="rgba(96,165,250,.25)" dot={false} strokeWidth={1} />
+                  <Line key={index} dataKey={`path_${index}`} stroke={chartTheme.blueDim} dot={false} strokeWidth={1} />
                 ))}
-                <Line dataKey="mean" stroke="#fff" dot={false} strokeWidth={2} />
+                <Line dataKey="mean" stroke={chartTheme.textPrimary} dot={false} strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           ) : <div className="stats-empty-state">Paths are available for GBM simulations</div>
@@ -255,7 +257,7 @@ function MonteCarloBlockPrimitive({
               <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
               <YAxis type="category" dataKey="parameter" width={120} tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
               <Tooltip />
-              <Bar dataKey="impact" fill="#f97316" />
+              <Bar dataKey="impact" fill={chartTheme.orange} />
             </BarChart>
           </ResponsiveContainer>
         )}

@@ -367,12 +367,13 @@ function getPearson(valuesA, valuesB) {
 
 function getHeatColor(value) {
   const intensity = Math.min(1, Math.abs(value))
+  const opacity = Math.round((16 + intensity * 72) * 100) / 100
 
   if (value < 0) {
-    return `rgba(239, 68, 68, ${0.16 + intensity * 0.72})`
+    return `color-mix(in srgb, var(--accent-red) ${opacity}%, transparent)`
   }
 
-  return `rgba(59, 130, 246, ${0.16 + intensity * 0.72})`
+  return `color-mix(in srgb, var(--accent-blue) ${opacity}%, transparent)`
 }
 
 function StatsBlockPrimitive({ data = [] }) {

@@ -1,11 +1,13 @@
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { useRef, useState } from 'react'
+import { getThemeToken } from '../styles/themeTokens'
 
 const objectTypes = ['Beam', 'Sphere', 'Cube', 'Cylinder']
 const forceDirections = ['Top', 'Bottom', 'Left', 'Right']
 
 function ForceArrow({ direction }) {
+  const forceColor = getThemeToken('--accent-red', '#f85149')
   const transforms = {
     Bottom: {
       position: [0, -1.55, 0],
@@ -30,11 +32,11 @@ function ForceArrow({ direction }) {
     <group position={transform.position} rotation={transform.rotation}>
       <mesh position={[0, -0.55, 0]}>
         <cylinderGeometry args={[0.045, 0.045, 1.1, 24]} />
-        <meshStandardMaterial color="#ef4444" />
+        <meshStandardMaterial color={forceColor} />
       </mesh>
       <mesh position={[0, -1.18, 0]} rotation={[Math.PI, 0, 0]}>
         <coneGeometry args={[0.16, 0.34, 28]} />
-        <meshStandardMaterial color="#ef4444" />
+        <meshStandardMaterial color={forceColor} />
       </mesh>
     </group>
   )
@@ -55,7 +57,9 @@ function SceneObject({ color, objectType, scale }) {
 function ThreeObjectPrimitive() {
   const controlsRef = useRef(null)
   const [objectType, setObjectType] = useState('Beam')
-  const [objectColor, setObjectColor] = useState('#9ca3af')
+  const [objectColor, setObjectColor] = useState(() =>
+    getThemeToken('--text-secondary', '#8b949e'),
+  )
   const [scale, setScale] = useState({ x: 1, y: 1, z: 1 })
   const [showForceArrow, setShowForceArrow] = useState(true)
   const [forceDirection, setForceDirection] = useState('Top')
@@ -71,7 +75,7 @@ function ThreeObjectPrimitive() {
     <div className="three-object-primitive">
       <div className="three-object-scene">
         <Canvas camera={{ position: [4.5, 3.4, 5], fov: 45 }}>
-          <color attach="background" args={['#161719']} />
+          <color attach="background" args={[getThemeToken('--bg-panel', '#151b23')]} />
           <ambientLight intensity={0.45} />
           <directionalLight intensity={1.1} position={[4, 6, 3]} />
           <directionalLight intensity={0.35} position={[-4, 3, -4]} />
@@ -80,10 +84,22 @@ function ThreeObjectPrimitive() {
 
           {showForceArrow && <ForceArrow direction={forceDirection} />}
 
-          <gridHelper args={[8, 16, '#334155', '#253040']} position={[0, -0.02, 0]} />
+          <gridHelper
+            args={[
+              8,
+              16,
+              getThemeToken('--border-strong', '#3d4f63'),
+              getThemeToken('--border-subtle', '#1e2530'),
+            ]}
+            position={[0, -0.02, 0]}
+          />
           <mesh position={[0, -0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[8, 8]} />
-            <meshStandardMaterial color="#111827" transparent opacity={0.34} />
+            <meshStandardMaterial
+              color={getThemeToken('--bg-base', '#0b0f14')}
+              transparent
+              opacity={0.34}
+            />
           </mesh>
 
           <OrbitControls

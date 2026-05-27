@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { getThemeToken } from '../styles/themeTokens'
 
 const paperSizes = {
   A3: { height: 297, width: 420 },
@@ -53,7 +54,7 @@ export async function exportCanvasToPDF(projectName = 'NEXUS Analysis', options 
     const paperSize = options.paperSize || 'A4'
     const canvasImage = await html2canvas(canvas, {
       allowTaint: true,
-      backgroundColor: '#1a1a2e',
+      backgroundColor: getThemeToken('--bg-base', '#0b0f14'),
       logging: false,
       scale,
       useCORS: true,
@@ -75,7 +76,7 @@ export async function exportCanvasToPDF(projectName = 'NEXUS Analysis', options 
     })
 
     if (includeCoverPage) {
-      pdf.setFillColor(26, 26, 46)
+      pdf.setFillColor(11, 15, 20)
       pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
       pdf.setTextColor(255, 255, 255)
       pdf.setFontSize(32)
@@ -102,7 +103,7 @@ export async function exportCanvasToPDF(projectName = 'NEXUS Analysis', options 
       pdf.addPage()
     }
 
-    pdf.setFillColor(26, 26, 46)
+    pdf.setFillColor(11, 15, 20)
     pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
     pdf.addImage(
       imgData,
@@ -138,7 +139,7 @@ export async function exportNotebookToPDF(notebookEl, title = 'Notebook', option
     const scale = Number(options.resolution) || 2
     const paperSize = options.paperSize || 'A4'
     const canvasImage = await html2canvas(notebookEl, {
-      backgroundColor: '#1e1e2e',
+      backgroundColor: getThemeToken('--bg-float', '#1e2530'),
       logging: false,
       scale,
       useCORS: true,
@@ -159,7 +160,7 @@ export async function exportNotebookToPDF(notebookEl, title = 'Notebook', option
       unit: 'mm',
     })
 
-    pdf.setFillColor(30, 30, 46)
+    pdf.setFillColor(21, 27, 35)
     pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
     pdf.setTextColor(255, 255, 255)
     pdf.setFontSize(18)
@@ -195,7 +196,7 @@ export async function exportNotebookToPDF(notebookEl, title = 'Notebook', option
 
       if (remainingHeight > 0) {
         pdf.addPage()
-        pdf.setFillColor(30, 30, 46)
+        pdf.setFillColor(21, 27, 35)
         pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
         yPosition = margin
       }

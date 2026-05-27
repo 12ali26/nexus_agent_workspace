@@ -628,7 +628,11 @@ function RegressionBlockPrimitive() {
                       {results.residualData.map((point) => (
                         <Cell
                           key={`${point.fitted}-${point.residual}`}
-                          fill={`rgba(56, 189, 248, ${0.28 + (point.magnitude / maxResidual) * 0.72})`}
+                          fill={`color-mix(in srgb, var(--accent-blue) ${
+                            Math.round(
+                              (28 + (point.magnitude / maxResidual) * 72) * 100,
+                            ) / 100
+                          }%, transparent)`}
                         />
                       ))}
                     </Scatter>

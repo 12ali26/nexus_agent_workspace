@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebLinksAddon } from 'xterm-addon-web-links'
+import { getThemeToken } from '../styles/themeTokens'
 import 'xterm/css/xterm.css'
 
 function LiveTerminal({ className = '' }) {
@@ -15,13 +16,13 @@ function LiveTerminal({ className = '' }) {
     const term = new Terminal({
       allowTransparency: true,
       cursorBlink: true,
-      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+      fontFamily: getThemeToken('--font-mono', 'Menlo, Monaco, "Courier New", monospace'),
       fontSize: 13,
       theme: {
-        background: '#0d0d0d',
-        cursor: '#00ff41',
-        foreground: '#00ff41',
-        selectionBackground: '#ffffff40',
+        background: getThemeToken('--bg-base', '#0b0f14'),
+        cursor: getThemeToken('--accent-green', '#3fb950'),
+        foreground: getThemeToken('--accent-green', '#3fb950'),
+        selectionBackground: getThemeToken('--accent-orange-dim', '#ff7b1c22'),
       },
     })
     const fitAddon = new FitAddon()

@@ -13,6 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { getChartTheme } from '../styles/themeTokens'
 
 const tabs = ['Trend', 'Decomposition', 'ACF/PACF', 'Forecast']
 const movingAverageWindows = [3, 5, 7, 14, 30]
@@ -148,6 +149,7 @@ function TimeSeriesBlockPrimitive({
   dateColumn,
   valueColumn,
 }) {
+  const chartTheme = getChartTheme()
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
   const [datasetId, setDatasetId] = useState('')
   const selectedDataset =
@@ -318,9 +320,9 @@ function TimeSeriesBlockPrimitive({
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <Line dataKey="value" stroke="#60a5fa" dot={false} />
-                <Line dataKey="trend" stroke="#f97316" dot={false} />
-                <Line dataKey="movingAverage" stroke="#22c55e" dot={false} />
+                <Line dataKey="value" stroke={chartTheme.blue} dot={false} />
+                <Line dataKey="trend" stroke={chartTheme.orange} dot={false} />
+                <Line dataKey="movingAverage" stroke={chartTheme.green} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
             <div className="analytics-stat-grid">
@@ -352,7 +354,7 @@ function TimeSeriesBlockPrimitive({
                     <XAxis dataKey="label" hide />
                     <YAxis hide />
                     <Tooltip />
-                    <Line dataKey={key} stroke="#93c5fd" dot={false} />
+                    <Line dataKey={key} stroke={chartTheme.blue} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -366,9 +368,9 @@ function TimeSeriesBlockPrimitive({
                 <XAxis dataKey="lag" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis domain={[-1, 1]} tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <ReferenceLine y={confidence} stroke="#fca5a5" strokeDasharray="3 3" />
-                <ReferenceLine y={-confidence} stroke="#fca5a5" strokeDasharray="3 3" />
-                <Bar dataKey="acf" fill="#60a5fa" />
+                <ReferenceLine y={confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={-confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <Bar dataKey="acf" fill={chartTheme.blue} />
               </BarChart>
             </ResponsiveContainer>
             <ResponsiveContainer width="100%" height={170}>
@@ -376,9 +378,9 @@ function TimeSeriesBlockPrimitive({
                 <XAxis dataKey="lag" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis domain={[-1, 1]} tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <ReferenceLine y={confidence} stroke="#fca5a5" strokeDasharray="3 3" />
-                <ReferenceLine y={-confidence} stroke="#fca5a5" strokeDasharray="3 3" />
-                <Bar dataKey="pacf" fill="#a78bfa" />
+                <ReferenceLine y={confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={-confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <Bar dataKey="pacf" fill={chartTheme.purple} />
               </BarChart>
             </ResponsiveContainer>
             <p>Significant autocorrelation at lags: {significantLags.join(', ') || 'none'}</p>
@@ -396,10 +398,10 @@ function TimeSeriesBlockPrimitive({
                 <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <Line dataKey="historical" stroke="#60a5fa" dot={false} />
-                <Line dataKey="forecast" stroke="#f97316" strokeDasharray="5 5" dot={false} />
-                <Line dataKey="upper" stroke="#fed7aa" dot={false} />
-                <Line dataKey="lower" stroke="#fed7aa" dot={false} />
+                <Line dataKey="historical" stroke={chartTheme.blue} dot={false} />
+                <Line dataKey="forecast" stroke={chartTheme.orange} strokeDasharray="5 5" dot={false} />
+                <Line dataKey="upper" stroke={chartTheme.orange} dot={false} />
+                <Line dataKey="lower" stroke={chartTheme.orange} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
             <div className="analytics-stat-grid">
