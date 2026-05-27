@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -9,11 +9,13 @@ import {
 } from '@tanstack/react-table'
 import { createTableColumns } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 
 const pageSize = 20
 
-function TablePrimitive({ columns, data }) {
+function TablePrimitive({ blockId, columns, data }) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [columnSizing, setColumnSizing] = useState({})
   const [globalFilter, setGlobalFilter] = useState('')
@@ -64,6 +66,27 @@ function TablePrimitive({ columns, data }) {
 
   const filteredRowCount = table.getFilteredRowModel().rows.length
   const showPagination = filteredRowCount > pageSize
+  const exportColumns = tableColumns.map((column) => column.id)
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'table',
+      data: {
+        columns: exportColumns,
+        name: selectedDataset?.name ?? 'Data Table',
+        rows: tableData,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    blockId,
+    exportColumns,
+    registerExportSnapshot,
+    selectedDataset?.name,
+    tableData,
+    unregisterExportSnapshot,
+  ])
 
   if (!tableData.length || !tableColumns.length) {
     return (

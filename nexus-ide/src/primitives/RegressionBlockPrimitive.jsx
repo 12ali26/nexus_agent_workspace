@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import katex from 'katex'
 import {
   CartesianGrid,
@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { linearRegression } from 'simple-statistics'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 import 'katex/dist/katex.min.css'
 
 const resultTabs = ['Coefficients', 'Residual Plot', 'Fit Plot']
@@ -361,9 +362,10 @@ function validateConfiguration(dataset, numericColumns, yColumn, xColumns, regre
   return ''
 }
 
-function RegressionBlockPrimitive() {
+function RegressionBlockPrimitive({ blockId }) {
   const { activeDataset, addDataset, datasets, setActiveDataset } =
     useWorkspaceData()
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [activeTab, setActiveTab] = useState(resultTabs[0])
   const [error, setError] = useState('')
   const [regressionType, setRegressionType] = useState('simple')
@@ -406,6 +408,26 @@ function RegressionBlockPrimitive() {
     { actual: fitMin, reference: fitMin },
     { actual: fitMax, reference: fitMax },
   ]
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'regression',
+      data: {
+        dependentVar: activeYColumn,
+        independentVars: activeXColumns,
+        results,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    activeXColumns,
+    activeYColumn,
+    blockId,
+    registerExportSnapshot,
+    results,
+    unregisterExportSnapshot,
+  ])
 
   const toggleXColumn = (column) => {
     setSelectedXColumns((currentColumns) => {

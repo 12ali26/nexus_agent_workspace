@@ -1088,6 +1088,14 @@
   background: #0b0f14;
 }
 
+.workspace-bottom-panel.is-hidden {
+  min-height: 0;
+  overflow: hidden;
+  border-top: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .workspace-bottom-resizer {
   position: absolute;
   z-index: 3;
@@ -1202,8 +1210,107 @@
   overflow: hidden;
 }
 
+.terminal-body,
+.terminal-session-stack,
+.terminal-session-pane {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.terminal-session-stack,
+.terminal-session-pane {
+  flex: 1;
+  flex-direction: column;
+}
+
 .workspace-native-terminal {
   height: 100%;
+}
+
+.terminal-session-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  margin-left: var(--space-2);
+}
+
+.session-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 24px;
+  height: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0 var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.session-tab.active {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.session-tab:hover:not(.active) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.new-session-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.new-session-btn:hover {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.terminal-session-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 132px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-float);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+}
+
+.terminal-session-menu button {
+  width: 100%;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: left;
+  padding: 0 var(--space-2);
+}
+
+.terminal-session-menu button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .workspace-output-log {

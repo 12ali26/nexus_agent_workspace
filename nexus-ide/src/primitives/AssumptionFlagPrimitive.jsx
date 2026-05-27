@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 
-function AssumptionFlagPrimitive({ assumptions, headerControls }) {
+function AssumptionFlagPrimitive({ assumptions, blockId, headerControls }) {
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [localAssumptions, setLocalAssumptions] = useState(assumptions)
   const summary = useMemo(
     () =>
@@ -39,6 +41,22 @@ function AssumptionFlagPrimitive({ assumptions, headerControls }) {
 
     return () => headerControls?.(null)
   }, [headerControls])
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'assumption-flag',
+      data: {
+        assumptions: localAssumptions,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    blockId,
+    localAssumptions,
+    registerExportSnapshot,
+    unregisterExportSnapshot,
+  ])
 
   const updateStatus = (assumptionId, status) => {
     setLocalAssumptions((currentAssumptions) =>

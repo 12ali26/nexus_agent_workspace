@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   CartesianGrid,
@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 
 const tabs = ['Descriptive', 'Distribution', 'Hypothesis Test', 'Correlation']
 
@@ -376,8 +377,9 @@ function getHeatColor(value) {
   return `color-mix(in srgb, var(--accent-blue) ${opacity}%, transparent)`
 }
 
-function StatsBlockPrimitive({ data = [] }) {
+function StatsBlockPrimitive({ blockId, data = [] }) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [selectedColumn, setSelectedColumn] = useState('')
   const [activeTab, setActiveTab] = useState(tabs[0])
@@ -403,6 +405,26 @@ function StatsBlockPrimitive({ data = [] }) {
     () => getTTest(values, Number(hypothesizedMean), Number(alpha)),
     [alpha, hypothesizedMean, values],
   )
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'stats-block',
+      data: {
+        column: activeColumn,
+        datasetName: selectedDataset?.name ?? '',
+        stats,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    activeColumn,
+    blockId,
+    registerExportSnapshot,
+    selectedDataset?.name,
+    stats,
+    unregisterExportSnapshot,
+  ])
 
   if (!Array.isArray(statsData) || !statsData.length) {
     return (

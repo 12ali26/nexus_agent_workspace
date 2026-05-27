@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { useParameters } from '../context/useParameters'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 import { getChartTheme } from '../styles/themeTokens'
 
 const modes = [
@@ -27,6 +28,7 @@ function format(value) {
 }
 
 function MonteCarloBlockPrimitive({
+  blockId,
   formula: initialFormula,
   initialMode,
   return: expectedReturnProp,
@@ -35,6 +37,7 @@ function MonteCarloBlockPrimitive({
   years,
 }) {
   const chartTheme = getChartTheme()
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const { parameters } = useParameters()
   const { addDataset } = useWorkspaceData()
   const [mode, setMode] = useState(initialMode ?? type ?? 'formula')
@@ -144,6 +147,26 @@ function MonteCarloBlockPrimitive({
   }, [workerPayload])
 
   const summary = result?.summary
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'monte-carlo',
+      data: {
+        formula,
+        results: summary,
+        simulations,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    blockId,
+    formula,
+    registerExportSnapshot,
+    simulations,
+    summary,
+    unregisterExportSnapshot,
+  ])
   const pathRows = useMemo(() => {
     if (!result?.paths?.length) return []
     const maxLength = Math.max(...result.paths.map((path) => path.length))

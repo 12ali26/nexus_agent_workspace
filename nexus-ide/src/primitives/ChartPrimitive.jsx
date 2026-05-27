@@ -7,11 +7,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 
-function ChartPrimitive({ data, lineKey, title, xKey, yLabel }) {
+function ChartPrimitive({ blockId, data, lineKey, title, xKey, yLabel }) {
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
   const [selectedXKey, setSelectedXKey] = useState('')
   const [selectedYKey, setSelectedYKey] = useState('')
@@ -38,6 +40,28 @@ function ChartPrimitive({ data, lineKey, title, xKey, yLabel }) {
     ...row,
     [activeYKey]: Number(row?.[activeYKey]),
   }))
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'chart',
+      data: {
+        rows: chartRows,
+        title: title ?? `${activeYKey} by ${activeXKey}`,
+        xKey: activeXKey,
+        yKey: activeYKey,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [
+    activeXKey,
+    activeYKey,
+    blockId,
+    chartRows,
+    registerExportSnapshot,
+    title,
+    unregisterExportSnapshot,
+  ])
 
   if (!chartData.length || !columns.length) {
     return (

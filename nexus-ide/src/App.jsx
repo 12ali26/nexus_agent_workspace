@@ -11,6 +11,7 @@ import { AgentProvider } from './context/AgentContext'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext'
 import { WorkspaceDataProvider } from './context/WorkspaceDataContext'
+import { ExportSnapshotProvider } from './export/ExportSnapshotProvider'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext'
 import { usePackRegistry } from './registry/usePackRegistry'
@@ -379,7 +380,9 @@ function NexusShell() {
       <WorkspaceDataProvider>
         <TerminalPanelProvider>
           <RenderBlocksProvider>
-            <NexusWorkbench />
+            <ExportSnapshotProvider>
+              <NexusWorkbench />
+            </ExportSnapshotProvider>
           </RenderBlocksProvider>
         </TerminalPanelProvider>
       </WorkspaceDataProvider>

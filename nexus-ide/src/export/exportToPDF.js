@@ -1,11 +1,25 @@
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import {
+  COLORS,
+  estimateBlockHeight,
+  renderAssumptionBlock,
+  renderChartBlock,
+  renderEquationBlock,
+  renderMonteCarloBlock,
+  renderPlaceholderBlock,
+  renderProgressBlock,
+  renderProseBlock,
+  renderRegressionBlock,
+  renderStatsBlock,
+  renderTableBlock,
+} from './blockRenderers'
 import { getThemeToken } from '../styles/themeTokens'
 
 const paperSizes = {
-  A3: { height: 297, width: 420 },
-  A4: { height: 210, width: 297 },
-  Letter: { height: 216, width: 279 },
+  A3: { height: 420, width: 297 },
+  A4: { height: 297, width: 210 },
+  Letter: { height: 279, width: 216 },
 }
 
 function dispatchExportToast(message, type = 'info') {
@@ -16,22 +30,6 @@ function dispatchExportToast(message, type = 'info') {
   )
 }
 
-function getCanvasSize(paperSize, orientation) {
-  const size = paperSizes[paperSize] ?? paperSizes.A4
-
-  if (orientation === 'portrait') {
-    return {
-      height: Math.max(size.height, size.width),
-      width: Math.min(size.height, size.width),
-    }
-  }
-
-  return {
-    height: Math.min(size.height, size.width),
-    width: Math.max(size.height, size.width),
-  }
-}
-
 function sanitizeFilename(value) {
   return String(value || 'NEXUS_Analysis')
     .trim()
@@ -39,94 +37,249 @@ function sanitizeFilename(value) {
     .replace(/\s+/g, '_')
 }
 
-// NEXUS Export Engine
-// Captures the canvas and all visible blocks as a PDF report
-// AGENT: can trigger export via nex export pdf command
-export async function exportCanvasToPDF(projectName = 'NEXUS Analysis', options = {}) {
-  const canvas = document.getElementById('nexus-canvas')
-  if (!canvas) throw new Error('Canvas not found')
+function getPageSize(paperSize = 'A4') {
+  return paperSizes[paperSize] ?? paperSizes.A4
+}
 
-  dispatchExportToast('Preparing export...')
+function drawPageBackground(doc, pageWidth, pageHeight) {
+  doc.setFillColor(...COLORS.bg)
+  doc.rect(0, 0, pageWidth, pageHeight, 'F')
+  doc.setFillColor(...COLORS.orange)
+  doc.rect(0, 0, pageWidth, 2, 'F')
+}
+
+function drawFooter(doc, projectName, pageNumber, pageWidth, pageHeight, margin) {
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7)
+  doc.setTextColor(...COLORS.border)
+  doc.text(projectName, margin, pageHeight - 8, { maxWidth: pageWidth / 2 })
+  doc.text(`Page ${pageNumber}`, pageWidth - margin, pageHeight - 8, {
+    align: 'right',
+  })
+}
+
+function renderBlock(doc, block, x, y, width) {
+  switch (block.type) {
+    case 'table':
+      return renderTableBlock(doc, block, x, y, width)
+    case 'chart':
+      return renderChartBlock(doc, block, x, y, width)
+    case 'equation':
+      return renderEquationBlock(doc, block, x, y, width)
+    case 'stats':
+    case 'stats-block':
+      return renderStatsBlock(doc, block, x, y, width)
+    case 'regression':
+      return renderRegressionBlock(doc, block, x, y, width)
+    case 'prose-block':
+      return renderProseBlock(doc, block, x, y, width)
+    case 'assumption-flag':
+      return renderAssumptionBlock(doc, block, x, y, width)
+    case 'monte-carlo':
+      return renderMonteCarloBlock(doc, block, x, y, width)
+    case 'progress-step':
+      return renderProgressBlock(doc, block, x, y, width)
+    default:
+      return renderPlaceholderBlock(
+        doc,
+        block,
+        x,
+        y,
+        width,
+        `${block.type} visual export not yet supported`,
+      )
+  }
+}
+
+async function exportCanvasScreenshotFallback(projectName, options = {}) {
+  const canvas = document.getElementById('nexus-canvas')
+
+  if (!canvas) {
+    throw new Error('Canvas not found')
+  }
+
+  const paperSize = options.paperSize || 'A4'
+  const scale = Number(options.resolution) || 2
+  const pageSize = getPageSize(paperSize)
+  const pdf = new jsPDF({
+    format: paperSize.toLowerCase(),
+    orientation: 'landscape',
+    unit: 'mm',
+  })
+  const pageWidth = pageSize.height
+  const pageHeight = pageSize.width
+  const canvasImage = await html2canvas(canvas, {
+    allowTaint: true,
+    backgroundColor: getThemeToken('--bg-base', '#0b0f14'),
+    logging: false,
+    scale,
+    useCORS: true,
+  })
+  const imgData = canvasImage.toDataURL('image/png')
+  const ratio = Math.min(pageWidth / canvasImage.width, pageHeight / canvasImage.height)
+  const scaledWidth = canvasImage.width * ratio
+  const scaledHeight = canvasImage.height * ratio
+
+  pdf.setFillColor(...COLORS.bg)
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F')
+  pdf.addImage(
+    imgData,
+    'PNG',
+    (pageWidth - scaledWidth) / 2,
+    (pageHeight - scaledHeight) / 2,
+    scaledWidth,
+    scaledHeight,
+  )
+  pdf.save(`${sanitizeFilename(projectName)}_${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+// NEXUS PDF Export - Block by Block
+// Native PDF rendering - selectable text, proper tables, vector output.
+// AGENT: can trigger export via nex export pdf command.
+export async function exportCanvasToPDF(
+  projectName = 'NEXUS Analysis',
+  blocks = [],
+  options = {},
+) {
+  if (!Array.isArray(blocks) || blocks.length === 0) {
+    dispatchExportToast('No blocks to export. Add content to the canvas first.', 'warning')
+    return
+  }
+
+  dispatchExportToast('Generating PDF...')
 
   try {
-    const scale = Number(options.resolution) || 2
-    const includeCoverPage = options.includeCoverPage !== false
     const paperSize = options.paperSize || 'A4'
-    const canvasImage = await html2canvas(canvas, {
-      allowTaint: true,
-      backgroundColor: getThemeToken('--bg-base', '#0b0f14'),
-      logging: false,
-      scale,
-      useCORS: true,
-    })
-    const imgData = canvasImage.toDataURL('image/png')
-    const imgWidth = canvasImage.width
-    const imgHeight = canvasImage.height
-    const { height: pdfHeight, width: pdfWidth } = getCanvasSize(
-      paperSize,
-      'landscape',
-    )
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-    const scaledWidth = imgWidth * ratio
-    const scaledHeight = imgHeight * ratio
-    const pdf = new jsPDF({
+    const includeCoverPage = options.includeCoverPage !== false
+    const pageSize = getPageSize(paperSize)
+    const pageWidth = pageSize.width
+    const pageHeight = pageSize.height
+    const margin = 15
+    const contentWidth = pageWidth - margin * 2
+    const doc = new jsPDF({
       format: paperSize.toLowerCase(),
-      orientation: 'landscape',
+      orientation: 'portrait',
       unit: 'mm',
     })
 
     if (includeCoverPage) {
-      pdf.setFillColor(11, 15, 20)
-      pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
-      pdf.setTextColor(255, 255, 255)
-      pdf.setFontSize(32)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text(projectName, pdfWidth / 2, pdfHeight / 2 - 20, {
-        align: 'center',
-      })
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'normal')
-      pdf.setTextColor(150, 150, 180)
-      pdf.text('Generated by NEXUS IDE', pdfWidth / 2, pdfHeight / 2, {
-        align: 'center',
-      })
-      pdf.text(
+      doc.setFillColor(...COLORS.bg)
+      doc.rect(0, 0, pageWidth, pageHeight, 'F')
+      doc.setFillColor(...COLORS.orange)
+      doc.rect(0, 0, pageWidth, 3, 'F')
+      doc.roundedRect(margin, 40, 16, 16, 3, 3, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(11)
+      doc.setTextColor(255, 255, 255)
+      doc.text('N', margin + 8, 51, { align: 'center' })
+      doc.setFontSize(10)
+      doc.setTextColor(...COLORS.textMuted)
+      doc.text('NEXUS IDE', margin + 20, 51)
+      doc.setFontSize(28)
+      doc.setTextColor(...COLORS.text)
+      doc.text(projectName, margin, 90, { maxWidth: contentWidth })
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+      doc.setTextColor(...COLORS.textMuted)
+      doc.text(
         new Date().toLocaleDateString('en-GB', {
           day: 'numeric',
           month: 'long',
+          weekday: 'long',
           year: 'numeric',
         }),
-        pdfWidth / 2,
-        pdfHeight / 2 + 10,
-        { align: 'center' },
+        margin,
+        100,
       )
-      pdf.addPage()
+      doc.text(`${blocks.length} analysis block${blocks.length !== 1 ? 's' : ''}`, margin, 108)
+      doc.setDrawColor(...COLORS.border)
+      doc.setLineWidth(0.3)
+      doc.line(margin, 115, pageWidth - margin, 115)
+      doc.setFontSize(8)
+      doc.text('CONTENTS', margin, 125)
+
+      blocks.slice(0, 17).forEach((block, index) => {
+        const label = block.data?.name || block.data?.title || block.title || block.type
+        const y = 133 + index * 8
+        doc.setFontSize(9)
+        doc.setTextColor(...COLORS.text)
+        doc.text(`${index + 1}.  ${label}`, margin + 4, y, {
+          maxWidth: contentWidth - 36,
+        })
+        doc.setTextColor(...COLORS.border)
+        doc.text(block.type, pageWidth - margin, y, { align: 'right' })
+      })
+
+      if (blocks.length > 17) {
+        doc.setFontSize(8)
+        doc.setTextColor(...COLORS.textMuted)
+        doc.text(`+ ${blocks.length - 17} more blocks`, margin + 4, 133 + 17 * 8)
+      }
+
+      doc.setFontSize(7)
+      doc.setTextColor(...COLORS.border)
+      doc.text('Generated by NEXUS IDE - nexus-ide.app', pageWidth / 2, pageHeight - 8, {
+        align: 'center',
+      })
+      doc.addPage()
     }
 
-    pdf.setFillColor(11, 15, 20)
-    pdf.rect(0, 0, pdfWidth, pdfHeight, 'F')
-    pdf.addImage(
-      imgData,
-      'PNG',
-      (pdfWidth - scaledWidth) / 2,
-      (pdfHeight - scaledHeight) / 2,
-      scaledWidth,
-      scaledHeight,
-    )
-    pdf.setFontSize(8)
-    pdf.setTextColor(100, 100, 120)
-    pdf.text('NEXUS IDE — nexus-ide.app', pdfWidth / 2, pdfHeight - 5, {
-      align: 'center',
+    drawPageBackground(doc, pageWidth, pageHeight)
+    let currentY = margin + 5
+    let pageNumber = includeCoverPage ? 2 : 1
+
+    const addPageIfNeeded = (requiredHeight) => {
+      if (currentY + requiredHeight <= pageHeight - margin) {
+        return
+      }
+
+      drawFooter(doc, projectName, pageNumber, pageWidth, pageHeight, margin)
+      doc.addPage()
+      pageNumber += 1
+      drawPageBackground(doc, pageWidth, pageHeight)
+      currentY = margin + 5
+    }
+
+    blocks.forEach((block) => {
+      addPageIfNeeded(estimateBlockHeight(block))
+
+      const previousY = currentY
+
+      try {
+        currentY = renderBlock(doc, block, margin, currentY, contentWidth)
+      } catch (error) {
+        console.error(`Failed to render block ${block.type}:`, error)
+        currentY = renderPlaceholderBlock(
+          doc,
+          block,
+          margin,
+          previousY,
+          contentWidth,
+          `${block.type} export failed`,
+        )
+      }
+
+      currentY += 4
     })
+
+    drawFooter(doc, projectName, pageNumber, pageWidth, pageHeight, margin)
 
     const filename = `${sanitizeFilename(projectName)}_${new Date()
       .toISOString()
       .split('T')[0]}.pdf`
-    pdf.save(filename)
-    dispatchExportToast(`Exported: ${filename}`, 'success')
+    doc.save(filename)
+    dispatchExportToast(`✓ Exported: ${filename}`, 'success')
   } catch (error) {
-    dispatchExportToast('Export failed. Try again.', 'error')
-    console.error('Export error:', error)
+    console.error('Block export error:', error)
+    dispatchExportToast('Native export failed. Falling back to screenshot...', 'warning')
+
+    try {
+      await exportCanvasScreenshotFallback(projectName, options)
+      dispatchExportToast('Exported screenshot fallback PDF', 'success')
+    } catch (fallbackError) {
+      console.error('Export fallback error:', fallbackError)
+      dispatchExportToast('Export failed. Try again.', 'error')
+    }
   }
 }
 
@@ -138,6 +291,7 @@ export async function exportNotebookToPDF(notebookEl, title = 'Notebook', option
   try {
     const scale = Number(options.resolution) || 2
     const paperSize = options.paperSize || 'A4'
+    const pageSize = getPageSize(paperSize)
     const canvasImage = await html2canvas(notebookEl, {
       backgroundColor: getThemeToken('--bg-float', '#1e2530'),
       logging: false,
@@ -146,10 +300,8 @@ export async function exportNotebookToPDF(notebookEl, title = 'Notebook', option
     })
     const imgWidth = canvasImage.width
     const imgHeight = canvasImage.height
-    const { height: pdfHeight, width: pdfWidth } = getCanvasSize(
-      paperSize,
-      'portrait',
-    )
+    const pdfHeight = pageSize.height
+    const pdfWidth = pageSize.width
     const margin = 15
     const contentWidth = pdfWidth - margin * 2
     const ratio = contentWidth / imgWidth

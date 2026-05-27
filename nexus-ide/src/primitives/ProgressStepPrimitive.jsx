@@ -1,4 +1,20 @@
-function ProgressStepPrimitive({ steps }) {
+import { useEffect } from 'react'
+import { useExportSnapshots } from '../export/useExportSnapshots'
+
+function ProgressStepPrimitive({ blockId, steps }) {
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'progress-step',
+      data: {
+        steps,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [blockId, registerExportSnapshot, steps, unregisterExportSnapshot])
+
   return (
     <div className="progress-step-primitive">
       {steps.map((step) => (

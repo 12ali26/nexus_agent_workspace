@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import BlockCanvas from './canvas/BlockCanvas'
 import PrimitiveToolbar from './canvas/PrimitiveToolbar'
 import { exportCanvasToPDF } from './export/exportToPDF'
+import { useExportSnapshots } from './export/useExportSnapshots'
 import { createPrimitivePayload } from './primitives/primitivePayloads'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
@@ -11,6 +12,7 @@ import { useTerminalPanel } from './terminal/useTerminalPanel'
 
 function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
   const { activeProject } = usePackRegistry()
+  const { getExportBlocks } = useExportSnapshots()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
   const { exportSettings } = useSettings()
   const {
@@ -214,6 +216,7 @@ function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
         if (instruction.type === 'export') {
           exportCanvasToPDF(
             activeProject?.projectName || 'NEXUS_Analysis',
+            getExportBlocks(primitiveBlocks),
             exportSettings,
           )
           return
@@ -233,16 +236,17 @@ function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
     clearCanvas,
     clearOutput,
     exportSettings,
+    getExportBlocks,
     primitiveBlocks,
   ])
 
   return (
     <main className="workspace-canvas" aria-label="Workspace canvas">
       <div
-        className={`domain-workspace${
-          isOpen ? ' has-workspace-bottom-panel' : ''
-        }`}
-        style={{ '--terminal-panel-height': `${panelHeight}px` }}
+        className="domain-workspace has-workspace-bottom-panel"
+        style={{
+          '--terminal-panel-height': isOpen ? `${panelHeight}px` : '0px',
+        }}
       >
         <PrimitiveToolbar
           canvasMode={canvasMode}
@@ -254,7 +258,7 @@ function WorkspaceCanvas({ onOpenPrimitivesPanel }) {
           canvasMode={canvasMode}
           emptyMessage="Open the Primitives panel to add blocks"
         />
-        {isOpen && <WorkspaceTerminalPanel />}
+        <WorkspaceTerminalPanel />
       </div>
     </main>
   )

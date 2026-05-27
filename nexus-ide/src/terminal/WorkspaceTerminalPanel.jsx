@@ -1,13 +1,10 @@
-import { useCallback, useState } from 'react'
-import {
-  Maximize2,
-  Plus,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Maximize2, Plus, Trash2, X } from 'lucide-react'
 import LiveTerminal from './LiveTerminal'
 import { useTerminalPanel } from './useTerminalPanel'
 import { useToast } from '../toast/useToast'
+
+const maxTerminalSessions = 5
 
 function formatDuration(durationMs) {
   if (typeof durationMs !== 'number') {
@@ -34,17 +31,31 @@ function WorkspaceTerminalPanel() {
     activeTab,
     clearOutput,
     closePanel,
+    isOpen,
     outputEntries,
     panelHeight,
     setActiveTab,
     setPanelHeight,
   } = useTerminalPanel()
   const showToast = useToast()
+  const [activeSessionId, setActiveSessionId] = useState('session-1')
+  const [contextMenu, setContextMenu] = useState(null)
   const [isMaximized, setIsMaximized] = useState(false)
+  const [nextSessionNumber, setNextSessionNumber] = useState(2)
   const [previousHeight, setPreviousHeight] = useState(280)
+  const [sessions, setSessions] = useState([
+    {
+      id: 'session-1',
+      label: '1',
+    },
+  ])
 
   const startResize = useCallback(
     (event) => {
+      if (!isOpen) {
+        return
+      }
+
       event.preventDefault()
       const startY = event.clientY
       const startHeight = panelHeight
@@ -61,8 +72,50 @@ function WorkspaceTerminalPanel() {
       window.addEventListener('pointermove', handlePointerMove)
       window.addEventListener('pointerup', stopResize)
     },
-    [panelHeight, setPanelHeight],
+    [isOpen, panelHeight, setPanelHeight],
   )
+
+  const addSession = () => {
+    if (sessions.length >= maxTerminalSessions) {
+      showToast('Maximum 5 terminal sessions')
+      return
+    }
+
+    const label = String(nextSessionNumber)
+    const id = `session-${Date.now()}`
+
+    setSessions((currentSessions) => [
+      ...currentSessions,
+      {
+        id,
+        label,
+      },
+    ])
+    setNextSessionNumber((currentNumber) => currentNumber + 1)
+    setActiveSessionId(id)
+    setActiveTab('terminal')
+  }
+
+  const closeSession = (sessionId) => {
+    if (sessions.length === 1) {
+      showToast('At least one terminal session must stay open')
+      setContextMenu(null)
+      return
+    }
+
+    setSessions((currentSessions) => {
+      const remainingSessions = currentSessions.filter(
+        (session) => session.id !== sessionId,
+      )
+
+      if (activeSessionId === sessionId) {
+        setActiveSessionId(remainingSessions[remainingSessions.length - 1].id)
+      }
+
+      return remainingSessions
+    })
+    setContextMenu(null)
+  }
 
   const clearActivePanel = () => {
     if (activeTab === 'output') {
@@ -70,7 +123,13 @@ function WorkspaceTerminalPanel() {
       return
     }
 
-    window.dispatchEvent(new CustomEvent('nexus-terminal-clear'))
+    window.dispatchEvent(
+      new CustomEvent('nexus-terminal-clear', {
+        detail: {
+          sessionId: activeSessionId,
+        },
+      }),
+    )
   }
 
   const toggleMaximize = () => {
@@ -85,9 +144,24 @@ function WorkspaceTerminalPanel() {
     setIsMaximized(true)
   }
 
+  useEffect(() => {
+    const closeContextMenu = () => setContextMenu(null)
+
+    window.addEventListener('click', closeContextMenu)
+    window.addEventListener('keydown', closeContextMenu)
+
+    return () => {
+      window.removeEventListener('click', closeContextMenu)
+      window.removeEventListener('keydown', closeContextMenu)
+    }
+  }, [])
+
   return (
     <section
-      className="workspace-bottom-panel terminal-panel"
+      className={`workspace-bottom-panel terminal-panel${
+        isOpen ? '' : ' is-hidden'
+      }`}
+      aria-hidden={!isOpen}
       aria-label="Workspace terminal panel"
     >
       <div
@@ -116,16 +190,42 @@ function WorkspaceTerminalPanel() {
             Output
           </button>
         </nav>
+
+        {activeTab === 'terminal' && (
+          <div className="terminal-session-tabs" aria-label="Terminal sessions">
+            {sessions.map((session) => (
+              <button
+                className={`session-tab${
+                  activeSessionId === session.id ? ' active' : ''
+                }`}
+                key={session.id}
+                type="button"
+                onClick={() => setActiveSessionId(session.id)}
+                onContextMenu={(event) => {
+                  event.preventDefault()
+                  setContextMenu({
+                    sessionId: session.id,
+                    x: event.clientX,
+                    y: event.clientY,
+                  })
+                }}
+              >
+                {session.label}
+              </button>
+            ))}
+            <button
+              className="new-session-btn"
+              type="button"
+              aria-label="New terminal session"
+              title="New terminal session"
+              onClick={addSession}
+            >
+              <Plus size={13} strokeWidth={2} />
+            </button>
+          </div>
+        )}
+
         <div className="workspace-bottom-actions terminal-header-actions">
-          <button
-            className="terminal-action-btn"
-            type="button"
-            aria-label="New terminal session"
-            title="New terminal session"
-            onClick={() => showToast('Multiple terminal sessions coming soon')}
-          >
-            <Plus size={15} strokeWidth={1.9} />
-          </button>
           <button
             className="terminal-action-btn"
             type="button"
@@ -155,47 +255,97 @@ function WorkspaceTerminalPanel() {
           </button>
         </div>
       </header>
-      <div className="workspace-bottom-panel-body">
-        {activeTab === 'terminal' ? (
-          <LiveTerminal className="workspace-native-terminal" />
-        ) : (
-          <div className="workspace-output-log output-panel">
-            {outputEntries.length ? (
-              outputEntries.map((entry) => {
-                const isError = entry.tone === 'error'
-                const duration = formatDuration(entry.durationMs)
 
-                return (
-                  <article
-                    className={`workspace-output-entry${
-                      isError ? ' is-error' : ''
-                    }`}
-                    key={entry.id}
-                  >
-                    <header className="output-run-header">
-                      <span>
-                        ▶ Run #{entry.runNumber} •{' '}
-                        {getLanguageLabel(entry.language)} • {entry.timestamp}
-                      </span>
-                      {duration && <span className="run-time">{duration}</span>}
-                    </header>
-                    <pre className={isError ? 'output-stderr' : 'output-stdout'}>
-                      {entry.lines.join('\n')}
-                    </pre>
-                    <footer className={isError ? 'output-error' : 'output-success'}>
-                      {isError ? '✗ Exited with error' : '✓ Exited with code 0'}
-                    </footer>
-                  </article>
-                )
-              })
-            ) : (
-              <div className="workspace-output-empty">
-                Run code to see output here
-              </div>
-            )}
-          </div>
-        )}
+      <div className="workspace-bottom-panel-body terminal-body">
+        <div
+          className="terminal-session-stack"
+          style={{
+            display: activeTab === 'terminal' ? 'flex' : 'none',
+          }}
+        >
+          {sessions.map((session) => (
+            <div
+              className="terminal-session-pane"
+              key={session.id}
+              style={{
+                display:
+                  activeSessionId === session.id && activeTab === 'terminal'
+                    ? 'flex'
+                    : 'none',
+              }}
+            >
+              <LiveTerminal
+                className="workspace-native-terminal"
+                isVisible={
+                  isOpen &&
+                  activeTab === 'terminal' &&
+                  activeSessionId === session.id
+                }
+                sessionId={session.id}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="workspace-output-log output-panel"
+          style={{
+            display: activeTab === 'output' ? 'block' : 'none',
+          }}
+        >
+          {outputEntries.length ? (
+            outputEntries.map((entry) => {
+              const isError = entry.tone === 'error'
+              const duration = formatDuration(entry.durationMs)
+
+              return (
+                <article
+                  className={`workspace-output-entry${
+                    isError ? ' is-error' : ''
+                  }`}
+                  key={entry.id}
+                >
+                  <header className="output-run-header">
+                    <span>
+                      ▶ Run #{entry.runNumber} • {getLanguageLabel(entry.language)} •{' '}
+                      {entry.timestamp}
+                    </span>
+                    {duration && <span className="run-time">{duration}</span>}
+                  </header>
+                  <pre className={isError ? 'output-stderr' : 'output-stdout'}>
+                    {entry.lines.join('\n')}
+                  </pre>
+                  <footer className={isError ? 'output-error' : 'output-success'}>
+                    {isError ? '✗ Exited with error' : '✓ Exited with code 0'}
+                  </footer>
+                </article>
+              )
+            })
+          ) : (
+            <div className="workspace-output-empty">
+              Run code to see output here
+            </div>
+          )}
+        </div>
       </div>
+
+      {contextMenu && (
+        <div
+          className="terminal-session-menu"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => closeSession(contextMenu.sessionId)}
+          >
+            Close session
+          </button>
+        </div>
+      )}
     </section>
   )
 }

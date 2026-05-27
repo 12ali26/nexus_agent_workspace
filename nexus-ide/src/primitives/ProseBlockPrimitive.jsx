@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import MDEditor from '@uiw/react-md-editor'
 import katex from 'katex'
+import { useExportSnapshots } from '../export/useExportSnapshots'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import 'katex/dist/katex.min.css'
@@ -49,7 +50,8 @@ function renderMarkdownWithMath(content) {
     )
 }
 
-function ProseBlockPrimitive({ content: initialContent, headerControls }) {
+function ProseBlockPrimitive({ blockId, content: initialContent, headerControls }) {
+  const { registerExportSnapshot, unregisterExportSnapshot } = useExportSnapshots()
   const [content, setContent] = useState(initialContent || defaultContent)
   const [mode, setMode] = useState('Split')
   const wordCount = useMemo(() => getWordCount(content), [content])
@@ -75,6 +77,17 @@ function ProseBlockPrimitive({ content: initialContent, headerControls }) {
 
     return () => headerControls(null)
   }, [headerControls, mode, wordCount])
+
+  useEffect(() => {
+    registerExportSnapshot(blockId, {
+      type: 'prose-block',
+      data: {
+        content,
+      },
+    })
+
+    return () => unregisterExportSnapshot(blockId)
+  }, [blockId, content, registerExportSnapshot, unregisterExportSnapshot])
 
   return (
     <div className="prose-block-primitive" data-color-mode="dark">

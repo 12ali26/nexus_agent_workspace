@@ -46,8 +46,10 @@ function writeWelcome(term) {
   term.writeln('')
 }
 
-function LiveTerminal({ className = '' }) {
+function LiveTerminal({ className = '', isVisible = true, sessionId = 'main' }) {
   const terminalRef = useRef(null)
+  const fitAddonRef = useRef(null)
+  const termRef = useRef(null)
 
   useEffect(() => {
     if (!terminalRef.current) {
@@ -83,12 +85,18 @@ function LiveTerminal({ className = '' }) {
       const fitAddon = new FitAddon()
       const webLinksAddon = new WebLinksAddon()
 
+      termRef.current = term
+      fitAddonRef.current = fitAddon
       term.loadAddon(fitAddon)
       term.loadAddon(webLinksAddon)
       term.open(terminalRef.current)
       fitAddon.fit()
 
-      const clearTerminal = () => term?.clear()
+      const clearTerminal = (event) => {
+        if (!event.detail?.sessionId || event.detail.sessionId === sessionId) {
+          term?.clear()
+        }
+      }
       window.addEventListener('nexus-terminal-clear', clearTerminal)
 
       if (window.location.protocol === 'file:') {
@@ -193,8 +201,20 @@ function LiveTerminal({ className = '' }) {
       inputDisposable?.dispose()
       ws?.close()
       term?.dispose()
+      termRef.current = null
+      fitAddonRef.current = null
     }
-  }, [])
+  }, [sessionId])
+
+  useEffect(() => {
+    if (!isVisible) {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      fitAddonRef.current?.fit()
+    })
+  }, [isVisible])
 
   return (
     <div
