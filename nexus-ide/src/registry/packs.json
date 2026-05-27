@@ -8,6 +8,7 @@
       "description": "Tables, charts and file loading for any data analysis work",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": [
         "table.render",
         "chart.render",
@@ -17,7 +18,7 @@
         "regression.run"
       ],
       "primitives": ["table", "chart", "stats-block", "regression"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "math-tools",
@@ -25,9 +26,10 @@
       "description": "Equation rendering and formula evaluation",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": ["equation.render", "formula.evaluate"],
       "primitives": ["equation"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "code-tools",
@@ -35,6 +37,7 @@
       "description": "Multi-language code editor and terminal output",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": [
         "javascript.run",
         "python.run",
@@ -43,7 +46,7 @@
         "terminal.open"
       ],
       "primitives": ["code-editor"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "3d-tools",
@@ -51,9 +54,10 @@
       "description": "3D object rendering and spatial annotation",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": ["3d.render", "annotation.attach"],
       "primitives": ["3d-object", "annotation"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "audit-tools",
@@ -61,9 +65,10 @@
       "description": "Assumption flagging and progress tracking for regulated work",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": ["assumption.track", "progress.track"],
       "primitives": ["assumption-flag", "progress-step"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "writing-tools",
@@ -71,9 +76,10 @@
       "description": "Prose writing with live LaTeX rendering for documentation and methodology",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": ["prose.write", "latex.render", "notebook.run"],
       "primitives": ["prose-block", "notebook"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "simulation-tools",
@@ -81,13 +87,14 @@
       "description": "Parameter nodes and reactive formula evaluation for live simulation",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": [
         "parameter.control",
         "formula.evaluate",
         "simulation.run"
       ],
       "primitives": ["parameter-node", "formula-block"],
-      "installed": false
+      "installed": true
     },
     {
       "id": "simulation-advanced",
@@ -95,6 +102,7 @@
       "description": "Monte Carlo simulation, time series analysis and forecasting",
       "version": "0.1.0",
       "author": "NEXUS Core",
+      "core": true,
       "capabilities": [
         "timeseries.analyze",
         "timeseries.forecast",
@@ -102,7 +110,7 @@
         "simulation.gbm"
       ],
       "primitives": ["time-series", "monte-carlo"],
-      "installed": false
+      "installed": true
     }
   ]
 }

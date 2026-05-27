@@ -32,6 +32,10 @@ export function parseProjectManifest(file, fileText) {
       (capability) => typeof capability === 'string',
     ),
     projectName: parsedJson.projectName.trim(),
+    projectId:
+      typeof parsedJson.projectId === 'string'
+        ? parsedJson.projectId
+        : 'project_default',
     version:
       typeof parsedJson.version === 'string' ? parsedJson.version : '1.0.0',
   }
@@ -40,9 +44,11 @@ export function parseProjectManifest(file, fileText) {
 export function createProjectManifest({
   canvasState = [],
   capabilities,
+  projectId = `project_${Date.now()}`,
   projectName,
 }) {
   return {
+    projectId,
     projectName,
     version: '1.0.0',
     capabilities,

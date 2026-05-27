@@ -1,9 +1,15 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { PackRegistryContext } from './packRegistryContext'
 import registry from './packs.json'
 
 const installedExtensionIdsKey = 'nexus_installed_extensions'
 const activeProjectKey = 'nexus_active_project'
+const defaultProject = {
+  capabilities: [],
+  projectId: 'project_default',
+  projectName: 'Untitled Project',
+  version: '1.0.0',
+}
 
 function readStoredInstalledExtensionIds(validExtensionIds) {
   try {
@@ -47,6 +53,10 @@ function readStoredActiveProject() {
             (capability) => typeof capability === 'string',
           )
         : [],
+      projectId:
+        typeof parsedValue.projectId === 'string'
+          ? parsedValue.projectId
+          : 'project_default',
       projectName: parsedValue.projectName,
       version:
         typeof parsedValue.version === 'string' ? parsedValue.version : '1.0.0',
@@ -54,6 +64,23 @@ function readStoredActiveProject() {
   } catch {
     return null
   }
+}
+
+function saveProjectToServer(project) {
+  if (!project?.projectId || !project?.projectName) {
+    return
+  }
+
+  fetch('/api/project', {
+    body: JSON.stringify({
+      id: project.projectId,
+      name: project.projectName,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  }).catch(() => {
+    // Plain Vite dev may not have the Express persistence API running.
+  })
 }
 
 function writeStoredInstalledExtensionIds(extensionIds) {
@@ -88,7 +115,10 @@ function createInitialRegistryState() {
 
   return registry.extensions.map((extension) => ({
     ...extension,
-    installed: installedExtensionIds.includes(extension.id),
+    installed:
+      extension.core === true ||
+      extension.installed === true ||
+      installedExtensionIds.includes(extension.id),
   }))
 }
 
@@ -120,7 +150,9 @@ export function PackRegistryProvider({ children }) {
   const [availableExtensions, setAvailableExtensions] = useState(
     createInitialRegistryState,
   )
-  const [activeProject, setActiveProjectState] = useState(readStoredActiveProject)
+  const [activeProject, setActiveProjectState] = useState(
+    () => readStoredActiveProject() ?? defaultProject,
+  )
 
   const installedExtensions = useMemo(
     () => availableExtensions.filter((extension) => extension.installed),
@@ -146,14 +178,21 @@ export function PackRegistryProvider({ children }) {
           capabilities: Array.isArray(project.capabilities)
             ? project.capabilities
             : [],
+          projectId: project.projectId ?? 'project_default',
           projectName: project.projectName,
           version: project.version ?? '1.0.0',
         }
-      : null
+      : defaultProject
 
     writeStoredActiveProject(nextProject)
+    saveProjectToServer(nextProject)
     setActiveProjectState(nextProject)
   }, [])
+
+  useEffect(() => {
+    writeStoredActiveProject(activeProject)
+    saveProjectToServer(activeProject)
+  }, [activeProject])
 
   const installExtension = useCallback((extensionId) => {
     setAvailableExtensions((currentExtensions) => {
@@ -173,6 +212,14 @@ export function PackRegistryProvider({ children }) {
 
   const uninstallExtension = useCallback((extensionId) => {
     setAvailableExtensions((currentExtensions) => {
+      const targetExtension = currentExtensions.find(
+        (extension) => extension.id === extensionId,
+      )
+
+      if (targetExtension?.core) {
+        return currentExtensions
+      }
+
       const nextExtensions = currentExtensions.map((extension) =>
         extension.id === extensionId
           ? { ...extension, installed: false }

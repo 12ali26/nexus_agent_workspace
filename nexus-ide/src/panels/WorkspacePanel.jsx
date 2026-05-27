@@ -16,13 +16,17 @@ function WorkspacePanel() {
                 <p title={pack.description}>{pack.description}</p>
               </div>
 
-              <button
-                className="workspace-action"
-                type="button"
-                onClick={() => uninstallPack(pack.id)}
-              >
-                Uninstall
-              </button>
+              {pack.core ? (
+                <span className="workspace-action is-readonly">Core</span>
+              ) : (
+                <button
+                  className="workspace-action"
+                  type="button"
+                  onClick={() => uninstallPack(pack.id)}
+                >
+                  Uninstall
+                </button>
+              )}
             </article>
           ))}
         </div>

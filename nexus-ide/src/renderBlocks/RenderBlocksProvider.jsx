@@ -1,8 +1,13 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createBlockLayout } from '../canvas/blockLayout'
+import { usePackRegistry } from '../registry/usePackRegistry'
 import { RenderBlocksContext } from './renderBlocksContext'
 
 const canvasStorageKey = 'nexus_canvas'
+
+function getProjectCanvasStorageKey(projectId) {
+  return `${canvasStorageKey}_${projectId}`
+}
 
 function serializePrimitiveBlocks(blocks) {
   return blocks.map(({ type, data, meta, position, size, zIndex }) => ({
@@ -55,9 +60,11 @@ function restorePrimitiveBlocks(blocks) {
   return blocks.map(restorePrimitiveBlock).filter(Boolean)
 }
 
-function readStoredCanvasState() {
+function readStoredCanvasState(projectId = 'project_default') {
   try {
-    const storedValue = localStorage.getItem(canvasStorageKey)
+    const storedValue =
+      localStorage.getItem(getProjectCanvasStorageKey(projectId)) ??
+      localStorage.getItem(canvasStorageKey)
 
     if (!storedValue) {
       return []
@@ -75,10 +82,10 @@ function readStoredCanvasState() {
   }
 }
 
-function writeStoredCanvasState(blocks) {
+function writeStoredCanvasState(blocks, projectId = 'project_default') {
   try {
     localStorage.setItem(
-      canvasStorageKey,
+      getProjectCanvasStorageKey(projectId),
       JSON.stringify(serializePrimitiveBlocks(blocks)),
     )
   } catch {
@@ -87,9 +94,9 @@ function writeStoredCanvasState(blocks) {
   }
 }
 
-function removeStoredCanvasState() {
+function removeStoredCanvasState(projectId = 'project_default') {
   try {
-    localStorage.removeItem(canvasStorageKey)
+    localStorage.removeItem(getProjectCanvasStorageKey(projectId))
   } catch {
     // Ignore storage failures so clearing the in-memory canvas still works.
   }
@@ -103,18 +110,86 @@ function getHighestZIndex(blocks) {
 }
 
 export function RenderBlocksProvider({ children }) {
-  const [primitiveBlocks, setPrimitiveBlocks] = useState(readStoredCanvasState)
+  const { activeProject } = usePackRegistry()
+  const projectId = activeProject?.projectId ?? 'project_default'
+  const [primitiveBlocks, setPrimitiveBlocks] = useState(() =>
+    readStoredCanvasState(projectId),
+  )
+  const [isCanvasHydrated, setIsCanvasHydrated] = useState(false)
   const [, setMaxZ] = useState(() => getHighestZIndex(primitiveBlocks))
+
+  useEffect(() => {
+    let isCancelled = false
+
+    async function restoreCanvasState() {
+      setIsCanvasHydrated(false)
+
+      try {
+        const response = await fetch(`/api/canvas/${projectId}`)
+
+        if (!response.ok) {
+          throw new Error('Canvas API unavailable')
+        }
+
+        const state = await response.json()
+        const restoredBlocks = restorePrimitiveBlocks(state.blocks)
+
+        if (!isCancelled) {
+          setPrimitiveBlocks(restoredBlocks)
+          setMaxZ(getHighestZIndex(restoredBlocks))
+          setIsCanvasHydrated(true)
+        }
+      } catch {
+        const restoredBlocks = readStoredCanvasState(projectId)
+
+        if (!isCancelled) {
+          setPrimitiveBlocks(restoredBlocks)
+          setMaxZ(getHighestZIndex(restoredBlocks))
+          setIsCanvasHydrated(true)
+        }
+      }
+    }
+
+    restoreCanvasState()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    if (!isCanvasHydrated) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const serializedBlocks = serializePrimitiveBlocks(primitiveBlocks)
+
+      writeStoredCanvasState(primitiveBlocks, projectId)
+      fetch('/api/canvas', {
+        body: JSON.stringify({
+          blocks: serializedBlocks,
+          projectId,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      }).catch(() => {
+        // Plain Vite dev uses local fallback storage.
+      })
+    }, 1000)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [isCanvasHydrated, primitiveBlocks, projectId])
 
   const commitPrimitiveBlocks = useCallback(
     (updater) => {
       setPrimitiveBlocks((currentBlocks) => {
         const nextBlocks = updater(currentBlocks)
-        writeStoredCanvasState(nextBlocks)
+        writeStoredCanvasState(nextBlocks, projectId)
         return nextBlocks
       })
     },
-    [],
+    [projectId],
   )
 
   const addPrimitiveBlock = useCallback(
@@ -197,17 +272,54 @@ export function RenderBlocksProvider({ children }) {
 
   const clearCanvas = useCallback(() => {
     setMaxZ(0)
-    removeStoredCanvasState()
+    removeStoredCanvasState(projectId)
     setPrimitiveBlocks([])
-  }, [])
+  }, [projectId])
 
-  const replacePrimitiveBlocks = useCallback((blocks) => {
+  const replacePrimitiveBlocks = useCallback((blocks, targetProjectId = projectId) => {
     const restoredBlocks = restorePrimitiveBlocks(blocks)
+    const serializedBlocks = serializePrimitiveBlocks(restoredBlocks)
 
     setMaxZ(getHighestZIndex(restoredBlocks))
-    writeStoredCanvasState(restoredBlocks)
+    writeStoredCanvasState(restoredBlocks, targetProjectId)
+    fetch('/api/canvas', {
+      body: JSON.stringify({
+        blocks: serializedBlocks,
+        projectId: targetProjectId,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    }).catch(() => {
+      // Plain Vite dev uses local fallback storage.
+    })
     setPrimitiveBlocks(restoredBlocks)
-  }, [])
+  }, [projectId])
+
+  const reorderPrimitiveBlocks = useCallback(
+    (fromBlockId, toBlockId) => {
+      if (fromBlockId === toBlockId) {
+        return
+      }
+
+      commitPrimitiveBlocks((currentBlocks) => {
+        const fromIndex = currentBlocks.findIndex(
+          (block) => block.id === fromBlockId,
+        )
+        const toIndex = currentBlocks.findIndex((block) => block.id === toBlockId)
+
+        if (fromIndex === -1 || toIndex === -1) {
+          return currentBlocks
+        }
+
+        const nextBlocks = [...currentBlocks]
+        const [movedBlock] = nextBlocks.splice(fromIndex, 1)
+        nextBlocks.splice(toIndex, 0, movedBlock)
+
+        return nextBlocks
+      })
+    },
+    [commitPrimitiveBlocks],
+  )
 
   const value = useMemo(
     () => ({
@@ -217,6 +329,7 @@ export function RenderBlocksProvider({ children }) {
       primitiveBlocks,
       replacePrimitiveBlocks,
       removePrimitiveBlock,
+      reorderPrimitiveBlocks,
       updatePrimitiveBlockLayout,
     }),
     [
@@ -226,6 +339,7 @@ export function RenderBlocksProvider({ children }) {
       primitiveBlocks,
       replacePrimitiveBlocks,
       removePrimitiveBlock,
+      reorderPrimitiveBlocks,
       updatePrimitiveBlockLayout,
     ],
   )

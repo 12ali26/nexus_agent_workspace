@@ -55,7 +55,7 @@ function FileOpenButton({ onToast }) {
       setActiveProject(manifest)
 
       if (manifest.canvasState) {
-        replacePrimitiveBlocks(manifest.canvasState)
+        replacePrimitiveBlocks(manifest.canvasState, manifest.projectId)
       }
 
       onToast(`Project loaded — activated ${activatedCount} extensions`)

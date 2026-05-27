@@ -28,7 +28,9 @@ function ExtensionSection({ extensions, onInstall, onUninstall, title }) {
               </div>
             </dl>
 
-            {extension.installed ? (
+            {extension.core ? (
+              <span className="workspace-action is-readonly">Core</span>
+            ) : extension.installed ? (
               <button
                 className="workspace-action"
                 type="button"
@@ -63,11 +65,9 @@ function ExtensionsPanel() {
   const filteredExtensions = availableExtensions.filter((extension) =>
     extension.name.toLowerCase().includes(normalizedSearchValue),
   )
-  const installedExtensions = filteredExtensions.filter(
-    (extension) => extension.installed,
-  )
-  const availableUninstalledExtensions = filteredExtensions.filter(
-    (extension) => !extension.installed,
+  const coreExtensions = filteredExtensions.filter((extension) => extension.core)
+  const communityExtensions = filteredExtensions.filter(
+    (extension) => !extension.core,
   )
 
   // Remote registry fetching will plug in here later for marketplace search.
@@ -86,14 +86,14 @@ function ExtensionsPanel() {
 
       <div className="extensions-scroll">
         <ExtensionSection
-          title="Installed"
-          extensions={installedExtensions}
+          title="Core"
+          extensions={coreExtensions}
           onInstall={installExtension}
           onUninstall={uninstallExtension}
         />
         <ExtensionSection
-          title="Available"
-          extensions={availableUninstalledExtensions}
+          title="Community"
+          extensions={communityExtensions}
           onInstall={installExtension}
           onUninstall={uninstallExtension}
         />

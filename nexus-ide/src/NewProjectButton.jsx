@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useWorkspaceData } from './context/useWorkspaceData'
 import { createProjectManifest } from './project/ProjectManifest'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
@@ -23,7 +24,8 @@ function NewProjectButton() {
     installExtensionsForCapabilities,
     setActiveProject,
   } = usePackRegistry()
-  const { primitiveBlocks } = useRenderBlocks()
+  const { clearDatasets } = useWorkspaceData()
+  const { clearCanvas } = useRenderBlocks()
   const showToast = useToast()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [projectName, setProjectName] = useState('')
@@ -48,15 +50,19 @@ function NewProjectButton() {
     event.preventDefault()
 
     const trimmedProjectName = projectName.trim() || 'Untitled Project'
+    const projectId = `project_${Date.now()}`
     const manifest = createProjectManifest({
-      canvasState: primitiveBlocks,
+      canvasState: [],
       capabilities: selectedCapabilities,
+      projectId,
       projectName: trimmedProjectName,
     })
 
     const activatedCount =
       installExtensionsForCapabilities(selectedCapabilities)
     setActiveProject(manifest)
+    clearCanvas()
+    clearDatasets()
     downloadManifest(manifest)
     showToast(`Project created — activated ${activatedCount} extensions`)
     closeModal()

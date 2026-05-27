@@ -49,7 +49,14 @@ const primitiveComponents = {
   'time-series': TimeSeriesBlockPrimitive,
 }
 
-function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
+function PrimitiveBlock({
+  block,
+  mode = 'float',
+  onFocus,
+  onLayoutChange,
+  onRemove,
+  onReorder,
+}) {
   const PrimitiveComponent = primitiveComponents[block.type]
   const { exportSettings } = useSettings()
   const [headerControls, setHeaderControls] = useState(null)
@@ -60,6 +67,76 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
 
   if (!PrimitiveComponent) {
     return null
+  }
+
+  const blockArticle = (
+    <article
+      className={`primitive-block${
+        mode === 'float' ? '' : ` primitive-block-${mode}`
+      }`}
+      onDragOver={(event) => {
+        if (mode === 'grid') {
+          event.preventDefault()
+        }
+      }}
+      onDrop={(event) => {
+        if (mode !== 'grid') {
+          return
+        }
+
+        event.preventDefault()
+        onReorder?.(event.dataTransfer.getData('text/plain'), block.id)
+      }}
+    >
+      <header
+        className="primitive-block-header"
+        draggable={mode === 'grid'}
+        onDragStart={(event) => {
+          if (mode !== 'grid') {
+            return
+          }
+
+          event.dataTransfer.setData('text/plain', block.id)
+        }}
+      >
+        <span>
+          {block.data.title}
+          {block.meta?.source === 'agent' && (
+            <span className="primitive-agent-badge">Agent</span>
+          )}
+        </span>
+        <div className="primitive-block-header-actions">
+          {headerControls}
+          <button
+            className="primitive-close"
+            type="button"
+            aria-label={`Remove ${block.data.title}`}
+            onClick={() => onRemove(block.id)}
+          >
+            x
+          </button>
+        </div>
+      </header>
+      <div className="primitive-block-content">
+        <Suspense
+          fallback={
+            <div className="primitive-loading">Loading renderer...</div>
+          }
+        >
+          <PrimitiveComponent
+            {...block.data.props}
+            blockId={block.id}
+            blockTitle={block.data.title}
+            exportSettings={exportSettings}
+            headerControls={registerHeaderControls}
+          />
+        </Suspense>
+      </div>
+    </article>
+  )
+
+  if (mode !== 'float') {
+    return blockArticle
   }
 
   return (
@@ -92,42 +169,7 @@ function PrimitiveBlock({ block, onFocus, onLayoutChange, onRemove }) {
         })
       }
     >
-      <article className="primitive-block">
-        <header className="primitive-block-header">
-          <span>
-            {block.data.title}
-            {block.meta?.source === 'agent' && (
-              <span className="primitive-agent-badge">Agent</span>
-            )}
-          </span>
-          <div className="primitive-block-header-actions">
-            {headerControls}
-            <button
-              className="primitive-close"
-              type="button"
-              aria-label={`Remove ${block.data.title}`}
-              onClick={() => onRemove(block.id)}
-            >
-              x
-            </button>
-          </div>
-        </header>
-        <div className="primitive-block-content">
-          <Suspense
-            fallback={
-              <div className="primitive-loading">Loading renderer...</div>
-            }
-          >
-            <PrimitiveComponent
-              {...block.data.props}
-              blockId={block.id}
-              blockTitle={block.data.title}
-              exportSettings={exportSettings}
-              headerControls={registerHeaderControls}
-            />
-          </Suspense>
-        </div>
-      </article>
+      {blockArticle}
     </Rnd>
   )
 }

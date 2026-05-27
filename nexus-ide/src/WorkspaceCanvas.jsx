@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import BlockCanvas from './canvas/BlockCanvas'
 import PrimitiveToolbar from './canvas/PrimitiveToolbar'
 import { exportCanvasToPDF } from './export/exportToPDF'
@@ -10,7 +10,7 @@ import WorkspaceTerminalPanel from './terminal/WorkspaceTerminalPanel'
 import { useTerminalPanel } from './terminal/useTerminalPanel'
 
 function WorkspaceCanvas() {
-  const { activePrimitives, activeProject, installedPacks } = usePackRegistry()
+  const { activePrimitives, activeProject } = usePackRegistry()
   const { addPrimitiveBlock, clearCanvas, primitiveBlocks } = useRenderBlocks()
   const { exportSettings } = useSettings()
   const {
@@ -20,6 +20,30 @@ function WorkspaceCanvas() {
     openTerminal,
     panelHeight,
   } = useTerminalPanel()
+  const [canvasMode, setCanvasModeState] = useState(() => {
+    try {
+      const storedMode = localStorage.getItem('nexus_canvas_mode')
+
+      return ['float', 'grid', 'focus'].includes(storedMode)
+        ? storedMode
+        : 'float'
+    } catch {
+      return 'float'
+    }
+  })
+
+  const setCanvasMode = useCallback((mode) => {
+    if (!['float', 'grid', 'focus'].includes(mode)) {
+      return
+    }
+
+    setCanvasModeState(mode)
+    try {
+      localStorage.setItem('nexus_canvas_mode', mode)
+    } catch {
+      // Canvas mode preference is optional.
+    }
+  }, [])
 
   const addToolbarPrimitiveBlock = useCallback((primitiveType) => {
     const primitive = createPrimitivePayload(primitiveType)
@@ -173,16 +197,15 @@ function WorkspaceCanvas() {
         style={{ '--terminal-panel-height': `${panelHeight}px` }}
       >
         <PrimitiveToolbar
+          canvasMode={canvasMode}
+          onCanvasModeChange={setCanvasMode}
           onPrimitiveClick={addToolbarPrimitiveBlock}
           primitiveTypes={activePrimitives}
           onTerminalClick={openTerminal}
         />
         <BlockCanvas
-          emptyMessage={
-            installedPacks.length
-              ? 'Canvas Ready — Add a primitive or load a file to begin'
-              : 'Install a pack from the Extensions panel to begin'
-            }
+          canvasMode={canvasMode}
+          emptyMessage="Canvas Ready — Add a primitive or load a file to begin"
         />
         {isOpen && <WorkspaceTerminalPanel />}
       </div>
