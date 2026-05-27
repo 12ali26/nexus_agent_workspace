@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { TerminalPanelContext } from './terminalPanelContext'
 
 function clampPanelHeight(height) {
@@ -10,6 +10,7 @@ export function TerminalPanelProvider({ children }) {
   const [isOpen, setIsOpen] = useState(false)
   const [outputEntries, setOutputEntries] = useState([])
   const [panelHeight, setPanelHeightState] = useState(280)
+  const runCounterRef = useRef(0)
 
   const openTerminal = useCallback(() => {
     setIsOpen(true)
@@ -26,11 +27,14 @@ export function TerminalPanelProvider({ children }) {
   }, [])
 
   const appendOutput = useCallback((entry) => {
+    runCounterRef.current += 1
+
     setOutputEntries((currentEntries) => [
       ...currentEntries,
       {
         id: crypto.randomUUID(),
         lines: [],
+        runNumber: runCounterRef.current,
         timestamp: new Date().toLocaleTimeString(),
         title: 'Execution Output',
         tone: 'default',

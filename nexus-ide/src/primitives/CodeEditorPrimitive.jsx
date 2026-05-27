@@ -84,9 +84,11 @@ function CodeEditorPrimitive({ data, headerControls }) {
 
     setIsRunning(true)
     openOutput()
+    const startedAt = performance.now()
 
     try {
       const result = await runCode(language, code, executionData)
+      const durationMs = Math.max(0, Math.round(performance.now() - startedAt))
 
       if (
         !window.nexus?.isElectron &&
@@ -103,6 +105,7 @@ function CodeEditorPrimitive({ data, headerControls }) {
         : result.error || 'Process failed with no error output.'
 
       appendOutput({
+        durationMs,
         language,
         lines: terminalText.trimEnd().split('\n'),
         title: result.success ? 'Execution Output' : 'Execution Error',

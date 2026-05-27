@@ -3,6 +3,7 @@ const cors = require('cors')
 const { execSync, spawn } = require('child_process')
 const path = require('path')
 const http = require('http')
+const fs = require('fs')
 const { WebSocket, WebSocketServer } = require('ws')
 const pty = require('node-pty')
 const db = require('./database')
@@ -10,6 +11,63 @@ const db = require('./database')
 const app = express()
 const server = http.createServer(app)
 const terminalWss = new WebSocketServer({ server, path: '/terminal' })
+
+function configureTerminalPrompt() {
+  try {
+    const bashrcAddition = `
+# NEXUS IDE Terminal Prompt
+parse_git_branch() {
+  git branch 2>/dev/null | grep '^\\*' | sed 's/* //'
+}
+
+NEXUS_PROMPT() {
+  local EXIT=$?
+  local RESET='\\[\\033[0m\\]'
+  local ORANGE='\\[\\033[38;5;208m\\]'
+  local BLUE='\\[\\033[38;5;75m\\]'
+  local GREEN='\\[\\033[38;5;71m\\]'
+  local RED='\\[\\033[38;5;203m\\]'
+  local GREY='\\[\\033[38;5;245m\\]'
+  local BOLD='\\[\\033[1m\\]'
+
+  local DIR=$(basename "$PWD")
+  local GIT=$(parse_git_branch)
+
+  if [ $EXIT -eq 0 ]; then
+    local STATUS="\${GREEN}✓\${RESET}"
+  else
+    local STATUS="\${RED}✗ $EXIT\${RESET}"
+  fi
+
+  PS1="\\n\${ORANGE}\${BOLD}NEXUS\${RESET} \${GREY}›\${RESET} \${BLUE}\${DIR}\${RESET}"
+  if [ -n "$GIT" ]; then
+    PS1+="\${GREY} on \${RESET}\${GREEN} $GIT\${RESET}"
+  fi
+  PS1+=" \${STATUS}\\n\${ORANGE}❯\${RESET} "
+}
+
+PROMPT_COMMAND=NEXUS_PROMPT
+`
+
+    const homeDir = process.env.HOME || '/home/ubuntu'
+    const nexusBashrc = `${homeDir}/.nexus_bashrc`
+    const mainBashrc = `${homeDir}/.bashrc`
+
+    fs.writeFileSync(nexusBashrc, bashrcAddition)
+
+    const bashrcContent = fs.existsSync(mainBashrc)
+      ? fs.readFileSync(mainBashrc, 'utf8')
+      : ''
+
+    if (!bashrcContent.includes('.nexus_bashrc')) {
+      fs.appendFileSync(mainBashrc, '\n# NEXUS IDE\nsource ~/.nexus_bashrc\n')
+    }
+
+    console.log('NEXUS terminal prompt configured')
+  } catch (error) {
+    console.log('Terminal prompt setup skipped:', error.message)
+  }
+}
 
 app.use(cors())
 app.use(express.json({ limit: '50mb' }))
@@ -309,6 +367,8 @@ app.get(/.*/, (_req, res) => {
 
 const PORT = process.env.PORT || 8080
 server.listen(PORT, '0.0.0.0', () => {
+  configureTerminalPrompt()
+
   try {
     execSync('cp cli/nex.js /usr/local/bin/nex && chmod +x /usr/local/bin/nex')
     console.log('nex CLI installed')
