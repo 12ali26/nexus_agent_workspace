@@ -25,7 +25,7 @@ Early builds are unsigned, so Windows may show a SmartScreen warning. Choose the
 
 Download the `.dmg`, open it, and drag NEXUS IDE into Applications.
 
-Early builds are unsigned, so macOS may require right-clicking the app and choosing Open, or allowing it in System Settings.
+NEXUS IDE requires macOS 11 Big Sur or newer. Early builds are unsigned, so macOS may require right-clicking the app and choosing Open, or allowing it in System Settings.
 
 ### Linux `.deb`
 
@@ -56,6 +56,7 @@ If your environment blocks sandboxing:
 
 For installed desktop builds:
 
+- macOS 11 Big Sur or newer is required for the desktop app.
 - Python 3 is required for Python code execution.
 - R is optional and enables R workflows.
 
@@ -201,6 +202,8 @@ The `Build Installers` GitHub Actions workflow will build:
 The installers are attached to:
 
 https://github.com/12ali26/nexus_agent_workspace/releases/latest
+
+macOS 10.15 Catalina and earlier cannot run the current Electron build. Users on older Intel Macs should use browser/server mode from source instead of the desktop installer.
 
 ## 9. EC2 and Headless Linux Notes
 

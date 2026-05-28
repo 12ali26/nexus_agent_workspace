@@ -30,7 +30,7 @@ https://github.com/12ali26/nexus_agent_workspace/releases/latest
 | Platform | Download | Notes |
 | --- | --- | --- |
 | Windows | `.exe` | Run the installer. Unsigned early builds may trigger SmartScreen. |
-| macOS | `.dmg` | Drag NEXUS IDE into Applications. Unsigned early builds may need right-click -> Open. |
+| macOS 11+ | `.dmg` | Drag NEXUS IDE into Applications. Unsigned early builds may need right-click -> Open. |
 | Linux | `.deb` or `.AppImage` | `.deb` is best for Ubuntu/Debian; AppImage is portable. |
 
 ### Linux `.deb`
@@ -58,6 +58,7 @@ Desktop users only need the installer for their operating system.
 
 For computation:
 
+- macOS desktop builds require macOS 11 Big Sur or newer. macOS 10.15 Catalina and earlier are not supported by the current Electron runtime.
 - Python 3 is required for Python execution.
 - R is optional for R/statistical workflows.
 - Node.js 20 is required for source development and server installs.
@@ -280,6 +281,10 @@ npm run rebuild:native
 ```
 
 `npm run start` and `npm run deploy` do this automatically.
+
+### macOS installer will not open on an older Mac
+
+The desktop installer requires macOS 11 Big Sur or newer. macOS 10.15 Catalina and earlier cannot run the current Electron build. On older Intel Macs, use the browser/server mode from source instead of the desktop installer.
 
 ### Python code does not run
 

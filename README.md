@@ -13,7 +13,7 @@ https://github.com/12ali26/nexus_agent_workspace/releases/latest
 | Platform | What to download | How to install |
 | --- | --- | --- |
 | Windows | `.exe` installer | Download and run the installer. Windows may show a SmartScreen warning for unsigned early builds. |
-| macOS | `.dmg` installer | Open the DMG and drag NEXUS IDE into Applications. macOS may require right-clicking and choosing Open for unsigned early builds. |
+| macOS 11+ | `.dmg` installer | Open the DMG and drag NEXUS IDE into Applications. macOS may require right-clicking and choosing Open for unsigned early builds. |
 | Linux | `.deb` or `.AppImage` | Use the `.deb` on Debian/Ubuntu systems, or the AppImage for a portable install. |
 
 ### Linux `.deb`
@@ -47,6 +47,7 @@ For normal desktop use, install the application for your operating system.
 
 For computation features:
 
+- macOS desktop builds require macOS 11 Big Sur or newer. macOS 10.15 Catalina and earlier are not supported by the current Electron runtime.
 - Python 3 is required for Python code execution.
 - R is optional and enables R/statistical workflows.
 - Node.js 20 is required only if you run NEXUS from source.
