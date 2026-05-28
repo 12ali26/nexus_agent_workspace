@@ -1,30 +1,167 @@
-# NEXUS IDE Setup
+# NEXUS IDE Setup Guide
 
-## Browser Development
+This guide is for installing, running, developing, and packaging NEXUS IDE.
+
+The app lives in the `nexus-ide/` subdirectory of the repository. After cloning, always enter that directory before running npm commands:
 
 ```bash
+git clone https://github.com/12ali26/nexus_agent_workspace.git
+cd nexus_agent_workspace/nexus-ide
+```
+
+## 1. Install the Desktop App
+
+Download installers from:
+
+https://github.com/12ali26/nexus_agent_workspace/releases/latest
+
+### Windows
+
+Download the `.exe` installer and run it.
+
+Early builds are unsigned, so Windows may show a SmartScreen warning. Choose the option to run the app only if you trust the release source.
+
+### macOS
+
+Download the `.dmg`, open it, and drag NEXUS IDE into Applications.
+
+Early builds are unsigned, so macOS may require right-clicking the app and choosing Open, or allowing it in System Settings.
+
+### Linux `.deb`
+
+```bash
+sudo apt install ./nexus-ide_0.1.1_amd64.deb
+```
+
+Then launch from the app menu or run:
+
+```bash
+nexus-ide
+```
+
+### Linux AppImage
+
+```bash
+chmod +x "NEXUS IDE-0.1.1.AppImage"
+./"NEXUS IDE-0.1.1.AppImage"
+```
+
+If your environment blocks sandboxing:
+
+```bash
+./"NEXUS IDE-0.1.1.AppImage" --no-sandbox
+```
+
+## 2. Runtime Requirements
+
+For installed desktop builds:
+
+- Python 3 is required for Python code execution.
+- R is optional and enables R workflows.
+
+For development from source:
+
+- Node.js 20
+- npm
+- Python 3
+- R, optional
+
+## 3. Ubuntu or EC2 Source Install
+
+Use the install script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/12ali26/nexus_agent_workspace/main/nexus-ide/install.sh | bash
+```
+
+The script:
+
+1. Installs Linux system dependencies.
+2. Installs Node.js 20.
+3. Clones `12ali26/nexus_agent_workspace`.
+4. Enters `nexus_agent_workspace/nexus-ide`.
+5. Runs `npm install`.
+6. Installs the `nex` CLI to `/usr/local/bin/nex`.
+7. Builds the renderer.
+8. Starts the server on port `8080`.
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+On EC2, open port `8080` in the security group and use the instance public URL.
+
+## 4. Local Browser Development
+
+```bash
+cd nexus_agent_workspace/nexus-ide
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173.
+Open:
 
-## Desktop App (Development)
+```text
+http://localhost:5173
+```
+
+Use this for frontend work. Server-backed features such as the live terminal, SQLite persistence, and code execution require server mode.
+
+## 5. Server Mode
 
 ```bash
+cd nexus_agent_workspace/nexus-ide
+npm run deploy
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+This is the best mode for testing the full browser app because it enables:
+
+- Express APIs
+- SQLite persistence
+- Terminal WebSocket
+- Code execution
+- `nex` CLI bridge
+
+## 6. Electron Development
+
+```bash
+cd nexus_agent_workspace/nexus-ide
 npm install
 npm run electron:dev
 ```
 
-## Desktop App (Production Build)
+This starts Vite and launches Electron against the development server.
+
+## 7. Production Build
+
+Build only the web renderer:
+
+```bash
+cd nexus_agent_workspace/nexus-ide
+npm run build
+```
+
+Build app icons:
+
+```bash
+npm run build:icon
+```
+
+Build desktop installers:
 
 ```bash
 npm run electron:build
 ```
 
-The installer appears in the `/release` folder.
-
-Platform-specific local builds are also available:
+Platform-specific commands:
 
 ```bash
 npm run electron:build:linux
@@ -32,87 +169,102 @@ npm run electron:build:win
 npm run electron:build:mac
 ```
 
-For reliable Windows, macOS, and Linux installers, use the GitHub Actions release workflow. Installer builds are most reliable when produced on their native operating system.
+Output appears in:
 
-## Sharing With Friends
+```text
+nexus-ide/release/
+```
 
-1. Push the repository to GitHub.
-2. Open the `Build Installers` workflow in GitHub Actions.
-3. Run the workflow manually, or push a version tag such as `v0.1.0`.
-4. Download the generated artifacts from the workflow run or the GitHub Release.
+For the most reliable Windows, macOS, and Linux installers, use GitHub Actions so each installer is built on its native operating system.
 
-Send friends the installer for their operating system:
+## 8. Release Build
 
-- Windows: `.exe`
-- macOS: `.dmg` or `.zip`
-- Linux: `.AppImage` or `.deb`
+To publish a new release:
 
-These first builds are unsigned:
+```bash
+cd nexus_agent_workspace/nexus-ide
+npm version patch --no-git-tag-version
+git add package.json package-lock.json
+git commit -m "Release vX.Y.Z"
+git tag vX.Y.Z
+git push origin main
+git push origin vX.Y.Z
+```
 
-- Windows may show a SmartScreen warning.
-- macOS may require right-clicking the app and choosing Open, or allowing it in Privacy & Security.
-- Linux AppImage users may need to run `chmod +x NEXUS*.AppImage` before opening it.
+The `Build Installers` GitHub Actions workflow will build:
 
-## Runtime Dependencies
+- Windows `.exe`
+- macOS `.dmg`
+- Linux `.AppImage`
+- Linux `.deb`
 
-For full computation support install on your machine:
+The installers are attached to:
 
-- Python 3: https://python.org
-- R: https://r-project.org
-- Node.js: already required for the app
+https://github.com/12ali26/nexus_agent_workspace/releases/latest
 
-## EC2 / Linux Server Setup
+## 9. EC2 and Headless Linux Notes
 
-NEXUS IDE is a desktop Electron app. A normal EC2 instance has no screen, so
-you have two practical options:
+NEXUS IDE can run as a browser app on EC2 through the Express server on port `8080`.
 
-- Use EC2 only to test that the app starts with a virtual display.
-- Use a remote desktop tool such as NICE DCV, VNC, or X11 forwarding if you
-  want to interact with the GUI.
+For the Electron GUI on a headless server, you need a virtual display or remote desktop. Browser/server mode is usually easier.
 
-For Ubuntu EC2, install the desktop/runtime dependencies:
+Install useful Linux dependencies:
 
 ```bash
 sudo apt update
 sudo apt install -y \
-  python3 python3-pip r-base nodejs npm \
-  xvfb \
-  libgtk-3-0 libnss3 libxss1 libasound2 \
-  libatk-bridge2.0-0 libatk1.0-0 \
+  curl git python3 python3-pip r-base xvfb \
+  libgtk-3-0 libnss3 libxss1 libasound2t64 \
+  libatk-bridge2.0-0t64 libatk1.0-0t64 \
   libdrm2 libgbm1 libxkbcommon0 \
   libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libxshmfence1
 ```
 
-### Option A: Run From Source On EC2
+Run Electron with a virtual display:
 
 ```bash
-npm install
 export DISPLAY=:99
 Xvfb :99 -screen 0 1400x900x24 &
 npm run electron:dev
 ```
 
-### Option B: Install The Linux `.deb`
+For real visual use on AWS, a remote desktop service such as NICE DCV is usually cleaner.
 
-Upload `release/nexus-ide_0.1.0_amd64.deb` to the EC2 instance, then run:
+## 10. Troubleshooting
 
-```bash
-sudo apt install ./nexus-ide_0.1.0_amd64.deb
-export DISPLAY=:99
-Xvfb :99 -screen 0 1400x900x24 &
-nexus-ide
-```
+### `npm install` fails
 
-### Option C: Run The AppImage
-
-Upload `release/NEXUS IDE-0.1.0.AppImage` to the EC2 instance, then run:
+Use Node.js 20:
 
 ```bash
-chmod +x "NEXUS IDE-0.1.0.AppImage"
-export DISPLAY=:99
-Xvfb :99 -screen 0 1400x900x24 &
-./"NEXUS IDE-0.1.0.AppImage" --no-sandbox
+node --version
 ```
 
-If you need to actually use the app visually on EC2, install and connect with a
-remote desktop service first. For AWS, NICE DCV is usually the cleanest option.
+If needed on Ubuntu:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+### `nex` is not installed
+
+```bash
+cd nexus_agent_workspace/nexus-ide
+sudo cp cli/nex.js /usr/local/bin/nex
+sudo chmod +x /usr/local/bin/nex
+```
+
+### Terminal connection fails
+
+Run the server mode:
+
+```bash
+npm run deploy
+```
+
+Then open `http://localhost:8080`.
+
+### Linux AppImage fails because libraries are missing
+
+Install the Linux desktop dependencies listed above, then try again.

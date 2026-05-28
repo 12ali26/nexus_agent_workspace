@@ -17,7 +17,7 @@ sudo apt install -y nodejs
 
 # Clone repo — update this URL if the repo name changes
 git clone https://github.com/12ali26/nexus_agent_workspace.git
-cd nexus-ide
+cd nexus_agent_workspace/nexus-ide
 
 # Install project dependencies
 npm install
