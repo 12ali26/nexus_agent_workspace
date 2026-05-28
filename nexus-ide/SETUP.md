@@ -265,6 +265,16 @@ npm run deploy
 
 Then open `http://localhost:8080`.
 
+### Native module ABI error
+
+If `better-sqlite3` or `node-pty` reports a `NODE_MODULE_VERSION` mismatch after building Electron installers, rebuild native modules for the Node.js runtime:
+
+```bash
+npm run rebuild:native
+```
+
+`npm run start` and `npm run deploy` already run this rebuild step before launching the server.
+
 ### Linux AppImage fails because libraries are missing
 
 Install the Linux desktop dependencies listed above, then try again.

@@ -271,6 +271,16 @@ npm run deploy
 
 Then open `http://localhost:8080`.
 
+### Native module ABI error after building Electron installers
+
+Electron packaging rebuilds native modules for Electron. If you later run the server with Node.js and see a `NODE_MODULE_VERSION` or `ERR_DLOPEN_FAILED` error, rebuild the native modules for your current Node runtime:
+
+```bash
+npm run rebuild:native
+```
+
+`npm run start` and `npm run deploy` do this automatically.
+
 ### Python code does not run
 
 Install Python 3:
