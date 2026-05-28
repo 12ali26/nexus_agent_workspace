@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { EmptyState } from '../components/BlockStates'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { getChartTheme } from '../styles/themeTokens'
 
@@ -261,9 +262,7 @@ function TimeSeriesBlockPrimitive({
 
   if (!rows.length || !numericColumns.length) {
     return (
-      <div className="stats-empty-state">
-        Load a dataset with at least one numeric column to analyze a time series
-      </div>
+      <EmptyState message="Load a dataset with at least one numeric column to analyze a time series" />
     )
   }
 

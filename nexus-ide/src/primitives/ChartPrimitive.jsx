@@ -8,6 +8,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useEffect, useMemo, useState } from 'react'
+import { EmptyState } from '../components/BlockStates'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 
 function ChartPrimitive({
@@ -71,17 +72,13 @@ function ChartPrimitive({
 
   if (!chartData.length || !columns.length) {
     return (
-      <div className="stats-empty-state">
-        Load a data file first to render a chart
-      </div>
+      <EmptyState message="Load a data file first to render a chart" />
     )
   }
 
   if (!activeXKey || !activeYKey) {
     return (
-      <div className="stats-empty-state">
-        Select a dataset with at least one numeric column
-      </div>
+      <EmptyState message="Select a dataset with at least one numeric column" />
     )
   }
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createBlockLayout } from '../canvas/blockLayout'
 import { usePackRegistry } from '../registry/usePackRegistry'
+import { api } from '../utils/api'
 import { RenderBlocksContext } from './renderBlocksContext'
 
 const canvasStorageKey = 'nexus_canvas'
@@ -147,13 +148,7 @@ export function RenderBlocksProvider({ children }) {
       setIsCanvasHydrated(false)
 
       try {
-        const response = await fetch(`/api/canvas/${projectId}`)
-
-        if (!response.ok) {
-          throw new Error('Canvas API unavailable')
-        }
-
-        const state = await response.json()
+        const state = await api.get(`/api/canvas/${projectId}`)
         const restoredBlocks = restorePrimitiveBlocks(state.blocks)
 
         if (!isCancelled) {
@@ -188,16 +183,14 @@ export function RenderBlocksProvider({ children }) {
       const serializedBlocks = serializePrimitiveBlocks(primitiveBlocks)
 
       writeStoredCanvasState(primitiveBlocks, projectId)
-      fetch('/api/canvas', {
-        body: JSON.stringify({
+      api
+        .post('/api/canvas', {
           blocks: serializedBlocks,
           projectId,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }).catch(() => {
-        // Plain Vite dev uses local fallback storage.
-      })
+        })
+        .catch(() => {
+          // Plain Vite dev uses local fallback storage.
+        })
     }, 1000)
 
     return () => window.clearTimeout(timeoutId)
@@ -423,16 +416,14 @@ export function RenderBlocksProvider({ children }) {
 
     setMaxZ(getHighestZIndex(restoredBlocks))
     writeStoredCanvasState(restoredBlocks, targetProjectId)
-    fetch('/api/canvas', {
-      body: JSON.stringify({
+    api
+      .post('/api/canvas', {
         blocks: serializedBlocks,
         projectId: targetProjectId,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    }).catch(() => {
-      // Plain Vite dev uses local fallback storage.
-    })
+      })
+      .catch(() => {
+        // Plain Vite dev uses local fallback storage.
+      })
     setPrimitiveBlocks(restoredBlocks)
   }, [projectId])
 

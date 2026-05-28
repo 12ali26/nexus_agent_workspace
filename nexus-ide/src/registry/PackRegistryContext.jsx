@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { api } from '../utils/api'
 import { PackRegistryContext } from './packRegistryContext'
 import registry from './packs.json'
 
@@ -71,16 +72,14 @@ function saveProjectToServer(project) {
     return
   }
 
-  fetch('/api/project', {
-    body: JSON.stringify({
+  api
+    .post('/api/project', {
       id: project.projectId,
       name: project.projectName,
-    }),
-    headers: { 'Content-Type': 'application/json' },
-    method: 'POST',
-  }).catch(() => {
-    // Plain Vite dev may not have the Express persistence API running.
-  })
+    })
+    .catch(() => {
+      // Plain Vite dev may not have the Express persistence API running.
+    })
 }
 
 function writeStoredInstalledExtensionIds(extensionIds) {

@@ -26,6 +26,17 @@ function getLanguageLabel(language) {
   return language.charAt(0).toUpperCase() + language.slice(1)
 }
 
+function getErrorLabel(errorDetail) {
+  if (!errorDetail) {
+    return 'Runtime error'
+  }
+
+  if (errorDetail.type === 'missing_module') return 'Missing module'
+  if (errorDetail.type === 'syntax') return 'Syntax error'
+  if (errorDetail.type === 'timeout') return 'Timeout'
+  return 'Runtime error'
+}
+
 function WorkspaceTerminalPanel() {
   const {
     activeTab,
@@ -142,6 +153,11 @@ function WorkspaceTerminalPanel() {
     setPreviousHeight(panelHeight)
     setPanelHeight(520)
     setIsMaximized(true)
+  }
+
+  const copySuggestion = (suggestion) => {
+    navigator.clipboard?.writeText(suggestion)
+    showToast('Install command copied to clipboard', 'success')
   }
 
   useEffect(() => {
@@ -315,6 +331,26 @@ function WorkspaceTerminalPanel() {
                   <pre className={isError ? 'output-stderr' : 'output-stdout'}>
                     {entry.lines.join('\n')}
                   </pre>
+                  {isError && entry.errorDetail && (
+                    <div className="output-error-detail">
+                      <strong>{getErrorLabel(entry.errorDetail)}</strong>
+                      <span>{entry.errorDetail.message}</span>
+                      {entry.errorDetail.suggestion && (
+                        <div className="error-suggestion">
+                          <span>Run in terminal:</span>
+                          <code>{entry.errorDetail.suggestion}</code>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              copySuggestion(entry.errorDetail.suggestion)
+                            }
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <footer className={isError ? 'output-error' : 'output-success'}>
                     {isError ? '✗ Exited with error' : '✓ Exited with code 0'}
                   </footer>

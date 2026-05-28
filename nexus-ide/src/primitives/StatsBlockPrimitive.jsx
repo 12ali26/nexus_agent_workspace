@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { EmptyState } from '../components/BlockStates'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 
 const tabs = ['Descriptive', 'Distribution', 'Hypothesis Test', 'Correlation']
@@ -438,17 +439,13 @@ function StatsBlockPrimitive({ blockId, data = [], updateBlockData }) {
 
   if (!Array.isArray(statsData) || !statsData.length) {
     return (
-      <div className="stats-empty-state">
-        Load a data file first to run statistics
-      </div>
+      <EmptyState message="Load a data file first to run statistics" />
     )
   }
 
   if (!numericColumns.length) {
     return (
-      <div className="stats-empty-state">
-        No numeric columns available for statistics
-      </div>
+      <EmptyState message="No numeric columns available for statistics" />
     )
   }
 

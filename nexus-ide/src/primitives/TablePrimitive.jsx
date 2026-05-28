@@ -7,6 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { EmptyState } from '../components/BlockStates'
 import { createTableColumns } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 
@@ -92,9 +93,7 @@ function TablePrimitive({ blockId, columns, data, rows, updateBlockData }) {
 
   if (!tableData.length || !tableColumns.length) {
     return (
-      <div className="stats-empty-state">
-        Load a data file first to render a table
-      </div>
+      <EmptyState message="Load a data file first to render a table" />
     )
   }
 

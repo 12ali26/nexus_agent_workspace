@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePackRegistry } from '../registry/usePackRegistry'
+import { api } from '../utils/api'
 import {
   createColumnsFromRows,
   createDatasetScope,
@@ -56,13 +57,7 @@ export function WorkspaceDataProvider({ children }) {
 
     async function restoreDatasets() {
       try {
-        const response = await fetch(`/api/datasets/${projectId}`)
-
-        if (!response.ok) {
-          throw new Error('Dataset API unavailable')
-        }
-
-        const restoredDatasets = await response.json()
+        const restoredDatasets = await api.get(`/api/datasets/${projectId}`)
 
         if (!isCancelled) {
           setDatasets(restoredDatasets)
@@ -110,20 +105,18 @@ export function WorkspaceDataProvider({ children }) {
     // AGENT: pushes datasets here the same way file loading does.
     setDatasets((currentDatasets) => [...currentDatasets, dataset])
     setActiveDatasetId(dataset.id)
-    fetch('/api/datasets', {
-      body: JSON.stringify({
+    api
+      .post('/api/datasets', {
         columns: dataset.columns,
         id: dataset.id,
         name: dataset.name,
         projectId,
         rows: dataset.rows,
         source: dataset.source,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    }).catch(() => {
-      // Plain Vite dev uses local fallback storage.
-    })
+      })
+      .catch(() => {
+        // Plain Vite dev uses local fallback storage.
+      })
 
     return dataset
   }, [projectId])
@@ -144,9 +137,7 @@ export function WorkspaceDataProvider({ children }) {
 
       return nextDatasets
     })
-    fetch(`/api/datasets/${datasetId}`, {
-      method: 'DELETE',
-    }).catch(() => {
+    api.delete(`/api/datasets/${datasetId}`).catch(() => {
       // Plain Vite dev uses local fallback storage.
     })
   }, [])

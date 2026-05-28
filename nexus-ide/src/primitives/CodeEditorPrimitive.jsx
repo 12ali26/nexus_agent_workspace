@@ -1,6 +1,6 @@
 import Editor from '@monaco-editor/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { runCode } from '../computation/runner'
+import { parseExecutionError, runCode } from '../computation/runner'
 import { createDatasetScope } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { useTerminalPanel } from '../terminal/useTerminalPanel'
@@ -96,16 +96,20 @@ function CodeEditorPrimitive({ data, headerControls }) {
         result.error &&
         /server unavailable|Failed to fetch|NetworkError/i.test(result.error)
       ) {
-        showToast(result.error)
+        showToast(result.error, 'error', 6000)
         return
       }
 
       const terminalText = result.success
         ? result.output || 'Process completed with no output.'
         : result.error || 'Process failed with no error output.'
+      const parsedError = result.success
+        ? null
+        : parseExecutionError(result.error, language)
 
       appendOutput({
         durationMs,
+        errorDetail: parsedError,
         language,
         lines: terminalText.trimEnd().split('\n'),
         title: result.success ? 'Execution Output' : 'Execution Error',

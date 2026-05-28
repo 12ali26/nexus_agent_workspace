@@ -1,5 +1,56 @@
 // This is the computational backbone of NEXUS — agents, code execution, and
 // formula engines all route through here.
+export function parseExecutionError(stderr, language) {
+  if (!stderr) {
+    return null
+  }
+
+  if (language === 'python') {
+    if (stderr.includes('ModuleNotFoundError')) {
+      const match = stderr.match(/No module named '([^']+)'/)
+      const moduleName = match?.[1] || 'unknown'
+
+      return {
+        message: `Module '${moduleName}' not found`,
+        suggestion: `pip install ${moduleName}`,
+        type: 'missing_module',
+      }
+    }
+
+    if (stderr.includes('SyntaxError')) {
+      return {
+        message: stderr,
+        type: 'syntax',
+      }
+    }
+
+    if (/timed out|timeout/i.test(stderr)) {
+      return {
+        message: 'Execution timed out after 30 seconds',
+        type: 'timeout',
+      }
+    }
+  }
+
+  if (language === 'r') {
+    if (stderr.includes('there is no package called')) {
+      const match = stderr.match(/there is no package called '([^']+)'/)
+      const packageName = match?.[1] || 'unknown'
+
+      return {
+        message: `Package '${packageName}' not installed`,
+        suggestion: `install.packages("${packageName}")`,
+        type: 'missing_module',
+      }
+    }
+  }
+
+  return {
+    message: stderr,
+    type: 'runtime',
+  }
+}
+
 export async function runCode(language, code, data) {
   // ELECTRON: full computation via IPC.
   if (window.nexus?.isElectron) {
@@ -18,6 +69,18 @@ export async function runCode(language, code, data) {
     })
 
     if (!response.ok || !response.body) {
+      window.dispatchEvent(
+        new CustomEvent('nexus-error', {
+          detail: {
+            message: `Code execution server unavailable (${response.status})`,
+            status: response.status,
+            timestamp: new Date().toISOString(),
+            type: 'api',
+            url: apiUrl,
+          },
+        }),
+      )
+
       return {
         success: false,
         output: '',
@@ -81,6 +144,17 @@ export async function runCode(language, code, data) {
       }
     )
   } catch (error) {
+    window.dispatchEvent(
+      new CustomEvent('nexus-error', {
+        detail: {
+          message: error.message,
+          timestamp: new Date().toISOString(),
+          type: 'api',
+          url: apiUrl,
+        },
+      }),
+    )
+
     return {
       success: false,
       output: '',

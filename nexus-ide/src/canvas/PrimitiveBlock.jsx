@@ -1,6 +1,5 @@
 import {
   lazy,
-  Component,
   Suspense,
   useCallback,
   useEffect,
@@ -15,6 +14,8 @@ import {
   X,
 } from 'lucide-react'
 import { Rnd } from 'react-rnd'
+import { BlockErrorBoundary } from '../components/ErrorBoundary'
+import { LoadingState } from '../components/BlockStates'
 import AnnotationPrimitive from '../primitives/AnnotationPrimitive'
 import AssumptionFlagPrimitive from '../primitives/AssumptionFlagPrimitive'
 import ChartPrimitive from '../primitives/ChartPrimitive'
@@ -69,34 +70,6 @@ const primitiveComponents = {
 }
 
 const dataBlockTypes = new Set(['table', 'stats-block', 'regression'])
-
-class PrimitiveErrorBoundary extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { error: null }
-  }
-
-  static getDerivedStateFromError(error) {
-    return { error }
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error(`Primitive render error (${this.props.blockType}):`, error, errorInfo)
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="primitive-error-state">
-          <strong>Block failed to render</strong>
-          <span>{this.state.error.message}</span>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
 
 function getBlockSummary(block) {
   const props = block.data?.props ?? {}
@@ -417,10 +390,10 @@ function PrimitiveBlock({
       >
         <Suspense
           fallback={
-            <div className="primitive-loading">Loading renderer...</div>
+            <LoadingState message="Loading renderer..." />
           }
         >
-          <PrimitiveErrorBoundary blockType={block.type}>
+          <BlockErrorBoundary blockType={block.type}>
             <PrimitiveComponent
               {...block.data.props}
               blockId={block.id}
@@ -429,7 +402,7 @@ function PrimitiveBlock({
               headerControls={registerHeaderControls}
               updateBlockData={onDataChange}
             />
-          </PrimitiveErrorBoundary>
+          </BlockErrorBoundary>
         </Suspense>
       </div>
     </article>

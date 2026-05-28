@@ -1,4 +1,4 @@
-import { Component, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { MoreHorizontal, Search } from 'lucide-react'
 import './App.css'
 import ActivityBar from './ActivityBar'
@@ -7,6 +7,9 @@ import ExportButton from './ExportButton'
 import FileOpenButton from './FileOpenButton'
 import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
+import { DebugPanel } from './components/DebugPanel'
+import { AppErrorBoundary } from './components/ErrorBoundary'
+import { ToastSystem } from './components/ToastSystem'
 import { AgentProvider } from './context/AgentContext'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext'
@@ -30,46 +33,11 @@ function TopMenuItem({ children, onClick, shortcut }) {
   )
 }
 
-class AppErrorBoundary extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { error: null }
-  }
-
-  static getDerivedStateFromError(error) {
-    return { error }
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('NEXUS render error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="app-error-screen">
-          <div className="brand-mark" aria-hidden="true">
-            N
-          </div>
-          <h1>NEXUS failed to render</h1>
-          <p>{this.state.error.message}</p>
-          <button type="button" onClick={() => window.location.reload()}>
-            Reload
-          </button>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
-
 function NexusWorkbench() {
   const [activePanel, setActivePanel] = useState('primitives')
   const [isActivitySidebarVisible, setIsActivitySidebarVisible] =
     useState(true)
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState('')
   const [isEditingProjectName, setIsEditingProjectName] = useState(false)
   const { activeAgent, isConnected, isThinking } = useAgent()
   const { activeCapabilities, activeProject, setActiveProject } =
@@ -85,21 +53,20 @@ function NexusWorkbench() {
   const projectNameEditCancelledRef = useRef(false)
   const projectNameInputRef = useRef(null)
   const topMenuRef = useRef(null)
-  const toastTimerRef = useRef(null)
   const [projectNameDraft, setProjectNameDraft] = useState(
     activeProject?.projectName ?? 'Untitled Project',
   )
 
-  const showToast = useCallback((message) => {
-    setToastMessage(message)
-
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current)
-    }
-
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage('')
-    }, 3000)
+  const showToast = useCallback((message, type = 'info', duration = 4000) => {
+    window.dispatchEvent(
+      new CustomEvent('nexus-toast', {
+        detail: {
+          duration,
+          message,
+          type,
+        },
+      }),
+    )
   }, [])
 
   const closeMenus = useCallback(() => {
@@ -165,16 +132,6 @@ function NexusWorkbench() {
       projectNameInputRef.current?.select()
     }
   }, [isEditingProjectName])
-
-  useEffect(() => {
-    const handleExportToast = (event) => {
-      showToast(event.detail?.message ?? 'Export updated')
-    }
-
-    window.addEventListener('nexus-toast', handleExportToast)
-
-    return () => window.removeEventListener('nexus-toast', handleExportToast)
-  }, [showToast])
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -401,7 +358,8 @@ function NexusWorkbench() {
           </span>
         </footer>
 
-        {toastMessage && <div className="toast">{toastMessage}</div>}
+        <ToastSystem />
+        <DebugPanel />
       </div>
     </ToastContext.Provider>
   )

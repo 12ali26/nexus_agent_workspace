@@ -72,6 +72,20 @@ PROMPT_COMMAND=NEXUS_PROMPT
 app.use(cors())
 app.use(express.json({ limit: '50mb' }))
 
+app.use('/api', (req, res, next) => {
+  const start = Date.now()
+
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    const color = res.statusCode >= 400 ? '\x1b[31m' : '\x1b[32m'
+    console.log(
+      `${color}${req.method} ${req.path} ${res.statusCode} ${duration}ms\x1b[0m`,
+    )
+  })
+
+  next()
+})
+
 // SECURITY: This API executes code on the server.
 // Add authentication before exposing publicly.
 // SECURITY: Each WebSocket connection spawns a real shell.
@@ -314,6 +328,13 @@ app.post('/api/nex', (req, res) => {
   res.json({ success: true, count: instructions.length })
 })
 
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: true,
+    message: `API route not found: ${req.path}`,
+  })
+})
+
 terminalWss.on('connection', (ws) => {
   const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash'
   const ptyProcess = pty.spawn(shell, [], {
@@ -363,6 +384,24 @@ app.use(express.static(distPath))
 
 app.get(/.*/, (_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'))
+})
+
+// Global error handler — catches unhandled route errors.
+app.use((err, req, res) => {
+  console.error('Server error:', err.message)
+  res.status(err.status || 500).json({
+    error: true,
+    message: err.message || 'Internal server error',
+    path: req.path,
+  })
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error.message)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason)
 })
 
 const PORT = process.env.PORT || 8080

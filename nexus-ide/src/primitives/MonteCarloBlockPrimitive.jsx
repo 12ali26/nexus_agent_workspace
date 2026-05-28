@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { EmptyState } from '../components/BlockStates'
 import { useParameters } from '../context/useParameters'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { getChartTheme } from '../styles/themeTokens'
@@ -277,7 +278,7 @@ function MonteCarloBlockPrimitive({
                 <Line dataKey="mean" stroke={chartTheme.textPrimary} dot={false} strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
-          ) : <div className="stats-empty-state">Paths are available for GBM simulations</div>
+          ) : <EmptyState message="Paths are available for GBM simulations" />
         )}
         {activeTab === 'Sensitivity' && (
           <ResponsiveContainer width="100%" height={330}>

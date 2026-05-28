@@ -13,6 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import { linearRegression } from 'simple-statistics'
+import { EmptyState } from '../components/BlockStates'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import 'katex/dist/katex.min.css'
 
@@ -696,9 +697,7 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
             </div>
           </>
         ) : (
-          <p className="stats-empty-state">
-            Configure variables and run regression to see results.
-          </p>
+          <EmptyState message="Configure variables and run regression to see results." />
         )}
       </section>
     </div>
