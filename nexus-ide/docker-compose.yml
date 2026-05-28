@@ -1,0 +1,17 @@
+services:
+  nexus:
+    build:
+      context: .
+    image: nexus-ide:local
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      NEXUS_AUTH_USER: ${NEXUS_AUTH_USER:?Set NEXUS_AUTH_USER before running docker compose}
+      NEXUS_AUTH_PASSWORD: ${NEXUS_AUTH_PASSWORD:?Set NEXUS_AUTH_PASSWORD before running docker compose}
+    volumes:
+      - nexus-data:/home/nexus/.nexus
+    restart: unless-stopped
+
+volumes:
+  nexus-data:

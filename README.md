@@ -70,6 +70,36 @@ http://localhost:8080
 
 On a remote EC2 instance, use the instance public URL with port `8080` open in the security group.
 
+## Run with Docker
+
+Docker runs NEXUS in browser/server mode, not as the Electron desktop app. The image includes Node.js, Python 3, R, the Express API, SQLite persistence, code execution, and terminal sessions.
+
+Run a local image:
+
+```bash
+cd nexus_agent_workspace
+docker build -t nexus-ide:local ./nexus-ide
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  nexus-ide:local
+```
+
+Or use the published image:
+
+```bash
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  ghcr.io/12ali26/nexus_agent_workspace/nexus-ide:latest
+```
+
+Then open `http://localhost:8080`. The `/api/health` endpoint is public for health checks, but the app and terminal require the basic-auth credentials you set. To disable auth for a trusted local-only run, add `-e NEXUS_AUTH_DISABLED=true`.
+
 ## Run from Source
 
 Clone the repository and enter the application directory:

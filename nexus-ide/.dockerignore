@@ -1,0 +1,17 @@
+node_modules
+dist
+release
+.git
+.github
+.cache
+.vite
+coverage
+*.log
+npm-debug.log*
+.DS_Store
+.env
+.env.*
+assets/icons/**/*.bak
+*.db
+*.sqlite
+.nexus

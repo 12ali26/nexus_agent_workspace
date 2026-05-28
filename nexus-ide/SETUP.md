@@ -94,7 +94,44 @@ http://localhost:8080
 
 On EC2, open port `8080` in the security group and use the instance public URL.
 
-## 4. Local Browser Development
+## 4. Docker Server Mode
+
+Docker runs the browser/server version of NEXUS, not the Electron desktop app. The image includes Python 3, R, SQLite persistence, terminal sessions, and the Express API.
+
+Build and run locally:
+
+```bash
+docker build -t nexus-ide:local .
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  nexus-ide:local
+```
+
+Run with Compose:
+
+```bash
+export NEXUS_AUTH_USER=admin
+export NEXUS_AUTH_PASSWORD='change-this-password'
+docker compose up --build
+```
+
+Use the published image:
+
+```bash
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  ghcr.io/12ali26/nexus_agent_workspace/nexus-ide:latest
+```
+
+Open `http://localhost:8080`. Data persists in `/home/nexus/.nexus` inside the container, so mount that path as a volume. `/api/health` is unauthenticated for health checks; all other app and terminal routes require basic auth when credentials are set.
+
+## 5. Local Browser Development
 
 ```bash
 cd nexus_agent_workspace/nexus-ide
@@ -110,7 +147,7 @@ http://localhost:5173
 
 Use this for frontend work. Server-backed features such as the live terminal, SQLite persistence, and code execution require server mode.
 
-## 5. Server Mode
+## 6. Server Mode
 
 ```bash
 cd nexus_agent_workspace/nexus-ide
@@ -131,7 +168,7 @@ This is the best mode for testing the full browser app because it enables:
 - Code execution
 - `nex` CLI bridge
 
-## 6. Electron Development
+## 7. Electron Development
 
 ```bash
 cd nexus_agent_workspace/nexus-ide
@@ -141,7 +178,7 @@ npm run electron:dev
 
 This starts Vite and launches Electron against the development server.
 
-## 7. Production Build
+## 8. Production Build
 
 Build only the web renderer:
 
@@ -178,7 +215,7 @@ nexus-ide/release/
 
 For the most reliable Windows, macOS, and Linux installers, use GitHub Actions so each installer is built on its native operating system.
 
-## 8. Release Build
+## 9. Release Build
 
 To publish a new release:
 
@@ -198,14 +235,15 @@ The `Build Installers` GitHub Actions workflow will build:
 - macOS `.dmg`
 - Linux `.AppImage`
 - Linux `.deb`
+- Docker image `ghcr.io/12ali26/nexus_agent_workspace/nexus-ide:<version>`
 
 The installers are attached to:
 
 https://github.com/12ali26/nexus_agent_workspace/releases/latest
 
-macOS 10.15 Catalina and earlier cannot run the current Electron build. Users on older Intel Macs should use browser/server mode from source instead of the desktop installer.
+macOS 10.15 Catalina and earlier cannot run the current Electron build. Users on older Intel Macs should use browser/server or Docker mode instead of the desktop installer.
 
-## 9. EC2 and Headless Linux Notes
+## 10. EC2 and Headless Linux Notes
 
 NEXUS IDE can run as a browser app on EC2 through the Express server on port `8080`.
 

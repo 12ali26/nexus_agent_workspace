@@ -81,6 +81,43 @@ http://localhost:8080
 
 On EC2, open port `8080` in the security group and use the instance public URL.
 
+## Run with Docker
+
+Docker runs NEXUS in browser/server mode, not as the Electron desktop app. The production image includes the Express server, built React frontend, SQLite persistence, terminal sessions, Python 3, R, and the `nex` CLI.
+
+Build and run locally:
+
+```bash
+docker build -t nexus-ide:local .
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  nexus-ide:local
+```
+
+Run with Compose:
+
+```bash
+export NEXUS_AUTH_USER=admin
+export NEXUS_AUTH_PASSWORD='change-this-password'
+docker compose up --build
+```
+
+Run the published image:
+
+```bash
+docker run --rm \
+  -p 8080:8080 \
+  -e NEXUS_AUTH_USER=admin \
+  -e NEXUS_AUTH_PASSWORD='change-this-password' \
+  -v nexus-data:/home/nexus/.nexus \
+  ghcr.io/12ali26/nexus_agent_workspace/nexus-ide:latest
+```
+
+Open `http://localhost:8080`. Project data persists in the Docker volume mounted at `/home/nexus/.nexus`. `/api/health` is public for health checks; all app routes and terminal sessions require basic auth when `NEXUS_AUTH_USER` and `NEXUS_AUTH_PASSWORD` are set. Use `NEXUS_AUTH_DISABLED=true` only for trusted local-only runs.
+
 ## Run from Source
 
 ```bash

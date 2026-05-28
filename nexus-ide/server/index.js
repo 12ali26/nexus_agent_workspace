@@ -10,7 +10,84 @@ const db = require('./database')
 
 const app = express()
 const server = http.createServer(app)
-const terminalWss = new WebSocketServer({ server, path: '/terminal' })
+const terminalWss = new WebSocketServer({ noServer: true })
+
+function isAuthDisabled() {
+  return process.env.NEXUS_AUTH_DISABLED === 'true'
+}
+
+function getAuthConfig() {
+  const username = process.env.NEXUS_AUTH_USER
+  const password = process.env.NEXUS_AUTH_PASSWORD
+
+  if (isAuthDisabled()) {
+    return null
+  }
+
+  if ((username && !password) || (!username && password)) {
+    return { invalid: true }
+  }
+
+  if (!username && !password) {
+    return null
+  }
+
+  return { username, password }
+}
+
+function isAuthenticated(req) {
+  const authConfig = getAuthConfig()
+
+  if (!authConfig) {
+    return true
+  }
+
+  if (authConfig.invalid) {
+    return false
+  }
+
+  const header = req.headers.authorization || ''
+  const [scheme, encoded] = header.split(' ')
+
+  if (scheme !== 'Basic' || !encoded) {
+    return false
+  }
+
+  try {
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8')
+    const separatorIndex = decoded.indexOf(':')
+
+    if (separatorIndex === -1) {
+      return false
+    }
+
+    const username = decoded.slice(0, separatorIndex)
+    const password = decoded.slice(separatorIndex + 1)
+
+    return username === authConfig.username && password === authConfig.password
+  } catch {
+    return false
+  }
+}
+
+function requestAuth(res) {
+  res.setHeader('WWW-Authenticate', 'Basic realm="NEXUS IDE"')
+  res.status(401).send('Authentication required')
+}
+
+function authMiddleware(req, res, next) {
+  if (req.path === '/api/health') {
+    next()
+    return
+  }
+
+  if (isAuthenticated(req)) {
+    next()
+    return
+  }
+
+  requestAuth(res)
+}
 
 function configureTerminalPrompt() {
   try {
@@ -70,6 +147,7 @@ PROMPT_COMMAND=NEXUS_PROMPT
 }
 
 app.use(cors())
+app.use(authMiddleware)
 app.use(express.json({ limit: '50mb' }))
 
 app.use('/api', (req, res, next) => {
@@ -399,6 +477,30 @@ terminalWss.on('connection', (ws) => {
       ws.send(JSON.stringify({ type: 'exit' }))
       ws.close()
     }
+  })
+})
+
+server.on('upgrade', (req, socket, head) => {
+  const { pathname } = new URL(req.url, 'http://localhost')
+
+  if (pathname !== '/terminal') {
+    socket.destroy()
+    return
+  }
+
+  if (!isAuthenticated(req)) {
+    socket.write(
+      'HTTP/1.1 401 Unauthorized\r\n' +
+        'WWW-Authenticate: Basic realm="NEXUS IDE"\r\n' +
+        'Connection: close\r\n' +
+        '\r\n',
+    )
+    socket.destroy()
+    return
+  }
+
+  terminalWss.handleUpgrade(req, socket, head, (ws) => {
+    terminalWss.emit('connection', ws, req)
   })
 })
 
