@@ -2,6 +2,19 @@
 
 The universal computational workspace. What VSCode is to code — NEXUS is to knowledge work.
 
+## Download
+
+| Platform | Download |
+|----------|----------|
+| Windows | [NEXUS-IDE-Setup.exe](https://github.com/12ali26/nexus-ide/releases/latest) |
+| macOS | [NEXUS-IDE.dmg](https://github.com/12ali26/nexus-ide/releases/latest) |
+| Linux | [NEXUS-IDE.AppImage](https://github.com/12ali26/nexus-ide/releases/latest) |
+
+### Requirements
+
+- Python 3.x for computation
+- R, optional for statistical computing
+
 ## Quick Install (Ubuntu / EC2)
 
 ```bash
@@ -33,6 +46,17 @@ npm run electron:build
 ```
 
 Installer appears in `/release` folder.
+
+### Release
+
+To create a release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions will build installers for Windows, macOS, and Linux, create a GitHub Release, and attach the installers.
 
 ## Runtime Dependencies
 

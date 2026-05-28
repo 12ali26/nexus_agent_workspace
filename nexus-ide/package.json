@@ -2,19 +2,21 @@
   "name": "nexus-ide",
   "private": true,
   "version": "0.1.0",
-  "description": "NEXUS IDE is a universal AI workspace shell built from installable primitive tools.",
+  "description": "The universal AI computational workspace",
+  "homepage": "https://github.com/12ali26/nexus-ide",
   "author": {
-    "name": "NEXUS Core",
-    "email": "nexus@example.com"
+    "name": "NEXUS IDE",
+    "email": "hello@nexus-ide.app"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nexus-ide/nexus-ide.git"
+    "url": "https://github.com/12ali26/nexus-ide.git"
   },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:icon": "node scripts/build-icons.js",
     "lint": "eslint .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder",
@@ -34,6 +36,7 @@
     "better-sqlite3": "^12.10.0",
     "cors": "^2.8.6",
     "electron-is-dev": "^3.0.1",
+    "electron-updater": "^6.8.3",
     "express": "^5.2.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
@@ -61,44 +64,98 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
-    "electron": "^42.2.0",
+    "electron": "^33.4.11",
     "electron-builder": "^26.8.1",
+    "electron-icon-builder": "^2.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "sharp": "^0.34.5",
     "vite": "^8.0.12",
     "wait-on": "^9.0.10"
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.nexuside.app",
+    "appId": "app.nexus-ide",
     "productName": "NEXUS IDE",
+    "copyright": "Copyright © 2026 NEXUS IDE",
     "asar": true,
+    "asarUnpack": [
+      "node_modules/node-pty/**",
+      "node_modules/better-sqlite3/**"
+    ],
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "assets"
     },
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "server/**/*",
+      "cli/**/*",
+      "node_modules/**/*",
       "package.json"
     ],
     "extraResources": [
+      {
+        "from": "server",
+        "to": "server"
+      },
+      {
+        "from": "cli",
+        "to": "cli"
+      },
+      {
+        "from": "dist",
+        "to": "dist"
+      },
+      {
+        "from": "assets/icons",
+        "to": "assets/icons"
+      },
       "node_modules/node-pty/build/**"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "12ali26",
+      "repo": "nexus-ide"
+    },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "build/icon.ico"
+      "icon": "icons/win/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NEXUS IDE"
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
-      "icon": "build/icon.icns"
+      "icon": "icons/mac/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "NEXUS IDE",
+      "backgroundColor": "#0b0f14"
     },
     "linux": {
       "target": [
@@ -106,7 +163,15 @@
         "deb"
       ],
       "category": "Development",
-      "icon": "build/icon.png"
+      "description": "The universal AI computational workspace",
+      "icon": "icons/png"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnss3",
+        "libasound2t64"
+      ]
     }
   }
 }

@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { execSync, spawn } = require('child_process')
+const { exec, execSync, spawn } = require('child_process')
 const path = require('path')
 const http = require('http')
 const fs = require('fs')
@@ -199,6 +199,29 @@ app.post('/api/run', async (req, res) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', runtimes: ['python3', 'node', 'Rscript'] })
+})
+
+const runtimeCheckCommands = new Set([
+  'python3 --version',
+  'Rscript --version',
+  'R --version',
+])
+
+app.post('/api/check-runtime', (req, res) => {
+  const { command } = req.body
+
+  if (!runtimeCheckCommands.has(command)) {
+    res.status(400).json({
+      available: false,
+      error: true,
+      message: 'Unsupported runtime check',
+    })
+    return
+  }
+
+  exec(command, { timeout: 5000 }, (error) => {
+    res.json({ available: !error })
+  })
 })
 
 // ── Project endpoints ────────────────────────────────────

@@ -9,7 +9,9 @@ import NewProjectButton from './NewProjectButton'
 import WorkspaceCanvas from './WorkspaceCanvas'
 import { DebugPanel } from './components/DebugPanel'
 import { AppErrorBoundary } from './components/ErrorBoundary'
+import { FirstLaunch } from './components/FirstLaunch'
 import { ToastSystem } from './components/ToastSystem'
+import { UpdateNotification } from './components/UpdateNotification'
 import { AgentProvider } from './context/AgentContext'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext'
@@ -360,6 +362,7 @@ function NexusWorkbench() {
 
         <ToastSystem />
         <DebugPanel />
+        <UpdateNotification />
       </div>
     </ToastContext.Provider>
   )
@@ -380,6 +383,33 @@ function NexusShell() {
 }
 
 function App() {
+  const [showFirstLaunch, setShowFirstLaunch] = useState(() => {
+    try {
+      return !localStorage.getItem('nexus_launched')
+    } catch {
+      return false
+    }
+  })
+
+  const handleFirstLaunchComplete = useCallback(() => {
+    try {
+      localStorage.setItem('nexus_launched', 'true')
+    } catch {
+      // Ignore storage failures and continue into the workspace.
+    }
+    setShowFirstLaunch(false)
+  }, [])
+
+  if (showFirstLaunch) {
+    return (
+      <AppErrorBoundary>
+        <FirstLaunch onComplete={handleFirstLaunchComplete} />
+        <ToastSystem />
+        <DebugPanel />
+      </AppErrorBoundary>
+    )
+  }
+
   return (
     <AppErrorBoundary>
       <SettingsProvider>

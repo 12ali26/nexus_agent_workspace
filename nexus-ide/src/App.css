@@ -5385,3 +5385,223 @@
   border-color: var(--accent-orange);
   color: var(--accent-orange);
 }
+
+.update-notification {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  transform: translateX(-50%);
+  border: 1px solid var(--accent-green);
+  border-radius: var(--radius-md);
+  background: var(--bg-float);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-size: 12px;
+  animation: toastSlideIn 200ms ease forwards;
+}
+
+.update-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-green);
+  color: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: opacity var(--transition-fast);
+}
+
+.update-btn:hover {
+  opacity: 0.9;
+}
+
+.update-dismiss {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.update-dismiss:hover {
+  color: var(--text-primary);
+}
+
+.first-launch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: var(--space-6);
+  background-color: var(--bg-base);
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.first-launch-card {
+  width: min(480px, 100%);
+  padding: var(--space-8);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.first-launch-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--accent-orange);
+  color: white;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.first-launch-card h1 {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.first-launch-card p {
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.runtime-checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  text-align: left;
+}
+
+.runtime-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-float);
+}
+
+.runtime-check-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+}
+
+.runtime-check-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 2px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.runtime-check-desc {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.runtime-check-install {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.runtime-check-install code {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+  color: var(--accent-orange);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.runtime-check-install a {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--accent-blue);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.optional-badge {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.first-launch-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.first-launch-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent-orange);
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.first-launch-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.first-launch-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.first-launch-note {
+  margin-top: var(--space-4);
+  margin-bottom: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+}

@@ -1,9 +1,115 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const http = require('http')
 const path = require('path')
 const isDev = require('electron-is-dev')
 const { spawn } = require('child_process')
+const { checkForUpdates, installUpdate } = require('./updater')
 
 let mainWindow
+let serverProcess
+
+function getServerPath() {
+  return isDev
+    ? path.join(__dirname, '../server/index.js')
+    : path.join(process.resourcesPath, 'server/index.js')
+}
+
+function getIconPath() {
+  return isDev
+    ? path.join(__dirname, '../assets/icons/png/512x512.png')
+    : path.join(process.resourcesPath, 'assets/icons/png/512x512.png')
+}
+
+function startServer() {
+  return new Promise((resolve) => {
+    const serverPath = getServerPath()
+    const nodePathEntries = [
+      path.join(process.resourcesPath || '', 'app.asar', 'node_modules'),
+      path.join(process.resourcesPath || '', 'app', 'node_modules'),
+      path.join(__dirname, '../node_modules'),
+      process.env.NODE_PATH,
+    ].filter(Boolean)
+    let isResolved = false
+
+    const resolveOnce = () => {
+      if (!isResolved) {
+        isResolved = true
+        resolve()
+      }
+    }
+
+    serverProcess = spawn(process.execPath, [serverPath], {
+      cwd: isDev ? path.join(__dirname, '..') : process.resourcesPath,
+      env: {
+        ...process.env,
+        ELECTRON_RUN_AS_NODE: '1',
+        ELECTRON: 'true',
+        NODE_ENV: 'production',
+        NODE_PATH: nodePathEntries.join(path.delimiter),
+        PORT: '8080',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+
+    serverProcess.stdout.on('data', (data) => {
+      const message = data.toString()
+      console.log('Server:', message.trim())
+      if (message.includes('running on')) {
+        resolveOnce()
+      }
+    })
+
+    serverProcess.stderr.on('data', (data) => {
+      console.error('Server error:', data.toString().trim())
+    })
+
+    serverProcess.on('error', (error) => {
+      console.error('Failed to start server:', error.message)
+      resolveOnce()
+    })
+
+    serverProcess.on('exit', (code) => {
+      if (!isResolved) {
+        console.error(`Server exited before ready with code ${code}`)
+        resolveOnce()
+      }
+    })
+
+    setTimeout(resolveOnce, 3000)
+  })
+}
+
+async function waitForServer(url, retries = 20) {
+  for (let index = 0; index < retries; index += 1) {
+    const isReady = await new Promise((resolve) => {
+      const request = http.get(url, (response) => {
+        response.resume()
+        resolve(response.statusCode >= 200 && response.statusCode < 500)
+      })
+
+      request.on('error', () => resolve(false))
+      request.setTimeout(1000, () => {
+        request.destroy()
+        resolve(false)
+      })
+    })
+
+    if (isReady) {
+      return true
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500))
+  }
+
+  return false
+}
+
+function stopServer() {
+  if (serverProcess && !serverProcess.killed) {
+    serverProcess.kill()
+  }
+  serverProcess = null
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -16,20 +122,30 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
-    titleBarStyle: 'hiddenInset',
-    backgroundColor: '#1a1a2e',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    backgroundColor: '#0b0f14',
     show: false,
+    icon: getIconPath(),
   })
 
   const url = isDev
     ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../dist/index.html')}`
+    : 'http://localhost:8080'
 
   mainWindow.loadURL(url)
-  mainWindow.once('ready-to-show', () => mainWindow.show())
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+    if (!isDev) {
+      setTimeout(() => checkForUpdates(), 3000)
+    }
+  })
   mainWindow.webContents.setWindowOpenHandler(({ url: externalUrl }) => {
     shell.openExternal(externalUrl)
     return { action: 'deny' }
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 }
 
@@ -142,9 +258,20 @@ ipcMain.handle('run-code', async (_event, { language, code, data }) => {
   })
 })
 
-app.whenReady().then(createWindow)
+ipcMain.handle('check-for-updates', () => checkForUpdates())
+ipcMain.handle('install-update', () => installUpdate())
+
+app.whenReady().then(async () => {
+  if (!isDev) {
+    await startServer()
+    await waitForServer('http://localhost:8080/api/health')
+  }
+
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
+  stopServer()
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -154,4 +281,8 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
+})
+
+app.on('before-quit', () => {
+  stopServer()
 })
