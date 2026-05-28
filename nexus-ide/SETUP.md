@@ -30,7 +30,7 @@ Early builds are unsigned, so macOS may require right-clicking the app and choos
 ### Linux `.deb`
 
 ```bash
-sudo apt install ./nexus-ide_0.1.7_amd64.deb
+sudo apt install ./nexus-ide_0.1.8_amd64.deb
 ```
 
 Then launch from the app menu or run:
@@ -42,14 +42,14 @@ nexus-ide
 ### Linux AppImage
 
 ```bash
-chmod +x "NEXUS IDE-0.1.7.AppImage"
-./"NEXUS IDE-0.1.7.AppImage"
+chmod +x "NEXUS IDE-0.1.8.AppImage"
+./"NEXUS IDE-0.1.8.AppImage"
 ```
 
 If your environment blocks sandboxing:
 
 ```bash
-./"NEXUS IDE-0.1.7.AppImage" --no-sandbox
+./"NEXUS IDE-0.1.8.AppImage" --no-sandbox
 ```
 
 ## 2. Runtime Requirements

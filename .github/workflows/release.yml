@@ -79,6 +79,9 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Verify release tag exists
         run: git ls-remote --exit-code --tags origin "refs/tags/${GITHUB_REF_NAME}"
 
