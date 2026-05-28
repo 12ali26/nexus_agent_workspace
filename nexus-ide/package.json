@@ -1,16 +1,16 @@
 {
   "name": "nexus-ide",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The universal AI computational workspace",
-  "homepage": "https://github.com/12ali26/nexus-ide",
+  "homepage": "https://github.com/12ali26/nexus_agent_workspace",
   "author": {
     "name": "NEXUS IDE",
     "email": "hello@nexus-ide.app"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/12ali26/nexus-ide.git"
+    "url": "https://github.com/12ali26/nexus_agent_workspace.git"
   },
   "type": "module",
   "scripts": {
@@ -119,7 +119,7 @@
     "publish": {
       "provider": "github",
       "owner": "12ali26",
-      "repo": "nexus-ide"
+      "repo": "nexus_agent_workspace"
     },
     "win": {
       "target": [

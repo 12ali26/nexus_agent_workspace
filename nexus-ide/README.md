@@ -6,9 +6,9 @@ The universal computational workspace. What VSCode is to code — NEXUS is to kn
 
 | Platform | Download |
 |----------|----------|
-| Windows | [NEXUS-IDE-Setup.exe](https://github.com/12ali26/nexus-ide/releases/latest) |
-| macOS | [NEXUS-IDE.dmg](https://github.com/12ali26/nexus-ide/releases/latest) |
-| Linux | [NEXUS-IDE.AppImage](https://github.com/12ali26/nexus-ide/releases/latest) |
+| Windows | [NEXUS-IDE-Setup.exe](https://github.com/12ali26/nexus_agent_workspace/releases/latest) |
+| macOS | [NEXUS-IDE.dmg](https://github.com/12ali26/nexus_agent_workspace/releases/latest) |
+| Linux | [NEXUS-IDE.AppImage](https://github.com/12ali26/nexus_agent_workspace/releases/latest) |
 
 ### Requirements
 
@@ -18,7 +18,7 @@ The universal computational workspace. What VSCode is to code — NEXUS is to kn
 ## Quick Install (Ubuntu / EC2)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/12ali26/nexus-ide/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/12ali26/nexus_agent_workspace/main/install.sh | bash
 ```
 
 ## Manual Setup
@@ -52,8 +52,8 @@ Installer appears in `/release` folder.
 To create a release:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 GitHub Actions will build installers for Windows, macOS, and Linux, create a GitHub Release, and attach the installers.

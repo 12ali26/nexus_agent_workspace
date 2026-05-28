@@ -16,7 +16,7 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Clone repo — update this URL if the repo name changes
-git clone https://github.com/12ali26/nexus-ide.git
+git clone https://github.com/12ali26/nexus_agent_workspace.git
 cd nexus-ide
 
 # Install project dependencies
