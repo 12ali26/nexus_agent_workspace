@@ -22,20 +22,20 @@ jobs:
         include:
           - name: Windows
             os: windows-latest
-            build_command: npx electron-builder --win
+            build_command: npx electron-builder --win --publish never
             artifact_name: nexus-ide-windows
             artifact_path: |
               nexus-ide/release/*.exe
           - name: macOS
             os: macos-latest
-            build_command: npx electron-builder --mac
+            build_command: npx electron-builder --mac --publish never
             artifact_name: nexus-ide-macos
             artifact_path: |
               nexus-ide/release/*.dmg
               nexus-ide/release/*.zip
           - name: Linux
             os: ubuntu-latest
-            build_command: npx electron-builder --linux
+            build_command: npx electron-builder --linux --publish never
             artifact_name: nexus-ide-linux
             artifact_path: |
               nexus-ide/release/*.AppImage

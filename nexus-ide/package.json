@@ -1,7 +1,7 @@
 {
   "name": "nexus-ide",
   "private": true,
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "The universal AI computational workspace",
   "homepage": "https://github.com/12ali26/nexus_agent_workspace",
   "author": {
@@ -67,7 +67,6 @@
     "concurrently": "^9.2.1",
     "electron": "^33.4.11",
     "electron-builder": "^26.8.1",
-    "electron-icon-builder": "^2.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

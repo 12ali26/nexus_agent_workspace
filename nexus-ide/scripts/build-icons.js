@@ -1,22 +1,36 @@
 import { mkdir } from 'node:fs/promises'
-import { spawnSync } from 'node:child_process'
 import path from 'node:path'
-import process from 'node:process'
 import sharp from 'sharp'
 
 const svgPath = path.resolve('assets/icon.svg')
 const pngPath = path.resolve('assets/icon.png')
+const linuxIconSizes = [16, 24, 32, 48, 64, 128, 256, 512, 1024]
 
 await mkdir(path.dirname(pngPath), { recursive: true })
 await sharp(svgPath).resize(1024, 1024).png().toFile(pngPath)
 
-const builderPath = path.resolve('node_modules/.bin/electron-icon-builder')
-const result = spawnSync(
-  builderPath,
-  ['--input=assets/icon.png', '--output=assets'],
-  { stdio: 'inherit', shell: process.platform === 'win32' },
+await mkdir(path.resolve('assets/icons/png'), { recursive: true })
+
+await Promise.all(
+  linuxIconSizes.map((size) =>
+    sharp(svgPath)
+      .resize(size, size)
+      .png()
+      .toFile(path.resolve(`assets/icons/png/${size}x${size}.png`)),
+  ),
 )
 
-if (result.status !== 0) {
-  process.exit(result.status || 1)
+const requiredStaticIcons = [
+  'assets/icons/win/icon.ico',
+  'assets/icons/mac/icon.icns',
+]
+
+for (const iconPath of requiredStaticIcons) {
+  try {
+    await sharp(iconPath, { pages: -1 }).metadata()
+  } catch {
+    console.warn(
+      `${iconPath} is a static packaging icon and was not regenerated. Make sure it remains committed.`,
+    )
+  }
 }
