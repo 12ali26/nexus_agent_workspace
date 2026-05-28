@@ -19,7 +19,7 @@ https://github.com/12ali26/nexus_agent_workspace/releases/latest
 ### Linux `.deb`
 
 ```bash
-sudo apt install ./nexus-ide_0.1.6_amd64.deb
+sudo apt install ./nexus-ide_0.1.7_amd64.deb
 ```
 
 Then launch NEXUS IDE from your app menu, or run:
@@ -31,14 +31,14 @@ nexus-ide
 ### Linux AppImage
 
 ```bash
-chmod +x "NEXUS IDE-0.1.6.AppImage"
-./"NEXUS IDE-0.1.6.AppImage"
+chmod +x "NEXUS IDE-0.1.7.AppImage"
+./"NEXUS IDE-0.1.7.AppImage"
 ```
 
 If your Linux environment blocks sandboxing, run:
 
 ```bash
-./"NEXUS IDE-0.1.6.AppImage" --no-sandbox
+./"NEXUS IDE-0.1.7.AppImage" --no-sandbox
 ```
 
 ## Requirements
