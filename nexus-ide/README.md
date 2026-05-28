@@ -36,20 +36,20 @@ https://github.com/12ali26/nexus_agent_workspace/releases/latest
 ### Linux `.deb`
 
 ```bash
-sudo apt install ./nexus-ide_0.1.1_amd64.deb
+sudo apt install ./nexus-ide_0.1.5_amd64.deb
 ```
 
 ### Linux AppImage
 
 ```bash
-chmod +x "NEXUS IDE-0.1.1.AppImage"
-./"NEXUS IDE-0.1.1.AppImage"
+chmod +x "NEXUS IDE-0.1.5.AppImage"
+./"NEXUS IDE-0.1.5.AppImage"
 ```
 
 If needed:
 
 ```bash
-./"NEXUS IDE-0.1.1.AppImage" --no-sandbox
+./"NEXUS IDE-0.1.5.AppImage" --no-sandbox
 ```
 
 ## Requirements
@@ -306,13 +306,13 @@ On Windows or macOS, install R from https://r-project.org.
 Make it executable:
 
 ```bash
-chmod +x "NEXUS IDE-0.1.1.AppImage"
+chmod +x "NEXUS IDE-0.1.5.AppImage"
 ```
 
 If sandboxing fails:
 
 ```bash
-./"NEXUS IDE-0.1.1.AppImage" --no-sandbox
+./"NEXUS IDE-0.1.5.AppImage" --no-sandbox
 ```
 
 ### EC2 or headless Linux has no screen

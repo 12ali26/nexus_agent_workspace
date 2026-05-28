@@ -1,7 +1,7 @@
 {
   "name": "nexus-ide",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.5",
   "description": "The universal AI computational workspace",
   "homepage": "https://github.com/12ali26/nexus_agent_workspace",
   "author": {
