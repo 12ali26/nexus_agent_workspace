@@ -45,6 +45,31 @@ export function parseExecutionError(stderr, language) {
     }
   }
 
+  if (language === 'sql') {
+    if (/only read-only|only one sql statement|enter a sql query/i.test(stderr)) {
+      return {
+        message: stderr,
+        type: 'sql_validation',
+      }
+    }
+
+    if (/no such table/i.test(stderr)) {
+      return {
+        message: stderr,
+        suggestion: 'Open the Data menu to see available SQL table names.',
+        type: 'missing_table',
+      }
+    }
+
+    if (/no such column/i.test(stderr)) {
+      return {
+        message: stderr,
+        suggestion: 'Open the Data menu to see available SQL column names.',
+        type: 'missing_column',
+      }
+    }
+  }
+
   return {
     message: stderr,
     type: 'runtime',
@@ -60,6 +85,8 @@ export async function runCode(language, code, data) {
   const apiUrl = `${window.location.origin}/api/run`
   const output = []
   const errors = []
+  let structuredRows = null
+  let tableAliases = null
 
   try {
     const response = await fetch(apiUrl, {
@@ -117,6 +144,14 @@ export async function runCode(language, code, data) {
             output.push(parsed.output)
           }
 
+          if (Array.isArray(parsed.rows)) {
+            structuredRows = parsed.rows
+          }
+
+          if (Array.isArray(parsed.tableAliases)) {
+            tableAliases = parsed.tableAliases
+          }
+
           if (parsed.error) {
             errors.push(parsed.error)
           }
@@ -127,6 +162,8 @@ export async function runCode(language, code, data) {
               output: output.join(''),
               error: errors.join(''),
               renderInstructions: [],
+              rows: structuredRows,
+              tableAliases,
             }
           }
         } catch {
@@ -141,6 +178,8 @@ export async function runCode(language, code, data) {
         output: output.join(''),
         error: errors.join(''),
         renderInstructions: [],
+        rows: structuredRows,
+        tableAliases,
       }
     )
   } catch (error) {

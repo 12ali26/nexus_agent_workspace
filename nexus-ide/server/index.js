@@ -7,6 +7,7 @@ const http = require('http')
 const fs = require('fs')
 const { WebSocket, WebSocketServer } = require('ws')
 const pty = require('node-pty')
+const Database = require('better-sqlite3')
 const db = require('./database')
 
 const app = express()
@@ -260,6 +261,215 @@ function getSafeVariableNames(datasetMap) {
   return Object.keys(datasetMap).filter((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
 }
 
+function sanitizeSqlIdentifier(value, fallback = 'column') {
+  const sanitized = String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+  if (!sanitized) {
+    return fallback
+  }
+
+  return /^[0-9]/.test(sanitized) ? `_${sanitized}` : sanitized
+}
+
+function quoteSqlIdentifier(identifier) {
+  return `"${String(identifier).replace(/"/g, '""')}"`
+}
+
+function getUniqueSqlIdentifier(baseName, usedNames) {
+  let identifier = baseName
+  let suffix = 2
+
+  while (usedNames.has(identifier)) {
+    identifier = `${baseName}_${suffix}`
+    suffix += 1
+  }
+
+  usedNames.add(identifier)
+  return identifier
+}
+
+function stripSqlComments(sql) {
+  return String(sql ?? '')
+    .replace(/--.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .trim()
+}
+
+function validateReadOnlySql(sql) {
+  const trimmedSql = stripSqlComments(sql)
+
+  if (!trimmedSql) {
+    return 'Enter a SQL query to run.'
+  }
+
+  const withoutTrailingSemicolon = trimmedSql.replace(/;\s*$/, '')
+
+  if (withoutTrailingSemicolon.includes(';')) {
+    return 'Only one SQL statement can run at a time.'
+  }
+
+  if (!/^(select|with)\b/i.test(withoutTrailingSemicolon)) {
+    return 'Only read-only SELECT queries are supported.'
+  }
+
+  const blockedPattern =
+    /\b(attach|alter|create|delete|detach|drop|insert|pragma|reindex|replace|update|vacuum)\b/i
+
+  if (blockedPattern.test(withoutTrailingSemicolon)) {
+    return 'This SQL runner only supports read-only queries.'
+  }
+
+  return ''
+}
+
+function normalizeSqlValue(value) {
+  if (value === undefined) {
+    return null
+  }
+
+  if (value === null || typeof value === 'number' || typeof value === 'string') {
+    return value
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0
+  }
+
+  return JSON.stringify(value)
+}
+
+function getSqlDatasets(data) {
+  const rawDatasets = Array.isArray(data?.rawDatasets) ? data.rawDatasets : []
+
+  if (rawDatasets.length) {
+    return rawDatasets
+      .map((dataset) => ({
+        active: Boolean(dataset.active),
+        columns: Array.isArray(dataset.columns) ? dataset.columns : [],
+        name: dataset.name || 'dataset',
+        rows: Array.isArray(dataset.rows) ? dataset.rows : [],
+      }))
+      .filter((dataset) => dataset.rows.length)
+      .sort((a, b) => Number(b.active) - Number(a.active))
+  }
+
+  return Object.entries(getDatasetMap(data))
+    .filter(([, rows]) => Array.isArray(rows) && rows.length)
+    .map(([name, rows]) => ({
+      columns: Array.from(
+        new Set(rows.flatMap((row) => Object.keys(row ?? {}))),
+      ),
+      name,
+      rows,
+    }))
+}
+
+function createSqlTables(memoryDb, data) {
+  const usedTableNames = new Set()
+  const tableAliases = []
+
+  getSqlDatasets(data).forEach((dataset, datasetIndex) => {
+    const tableName = getUniqueSqlIdentifier(
+      sanitizeSqlIdentifier(dataset.name, `dataset_${datasetIndex + 1}`),
+      usedTableNames,
+    )
+    const usedColumnNames = new Set()
+    const columnPairs = dataset.columns.map((column, columnIndex) => ({
+      original: column,
+      sql: getUniqueSqlIdentifier(
+        sanitizeSqlIdentifier(column, `column_${columnIndex + 1}`),
+        usedColumnNames,
+      ),
+    }))
+
+    if (!columnPairs.length) {
+      return
+    }
+
+    memoryDb
+      .prepare(
+        `CREATE TABLE ${quoteSqlIdentifier(tableName)} (${columnPairs
+          .map(({ sql }) => `${quoteSqlIdentifier(sql)} ANY`)
+          .join(', ')})`,
+      )
+      .run()
+
+    const placeholders = columnPairs.map(() => '?').join(', ')
+    const insertStatement = memoryDb.prepare(
+      `INSERT INTO ${quoteSqlIdentifier(tableName)} (${columnPairs
+        .map(({ sql }) => quoteSqlIdentifier(sql))
+        .join(', ')}) VALUES (${placeholders})`,
+    )
+    const insertRows = memoryDb.transaction((rows) => {
+      rows.forEach((row) => {
+        insertStatement.run(
+          ...columnPairs.map(({ original }) => normalizeSqlValue(row?.[original])),
+        )
+      })
+    })
+
+    insertRows(dataset.rows)
+    tableAliases.push({
+      columns: columnPairs.map(({ original, sql }) => ({ original, sql })),
+      name: dataset.name,
+      rows: dataset.rows.length,
+      tableName,
+    })
+  })
+
+  if (tableAliases.length && !usedTableNames.has('dataset')) {
+    memoryDb
+      .prepare(
+        `CREATE TEMP VIEW ${quoteSqlIdentifier('dataset')} AS SELECT * FROM ${quoteSqlIdentifier(
+          tableAliases[0].tableName,
+        )}`,
+      )
+      .run()
+    tableAliases.unshift({
+      ...tableAliases[0],
+      name: `${tableAliases[0].name} (active alias)`,
+      tableName: 'dataset',
+    })
+  }
+
+  return tableAliases
+}
+
+function runSqlQuery(code, data) {
+  const validationError = validateReadOnlySql(code)
+
+  if (validationError) {
+    return { error: validationError, output: '', success: false }
+  }
+
+  const memoryDb = new Database(':memory:')
+
+  try {
+    const tableAliases = createSqlTables(memoryDb, data)
+    const query = stripSqlComments(code).replace(/;\s*$/, '')
+    const rows = memoryDb.prepare(query).all()
+
+    return {
+      output: JSON.stringify(rows, null, 2),
+      rows,
+      success: true,
+      tableAliases,
+    }
+  } catch (error) {
+    return {
+      error: error.message,
+      output: '',
+      success: false,
+    }
+  } finally {
+    memoryDb.close()
+  }
+}
+
 function createRuntimeScript(language, code, data) {
   const datasetMap = getDatasetMap(data)
   const safeVariableNames = getSafeVariableNames(datasetMap)
@@ -316,6 +526,27 @@ app.post('/api/run', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
+
+  if (language === 'sql') {
+    const result = runSqlQuery(code, data)
+
+    if (result.success) {
+      res.write(
+        `data: ${JSON.stringify({
+          output: result.output || '[]',
+          rows: result.rows,
+          tableAliases: result.tableAliases,
+        })}\n\n`,
+      )
+      res.write(`data: ${JSON.stringify({ done: true, exitCode: 0 })}\n\n`)
+    } else {
+      res.write(`data: ${JSON.stringify({ error: result.error })}\n\n`)
+      res.write(`data: ${JSON.stringify({ done: true, exitCode: 1 })}\n\n`)
+    }
+
+    res.end()
+    return
+  }
 
   const runtime = createRuntimeScript(language, code, data)
 
@@ -380,6 +611,38 @@ app.post('/api/check-runtime', (req, res) => {
   exec(command, { timeout: 5000 }, (error) => {
     res.json({ available: !error })
   })
+})
+
+const pythonPackageChecks = new Map([
+  ['numpy', 'numpy'],
+  ['pandas', 'pandas'],
+  ['sklearn', 'sklearn'],
+  ['scikit-learn', 'sklearn'],
+])
+
+app.post('/api/check-python-package', (req, res) => {
+  const packageName = pythonPackageChecks.get(String(req.body?.package ?? ''))
+
+  if (!packageName) {
+    res.status(400).json({
+      available: false,
+      error: true,
+      message: 'Unsupported package check',
+    })
+    return
+  }
+
+  exec(
+    `python3 -c "import ${packageName}"`,
+    { timeout: 5000 },
+    (error) => {
+      res.json({
+        available: !error,
+        package: packageName,
+        suggestion: error ? `pip install ${packageName}` : '',
+      })
+    },
+  )
 })
 
 app.get('/api/security/status', (req, res) => {
