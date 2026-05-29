@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { usePackRegistry } from '../registry/usePackRegistry'
 import { api } from '../utils/api'
@@ -15,6 +16,7 @@ function WorkspacePanel() {
     removeDataset,
     setActiveDataset,
   } = useWorkspaceData()
+  const [isProjectsOpen, setIsProjectsOpen] = useState(true)
   const [projects, setProjects] = useState([])
 
   useEffect(() => {
@@ -55,29 +57,45 @@ function WorkspacePanel() {
       <header className="panel-header">DATA</header>
 
       <div className="workspace-section">
-        <h2>Projects</h2>
-        {projects.length ? (
-          <div className="project-list">
-            {projects.map((project) => {
-              const isActive = project.id === activeProject?.projectId
+        <button
+          className="workspace-section-toggle"
+          type="button"
+          aria-expanded={isProjectsOpen}
+          onClick={() => setIsProjectsOpen((currentValue) => !currentValue)}
+        >
+          <span>Projects</span>
+          <span className="workspace-section-count">{projects.length}</span>
+          {isProjectsOpen ? (
+            <ChevronDown size={14} strokeWidth={1.9} />
+          ) : (
+            <ChevronRight size={14} strokeWidth={1.9} />
+          )}
+        </button>
 
-              return (
-                <button
-                  className={`project-list-item${isActive ? ' is-active' : ''}`}
-                  key={project.id}
-                  type="button"
-                  onClick={() => openProject(project)}
-                >
-                  <span>{project.name}</span>
-                  <small>{isActive ? 'Current' : project.id}</small>
-                </button>
-              )
-            })}
-          </div>
-        ) : (
-          <p className="panel-empty compact">
-            Saved projects appear here when the NEXUS server is running.
-          </p>
+        {isProjectsOpen && (
+          projects.length ? (
+            <div className="project-list">
+              {projects.map((project) => {
+                const isActive = project.id === activeProject?.projectId
+
+                return (
+                  <button
+                    className={`project-list-item${isActive ? ' is-active' : ''}`}
+                    key={project.id}
+                    type="button"
+                    onClick={() => openProject(project)}
+                  >
+                    <span>{project.name}</span>
+                    <small>{isActive ? 'Current' : project.id}</small>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="panel-empty compact">
+              Saved projects appear here when the NEXUS server is running.
+            </p>
+          )
         )}
       </div>
 
