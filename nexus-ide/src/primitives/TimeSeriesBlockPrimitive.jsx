@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -155,15 +155,31 @@ function TimeSeriesBlockPrimitive({
   const chartTheme = getChartTheme()
   const { activeDataset, datasets, setActiveDataset } = useWorkspaceData()
   const [datasetId, setDatasetId] = useState('')
-  const selectedDataset =
-    datasets.find((dataset) => dataset.id === datasetId) ?? activeDataset
-  const columns = selectedDataset?.columns ?? []
-  const rows = selectedDataset?.rows || []
-  const numericColumns = columns.filter((column) =>
-    rows.some((row) => Number.isFinite(Number(row?.[column]))),
+  const selectedDataset = useMemo(
+    () => datasets.find((dataset) => dataset.id === datasetId) ?? activeDataset,
+    [activeDataset, datasetId, datasets],
   )
-  const dateColumns = columns.filter((column) =>
-    rows.some((row) => !Number.isNaN(Date.parse(row?.[column]))),
+  const columns = useMemo(
+    () => selectedDataset?.columns ?? [],
+    [selectedDataset?.columns],
+  )
+  const rows = useMemo(
+    () => selectedDataset?.rows || [],
+    [selectedDataset?.rows],
+  )
+  const numericColumns = useMemo(
+    () =>
+      columns.filter((column) =>
+        rows.some((row) => Number.isFinite(Number(row?.[column]))),
+      ),
+    [columns, rows],
+  )
+  const dateColumns = useMemo(
+    () =>
+      columns.filter((column) =>
+        rows.some((row) => !Number.isNaN(Date.parse(row?.[column]))),
+      ),
+    [columns, rows],
   )
   const [selectedDateColumn, setSelectedDateColumn] = useState(dateColumn ?? '')
   const [selectedValueColumn, setSelectedValueColumn] = useState(valueColumn ?? '')
@@ -179,62 +195,93 @@ function TimeSeriesBlockPrimitive({
     ? selectedDateColumn
     : ''
 
-  const series = rows
-    .map((row, index) => ({
-      index,
-      label: activeDateColumn ? String(row?.[activeDateColumn]) : String(index + 1),
-      time: activeDateColumn
-        ? new Date(row?.[activeDateColumn]).getTime()
-        : index,
-      value: Number(row?.[activeValueColumn]),
-    }))
-    .filter((point) => Number.isFinite(point.value))
-    .sort((first, second) => first.time - second.time)
-  const values = series.map((point) => point.value)
-  const trend = linearTrend(values)
-  const ma = movingAverage(values, maWindow)
-  const trendRows = series.map((point, index) => ({
-    ...point,
-    movingAverage: ma[index],
-    trend: trend.values[index],
-  }))
-  const stats = {
-    max: Math.max(...values),
-    mean: mean(values),
-    min: Math.min(...values),
-    stdDev: stdDev(values),
-  }
-  const trendComponent = movingAverage(values, period, true)
-  const deviations = values.map((value, index) => value - trendComponent[index])
-  const seasonalMeans = Array.from({ length: period }, (_, seasonalIndex) =>
-    mean(deviations.filter((_, index) => index % period === seasonalIndex)),
-  )
-  const decomposition = series.map((point, index) => {
-    const seasonal = seasonalMeans[index % period] ?? 0
-    return {
+  const analysis = useMemo(() => {
+    const series = rows
+      .map((row, index) => ({
+        index,
+        label: activeDateColumn
+          ? String(row?.[activeDateColumn])
+          : String(index + 1),
+        time: activeDateColumn
+          ? new Date(row?.[activeDateColumn]).getTime()
+          : index,
+        value: Number(row?.[activeValueColumn]),
+      }))
+      .filter((point) => Number.isFinite(point.value))
+      .sort((first, second) => first.time - second.time)
+    const values = series.map((point) => point.value)
+    const trend = linearTrend(values)
+    const ma = movingAverage(values, maWindow)
+    const trendRows = series.map((point, index) => ({
       ...point,
-      residual: point.value - trendComponent[index] - seasonal,
-      seasonal,
-      trend: trendComponent[index],
+      movingAverage: ma[index],
+      trend: trend.values[index],
+    }))
+    const stats = {
+      max: values.length ? Math.max(...values) : 0,
+      mean: mean(values),
+      min: values.length ? Math.min(...values) : 0,
+      stdDev: stdDev(values),
     }
-  })
-  const confidence = values.length ? 1.96 / Math.sqrt(values.length) : 0
-  const correlationRows = Array.from({ length: Math.max(0, Math.min(20, values.length - 1)) }, (_, index) => {
-    const lag = index + 1
+    const trendComponent = movingAverage(values, period, true)
+    const deviations = values.map(
+      (value, index) => value - trendComponent[index],
+    )
+    const seasonalMeans = Array.from({ length: period }, (_, seasonalIndex) =>
+      mean(deviations.filter((_, index) => index % period === seasonalIndex)),
+    )
+    const decomposition = series.map((point, index) => {
+      const seasonal = seasonalMeans[index % period] ?? 0
+
+      return {
+        ...point,
+        residual: point.value - trendComponent[index] - seasonal,
+        seasonal,
+        trend: trendComponent[index],
+      }
+    })
+    const confidence = values.length ? 1.96 / Math.sqrt(values.length) : 0
+    const correlationRows = Array.from(
+      { length: Math.max(0, Math.min(20, values.length - 1)) },
+      (_, index) => {
+        const lag = index + 1
+
+        return {
+          acf: autocorrelation(values, lag),
+          lag,
+          pacf: pacf(values, lag),
+        }
+      },
+    )
+    const significantLags = correlationRows
+      .filter((row) => Math.abs(row.acf) > confidence)
+      .map((row) => row.lag)
+    const forecast = exponentialSmoothing(values, alpha, horizon)
+    const forecastRows = [
+      ...series.map((point) => ({ ...point, historical: point.value })),
+      ...forecast.forecast,
+    ]
+
     return {
-      acf: autocorrelation(values, lag),
-      lag,
-      pacf: pacf(values, lag),
+      confidence,
+      correlationRows,
+      decomposition,
+      forecast,
+      forecastRows,
+      significantLags,
+      stats,
+      trend,
+      trendRows,
     }
-  })
-  const significantLags = correlationRows
-    .filter((row) => Math.abs(row.acf) > confidence)
-    .map((row) => row.lag)
-  const forecast = exponentialSmoothing(values, alpha, horizon)
-  const forecastRows = [
-    ...series.map((point) => ({ ...point, historical: point.value })),
-    ...forecast.forecast,
-  ]
+  }, [
+    activeDateColumn,
+    activeValueColumn,
+    alpha,
+    horizon,
+    maWindow,
+    period,
+    rows,
+  ])
 
   useEffect(() => {
     if (!rows.length || !numericColumns.length || !activeValueColumn) {
@@ -243,22 +290,32 @@ function TimeSeriesBlockPrimitive({
 
     updateBlockData?.(blockId, {
       analysisTab: activeTab,
-      correlationData: correlationRows,
+      correlationData: analysis.correlationRows,
       datasetName: selectedDataset?.name ?? '',
       dateColumn: activeDateColumn,
-      decompositionData: decomposition,
-      forecastData: forecastRows,
+      decompositionData: analysis.decomposition,
+      forecastData: analysis.forecastRows,
       stats: {
-        max: stats.max,
-        mean: stats.mean,
-        min: stats.min,
-        stdDev: stats.stdDev,
-        trendDirection: trend.direction,
+        max: analysis.stats.max,
+        mean: analysis.stats.mean,
+        min: analysis.stats.min,
+        stdDev: analysis.stats.stdDev,
+        trendDirection: analysis.trend.direction,
       },
-      trendData: trendRows,
+      trendData: analysis.trendRows,
       valueColumn: activeValueColumn,
     })
-  })
+  }, [
+    activeDateColumn,
+    activeTab,
+    activeValueColumn,
+    analysis,
+    blockId,
+    numericColumns.length,
+    rows.length,
+    selectedDataset?.name,
+    updateBlockData,
+  ])
 
   if (!rows.length || !numericColumns.length) {
     return (
@@ -340,7 +397,7 @@ function TimeSeriesBlockPrimitive({
               </label>
             </div>
             <ResponsiveContainer width="100%" height={250}>
-              <ComposedChart data={trendRows}>
+              <ComposedChart data={analysis.trendRows}>
                 <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
@@ -351,11 +408,11 @@ function TimeSeriesBlockPrimitive({
               </ComposedChart>
             </ResponsiveContainer>
             <div className="analytics-stat-grid">
-              <span>Mean <strong>{format(stats.mean)}</strong></span>
-              <span>Std Dev <strong>{format(stats.stdDev)}</strong></span>
-              <span>Min <strong>{format(stats.min)}</strong></span>
-              <span>Max <strong>{format(stats.max)}</strong></span>
-              <span>Trend <strong>{trend.direction}</strong></span>
+              <span>Mean <strong>{format(analysis.stats.mean)}</strong></span>
+              <span>Std Dev <strong>{format(analysis.stats.stdDev)}</strong></span>
+              <span>Min <strong>{format(analysis.stats.min)}</strong></span>
+              <span>Max <strong>{format(analysis.stats.max)}</strong></span>
+              <span>Trend <strong>{analysis.trend.direction}</strong></span>
             </div>
           </>
         )}
@@ -375,7 +432,7 @@ function TimeSeriesBlockPrimitive({
               <div className="mini-chart" key={key}>
                 <strong>{key}</strong>
                 <ResponsiveContainer width="100%" height={90}>
-                  <LineChart data={decomposition}>
+                  <LineChart data={analysis.decomposition}>
                     <XAxis dataKey="label" hide />
                     <YAxis hide />
                     <Tooltip />
@@ -389,26 +446,26 @@ function TimeSeriesBlockPrimitive({
         {activeTab === 'ACF/PACF' && (
           <>
             <ResponsiveContainer width="100%" height={170}>
-              <BarChart data={correlationRows}>
+              <BarChart data={analysis.correlationRows}>
                 <XAxis dataKey="lag" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis domain={[-1, 1]} tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <ReferenceLine y={confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
-                <ReferenceLine y={-confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={analysis.confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={-analysis.confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
                 <Bar dataKey="acf" fill={chartTheme.blue} />
               </BarChart>
             </ResponsiveContainer>
             <ResponsiveContainer width="100%" height={170}>
-              <BarChart data={correlationRows}>
+              <BarChart data={analysis.correlationRows}>
                 <XAxis dataKey="lag" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis domain={[-1, 1]} tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <Tooltip />
-                <ReferenceLine y={confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
-                <ReferenceLine y={-confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={analysis.confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
+                <ReferenceLine y={-analysis.confidence} stroke={chartTheme.red} strokeDasharray="3 3" />
                 <Bar dataKey="pacf" fill={chartTheme.purple} />
               </BarChart>
             </ResponsiveContainer>
-            <p>Significant autocorrelation at lags: {significantLags.join(', ') || 'none'}</p>
+            <p>Significant autocorrelation at lags: {analysis.significantLags.join(', ') || 'none'}</p>
           </>
         )}
         {activeTab === 'Forecast' && (
@@ -418,7 +475,7 @@ function TimeSeriesBlockPrimitive({
               <label>Horizon <select value={horizon} onChange={(event) => setHorizon(Number(event.target.value))}>{horizons.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <ComposedChart data={forecastRows}>
+              <ComposedChart data={analysis.forecastRows}>
                 <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
                 <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} />
@@ -430,8 +487,8 @@ function TimeSeriesBlockPrimitive({
               </ComposedChart>
             </ResponsiveContainer>
             <div className="analytics-stat-grid">
-              <span>RMSE <strong>{format(forecast.rmse)}</strong></span>
-              <span>MAE <strong>{format(forecast.mae)}</strong></span>
+              <span>RMSE <strong>{format(analysis.forecast.rmse)}</strong></span>
+              <span>MAE <strong>{format(analysis.forecast.mae)}</strong></span>
             </div>
           </>
         )}

@@ -1,20 +1,87 @@
+import { useEffect, useState } from 'react'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { usePackRegistry } from '../registry/usePackRegistry'
+import { api } from '../utils/api'
 
 function formatCount(value, label) {
   return `${Number(value).toLocaleString()} ${label}${value === 1 ? '' : 's'}`
 }
 
 function WorkspacePanel() {
+  const { activeProject, setActiveProject } = usePackRegistry()
   const {
     activeDatasetId,
     datasets,
     removeDataset,
     setActiveDataset,
   } = useWorkspaceData()
+  const [projects, setProjects] = useState([])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    async function loadProjects() {
+      try {
+        const restoredProjects = await api.get('/api/projects')
+
+        if (!isCancelled) {
+          setProjects(Array.isArray(restoredProjects) ? restoredProjects : [])
+        }
+      } catch {
+        if (!isCancelled) {
+          setProjects([])
+        }
+      }
+    }
+
+    loadProjects()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [activeProject?.projectId])
+
+  const openProject = (project) => {
+    setActiveProject({
+      capabilities: activeProject?.capabilities ?? [],
+      projectId: project.id,
+      projectName: project.name,
+      version: '1.0.0',
+    })
+  }
 
   return (
     <section className="workspace-panel" aria-label="Workspace data">
       <header className="panel-header">DATA</header>
+
+      <div className="workspace-section">
+        <h2>Projects</h2>
+        {projects.length ? (
+          <div className="project-list">
+            {projects.map((project) => {
+              const isActive = project.id === activeProject?.projectId
+
+              return (
+                <button
+                  className={`project-list-item${isActive ? ' is-active' : ''}`}
+                  key={project.id}
+                  type="button"
+                  onClick={() => openProject(project)}
+                >
+                  <span>{project.name}</span>
+                  <small>{isActive ? 'Current' : project.id}</small>
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="panel-empty compact">
+            Saved projects appear here when the NEXUS server is running.
+          </p>
+        )}
+      </div>
+
+      <div className="workspace-section-header">Datasets</div>
 
       {datasets.length ? (
         <div className="workspace-list dataset-list">

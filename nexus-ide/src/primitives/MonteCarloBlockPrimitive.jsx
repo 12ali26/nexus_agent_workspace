@@ -143,20 +143,21 @@ function MonteCarloBlockPrimitive({
   }, [workerPayload])
 
   const summary = result?.summary
+  const resultRowsLength = result?.rows?.length ?? 0
   const resultSignature = useMemo(() => {
-    if (!result?.rows?.length || !summary) {
+    if (!resultRowsLength || !summary) {
       return ''
     }
 
     return [
       mode,
-      result.rows.length,
+      resultRowsLength,
       summary.mean,
       summary.stdDev,
       summary.p5,
       summary.p95,
     ].join(':')
-  }, [mode, result?.rows?.length, summary])
+  }, [mode, resultRowsLength, summary])
   const hasUnsavedResults = Boolean(resultSignature && resultSignature !== savedResultSignature)
 
   const saveResultsAsDataset = () => {

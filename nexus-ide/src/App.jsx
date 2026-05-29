@@ -18,10 +18,12 @@ import { AgentProvider } from './context/AgentContext.jsx'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext.jsx'
 import { WorkspaceDataProvider } from './context/WorkspaceDataContext.jsx'
+import { useWorkspaceData } from './context/useWorkspaceData'
 import { panels } from './panels'
 import { PackRegistryProvider } from './registry/PackRegistryContext.jsx'
 import { usePackRegistry } from './registry/usePackRegistry'
 import { RenderBlocksProvider } from './renderBlocks/RenderBlocksProvider'
+import { useRenderBlocks } from './renderBlocks/useRenderBlocks'
 import { SettingsProvider } from './settings/SettingsContext.jsx'
 import { useSettings } from './settings/useSettings'
 import { TerminalPanelProvider } from './terminal/TerminalPanelContext.jsx'
@@ -49,7 +51,9 @@ function NexusWorkbench() {
   const { isOpen: isTerminalOpen, openTerminal, closePanel } =
     useTerminalPanel()
   const { theme } = useSettings()
-  const { logActivity } = useActivity()
+  const { clearActivity, logActivity } = useActivity()
+  const { clearDatasets } = useWorkspaceData()
+  const { clearCanvas } = useRenderBlocks()
   const ActivePanel = activePanel ? panels[activePanel] : null
   const clearCanvasButtonRef = useRef(null)
   const exportButtonRef = useRef(null)
@@ -137,6 +141,30 @@ function NexusWorkbench() {
       type: 'project',
     })
   }, [activeProject, logActivity, projectNameDraft, setActiveProject])
+
+  const deleteCurrentProjectData = useCallback(() => {
+    const projectName = activeProject?.projectName ?? 'Untitled Project'
+    const shouldDelete = window.confirm(
+      `Delete all canvas blocks, datasets, and activity history for "${projectName}"? This cannot be undone.`,
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    clearCanvas({ silent: true })
+    clearDatasets({ silent: true })
+    clearActivity()
+    showToast(`Deleted project data for ${projectName}`, 'success')
+    closeMenus()
+  }, [
+    activeProject?.projectName,
+    clearActivity,
+    clearCanvas,
+    clearDatasets,
+    closeMenus,
+    showToast,
+  ])
 
   useEffect(() => {
     if (isEditingProjectName) {
@@ -295,6 +323,9 @@ function NexusWorkbench() {
                     onClick={() => triggerHiddenAction(clearCanvasButtonRef)}
                   >
                     Clear Canvas
+                  </TopMenuItem>
+                  <TopMenuItem onClick={deleteCurrentProjectData}>
+                    Delete Project Data
                   </TopMenuItem>
                   <div className="menu-divider" />
                   <TopMenuItem shortcut="Ctrl+\\" onClick={toggleSidebar}>

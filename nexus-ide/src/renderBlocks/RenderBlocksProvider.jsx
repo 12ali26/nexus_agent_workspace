@@ -445,10 +445,17 @@ export function RenderBlocksProvider({ children }) {
     [commitPrimitiveBlocks],
   )
 
-  const clearCanvas = useCallback(() => {
+  const clearCanvas = useCallback((options = {}) => {
     setMaxZ(0)
     removeStoredCanvasState(projectId)
     setPrimitiveBlocks([])
+    api.delete(`/api/canvas/${projectId}`).catch(() => {
+      // Plain Vite dev uses local fallback storage.
+    })
+    if (options.silent) {
+      return
+    }
+
     logActivity({
       summary: 'Cleared canvas',
       type: 'canvas',

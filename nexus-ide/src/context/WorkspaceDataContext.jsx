@@ -159,10 +159,17 @@ export function WorkspaceDataProvider({ children }) {
     })
   }, [logActivity])
 
-  const clearDatasets = useCallback(() => {
+  const clearDatasets = useCallback((options = {}) => {
     setDatasets([])
     setActiveDatasetId('')
     writeLocalDatasets(projectId, [])
+    api.delete(`/api/datasets/project/${projectId}`).catch(() => {
+      // Plain Vite dev uses local fallback storage.
+    })
+    if (options.silent) {
+      return
+    }
+
     logActivity({
       summary: 'Cleared datasets',
       type: 'dataset',

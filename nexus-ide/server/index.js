@@ -413,6 +413,26 @@ app.post('/api/project', (req, res) => {
   res.json({ success: true })
 })
 
+app.get('/api/projects', (_req, res) => {
+  const projects = db
+    .prepare(
+      `
+        SELECT id, name, created_at, updated_at
+        FROM projects
+        ORDER BY updated_at DESC
+      `,
+    )
+    .all()
+    .map((project) => ({
+      createdAt: new Date(project.created_at * 1000).toISOString(),
+      id: project.id,
+      name: project.name,
+      updatedAt: new Date(project.updated_at * 1000).toISOString(),
+    }))
+
+  res.json(projects)
+})
+
 app.get('/api/project/:id', (req, res) => {
   const project = db
     .prepare('SELECT * FROM projects WHERE id = ?')
@@ -463,6 +483,13 @@ app.get('/api/datasets/:projectId', (req, res) => {
   res.json(datasets)
 })
 
+app.delete('/api/datasets/project/:projectId', (req, res) => {
+  db.prepare('DELETE FROM datasets WHERE project_id = ?').run(
+    req.params.projectId,
+  )
+  res.json({ success: true })
+})
+
 app.delete('/api/datasets/:id', (req, res) => {
   db.prepare('DELETE FROM datasets WHERE id = ?').run(req.params.id)
   res.json({ success: true })
@@ -494,6 +521,13 @@ app.get('/api/canvas/:projectId', (req, res) => {
     .get(req.params.projectId)
 
   res.json({ blocks: state ? JSON.parse(state.blocks) : [] })
+})
+
+app.delete('/api/canvas/:projectId', (req, res) => {
+  db.prepare('DELETE FROM canvas_state WHERE project_id = ?').run(
+    req.params.projectId,
+  )
+  res.json({ success: true })
 })
 
 // ── Activity timeline endpoints ──────────────────────────
