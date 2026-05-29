@@ -14,6 +14,7 @@ import { EmptyState } from '../components/BlockStates'
 import { useParameters } from '../context/useParameters'
 import { useWorkspaceData } from '../context/useWorkspaceData'
 import { getChartTheme } from '../styles/themeTokens'
+import { useToast } from '../toast/useToast'
 
 const modes = [
   { id: 'formula', label: 'Custom Formula' },
@@ -40,10 +41,12 @@ function MonteCarloBlockPrimitive({
   const chartTheme = getChartTheme()
   const { parameters } = useParameters()
   const { addDataset } = useWorkspaceData()
+  const showToast = useToast()
   const [mode, setMode] = useState(initialMode ?? type ?? 'formula')
   const [activeTab, setActiveTab] = useState('Results')
   const [isRunning, setIsRunning] = useState(false)
   const [result, setResult] = useState(null)
+  const [savedResultSignature, setSavedResultSignature] = useState('')
   const [formula, setFormula] = useState(
     initialFormula || 'normal(50000, 8000) * (1 + uniform(0.02, 0.08))',
   )
@@ -126,16 +129,9 @@ function MonteCarloBlockPrimitive({
     workerRef.current.onmessage = ({ data }) => {
       setResult(data)
       setIsRunning(false)
-      if (data.rows?.length) {
-        addDataset({
-          name: 'montecarlo_results',
-          rows: data.rows,
-          source: 'code',
-        })
-      }
     }
     return () => workerRef.current?.terminate()
-  }, [addDataset])
+  }, [])
 
   useEffect(() => {
     // AGENT: can configure and run simulations by setting parameters and calling run.
@@ -147,6 +143,35 @@ function MonteCarloBlockPrimitive({
   }, [workerPayload])
 
   const summary = result?.summary
+  const resultSignature = useMemo(() => {
+    if (!result?.rows?.length || !summary) {
+      return ''
+    }
+
+    return [
+      mode,
+      result.rows.length,
+      summary.mean,
+      summary.stdDev,
+      summary.p5,
+      summary.p95,
+    ].join(':')
+  }, [mode, result?.rows?.length, summary])
+  const hasUnsavedResults = Boolean(resultSignature && resultSignature !== savedResultSignature)
+
+  const saveResultsAsDataset = () => {
+    if (!result?.rows?.length) {
+      return
+    }
+
+    addDataset({
+      name: 'montecarlo_results',
+      rows: result.rows,
+      source: 'simulation',
+    })
+    setSavedResultSignature(resultSignature)
+    showToast('Monte Carlo results saved as dataset', 'success')
+  }
 
   useEffect(() => {
     updateBlockData?.(blockId, {
@@ -232,6 +257,16 @@ function MonteCarloBlockPrimitive({
         <Slider label="Simulations" value={simulations} setValue={setSimulations} min={1000} max={100000} step={1000} />
         <NumberInput label="Target" value={target} setValue={setTarget} />
         {isRunning && <p>Simulating...</p>}
+        <button
+          className="workspace-action"
+          type="button"
+          disabled={!hasUnsavedResults}
+          onClick={saveResultsAsDataset}
+        >
+          {savedResultSignature === resultSignature && resultSignature
+            ? 'Results Saved'
+            : 'Save Results as Dataset'}
+        </button>
       </aside>
       <section className="analytics-results-panel">
         <div className="analytics-tab-list horizontal">

@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const { exec, execSync, spawn } = require('child_process')
+const { randomUUID } = require('crypto')
 const path = require('path')
 const http = require('http')
 const fs = require('fs')
@@ -33,6 +34,73 @@ function getAuthConfig() {
   }
 
   return { username, password }
+}
+
+function getBasicAuthUsername(req) {
+  const header = req.headers.authorization || ''
+  const [scheme, encoded] = header.split(' ')
+
+  if (scheme !== 'Basic' || !encoded) {
+    return ''
+  }
+
+  try {
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8')
+    const separatorIndex = decoded.indexOf(':')
+
+    return separatorIndex === -1 ? '' : decoded.slice(0, separatorIndex)
+  } catch {
+    return ''
+  }
+}
+
+function getRequestActor(req) {
+  return getBasicAuthUsername(req) || 'local-user'
+}
+
+function writeActivityEvent({
+  actor = 'local-user',
+  id,
+  metadata = {},
+  projectId = 'project_default',
+  summary,
+  type,
+}) {
+  if (!summary || !type) {
+    return null
+  }
+
+  const eventId = id || randomUUID()
+  const safeMetadata =
+    metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? metadata
+      : {}
+
+  db.prepare(
+    `
+      INSERT OR REPLACE INTO activity_events
+        (id, project_id, actor, type, summary, metadata, created_at)
+      VALUES
+        (?, ?, ?, ?, ?, ?, strftime('%s', 'now'))
+    `,
+  ).run(
+    eventId,
+    projectId,
+    actor || 'local-user',
+    type,
+    summary,
+    JSON.stringify(safeMetadata),
+  )
+
+  return {
+    actor: actor || 'local-user',
+    createdAt: new Date().toISOString(),
+    id: eventId,
+    metadata: safeMetadata,
+    projectId,
+    summary,
+    type,
+  }
 }
 
 function isAuthenticated(req) {
@@ -76,7 +144,7 @@ function requestAuth(res) {
 }
 
 function authMiddleware(req, res, next) {
-  if (req.path === '/api/health') {
+  if (req.path === '/api/health' || req.path === '/api/security/status') {
     next()
     return
   }
@@ -86,6 +154,18 @@ function authMiddleware(req, res, next) {
     return
   }
 
+  writeActivityEvent({
+    actor: getRequestActor(req),
+    metadata: {
+      method: req.method,
+      path: req.path,
+      remoteAddress: req.socket?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    },
+    projectId: 'security',
+    summary: `Unauthorized request blocked: ${req.method} ${req.path}`,
+    type: 'security',
+  })
   requestAuth(res)
 }
 
@@ -302,6 +382,17 @@ app.post('/api/check-runtime', (req, res) => {
   })
 })
 
+app.get('/api/security/status', (req, res) => {
+  const authConfig = getAuthConfig()
+
+  res.json({
+    actor: getRequestActor(req),
+    authDisabled: isAuthDisabled(),
+    authEnabled: Boolean(authConfig && !authConfig.invalid),
+    configInvalid: Boolean(authConfig?.invalid),
+  })
+})
+
 // ── Project endpoints ────────────────────────────────────
 
 app.post('/api/project', (req, res) => {
@@ -405,6 +496,61 @@ app.get('/api/canvas/:projectId', (req, res) => {
   res.json({ blocks: state ? JSON.parse(state.blocks) : [] })
 })
 
+// ── Activity timeline endpoints ──────────────────────────
+
+app.post('/api/activity', (req, res) => {
+  const { actor, id, metadata, projectId, summary, type } = req.body
+
+  if (!projectId || !summary || !type) {
+    res.status(400).json({ error: 'Invalid activity payload' })
+    return
+  }
+
+  const event = writeActivityEvent({
+    actor: actor || getRequestActor(req),
+    id,
+    metadata,
+    projectId,
+    summary,
+    type,
+  })
+
+  res.json(event)
+})
+
+app.get('/api/activity/:projectId', (req, res) => {
+  const rows = db
+    .prepare(
+      `
+        SELECT id, project_id, actor, type, summary, metadata, created_at
+        FROM activity_events
+        WHERE project_id IN (?, 'security')
+        ORDER BY created_at DESC
+        LIMIT 500
+      `,
+    )
+    .all(req.params.projectId)
+
+  res.json(
+    rows.map((row) => ({
+      actor: row.actor,
+      createdAt: new Date(row.created_at * 1000).toISOString(),
+      id: row.id,
+      metadata: JSON.parse(row.metadata || '{}'),
+      projectId: row.project_id,
+      summary: row.summary,
+      type: row.type,
+    })),
+  )
+})
+
+app.delete('/api/activity/:projectId', (req, res) => {
+  db.prepare('DELETE FROM activity_events WHERE project_id = ?').run(
+    req.params.projectId,
+  )
+  res.json({ success: true })
+})
+
 // NEX CLI endpoint — receives commands from terminal and broadcasts to canvas.
 // AGENT: agents can also POST here to push render instructions.
 app.post('/api/nex', (req, res) => {
@@ -489,6 +635,17 @@ server.on('upgrade', (req, socket, head) => {
   }
 
   if (!isAuthenticated(req)) {
+    writeActivityEvent({
+      actor: getRequestActor(req),
+      metadata: {
+        path: pathname,
+        remoteAddress: req.socket?.remoteAddress,
+        userAgent: req.headers['user-agent'],
+      },
+      projectId: 'security',
+      summary: 'Unauthorized terminal connection blocked',
+      type: 'security',
+    })
     socket.write(
       'HTTP/1.1 401 Unauthorized\r\n' +
         'WWW-Authenticate: Basic realm="NEXUS IDE"\r\n' +
@@ -538,6 +695,18 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('nex CLI installed')
   } catch {
     console.log('nex CLI install skipped')
+  }
+
+  const authConfig = getAuthConfig()
+
+  if (!authConfig) {
+    console.warn(
+      'SECURITY WARNING: NEXUS_AUTH_USER/NEXUS_AUTH_PASSWORD are not set. Code execution and terminal routes are exposed to anyone who can reach this server.',
+    )
+  } else if (authConfig.invalid) {
+    console.warn(
+      'SECURITY WARNING: NEXUS auth config is invalid. Set both NEXUS_AUTH_USER and NEXUS_AUTH_PASSWORD, or set NEXUS_AUTH_DISABLED=true for local-only development.',
+    )
   }
 
   console.log(`NEXUS IDE running on http://0.0.0.0:${PORT}`)

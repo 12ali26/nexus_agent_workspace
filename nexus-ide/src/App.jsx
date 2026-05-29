@@ -12,6 +12,8 @@ import { AppErrorBoundary } from './components/ErrorBoundary'
 import { FirstLaunch } from './components/FirstLaunch'
 import { ToastSystem } from './components/ToastSystem'
 import { UpdateNotification } from './components/UpdateNotification'
+import { ActivityProvider } from './activity/ActivityProvider'
+import { useActivity } from './activity/useActivity'
 import { AgentProvider } from './context/AgentContext.jsx'
 import { useAgent } from './context/useAgent'
 import { ParameterProvider } from './context/ParameterContext.jsx'
@@ -47,6 +49,7 @@ function NexusWorkbench() {
   const { isOpen: isTerminalOpen, openTerminal, closePanel } =
     useTerminalPanel()
   const { theme } = useSettings()
+  const { logActivity } = useActivity()
   const ActivePanel = activePanel ? panels[activePanel] : null
   const clearCanvasButtonRef = useRef(null)
   const exportButtonRef = useRef(null)
@@ -126,7 +129,14 @@ function NexusWorkbench() {
       ...(activeProject ?? {}),
       projectName: nextProjectName,
     })
-  }, [activeProject, projectNameDraft, setActiveProject])
+    logActivity({
+      metadata: {
+        projectId: activeProject?.projectId,
+      },
+      summary: `Renamed project to ${nextProjectName}`,
+      type: 'project',
+    })
+  }, [activeProject, logActivity, projectNameDraft, setActiveProject])
 
   useEffect(() => {
     if (isEditingProjectName) {
@@ -415,7 +425,9 @@ function App() {
       <SettingsProvider>
         <PackRegistryProvider>
           <AgentProvider>
-            <NexusShell />
+            <ActivityProvider>
+              <NexusShell />
+            </ActivityProvider>
           </AgentProvider>
         </PackRegistryProvider>
       </SettingsProvider>

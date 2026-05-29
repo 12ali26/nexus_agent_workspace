@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useActivity } from '../activity/useActivity'
 import { TerminalPanelContext } from './terminalPanelContext'
 
 function clampPanelHeight(height) {
@@ -6,6 +7,7 @@ function clampPanelHeight(height) {
 }
 
 export function TerminalPanelProvider({ children }) {
+  const { logActivity } = useActivity()
   const [activeTab, setActiveTab] = useState('terminal')
   const [isOpen, setIsOpen] = useState(false)
   const [outputEntries, setOutputEntries] = useState([])
@@ -28,22 +30,36 @@ export function TerminalPanelProvider({ children }) {
 
   const appendOutput = useCallback((entry) => {
     runCounterRef.current += 1
+    const runNumber = runCounterRef.current
 
     setOutputEntries((currentEntries) => [
       ...currentEntries,
       {
         id: crypto.randomUUID(),
         lines: [],
-        runNumber: runCounterRef.current,
+        runNumber,
         timestamp: new Date().toLocaleTimeString(),
         title: 'Execution Output',
         tone: 'default',
         ...entry,
       },
     ])
+    if (entry?.language) {
+      const isError = entry.tone === 'error'
+
+      logActivity({
+        metadata: {
+          durationMs: entry.durationMs,
+          language: entry.language,
+          runNumber,
+        },
+        summary: `${entry.language} run #${runNumber} ${isError ? 'failed' : 'completed'}`,
+        type: 'execution',
+      })
+    }
     setIsOpen(true)
     setActiveTab('output')
-  }, [])
+  }, [logActivity])
 
   const clearOutput = useCallback(() => {
     setOutputEntries([])

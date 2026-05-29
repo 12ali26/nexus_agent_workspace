@@ -46,6 +46,19 @@ db.exec(`
     extension_id TEXT,
     PRIMARY KEY (project_id, extension_id)
   );
+
+  CREATE TABLE IF NOT EXISTS activity_events (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    actor TEXT DEFAULT 'local-user',
+    type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    metadata TEXT DEFAULT '{}',
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_activity_events_project_created
+    ON activity_events(project_id, created_at DESC);
 `)
 
 module.exports = db

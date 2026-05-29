@@ -20,6 +20,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useActivity } from '../activity/useActivity'
 import { runCode } from '../computation/runner'
 import { createDatasetScope } from '../context/workspaceDataUtils'
 import { useWorkspaceData } from '../context/useWorkspaceData'
@@ -273,6 +274,7 @@ function OutputPreview({ output }) {
 }
 
 function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerControls }) {
+  const { logActivity } = useActivity()
   const { activeDatasetId, datasets } = useWorkspaceData()
   const notebookRef = useRef(null)
   const [cells, setCells] = useState(createDefaultCells)
@@ -376,7 +378,9 @@ function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerCont
       const code = buildNotebookCode(language, previousCode, currentCode)
 
       try {
+        const startedAt = performance.now()
         const result = await runCode(language, code, executionData)
+        const durationMs = Math.max(0, Math.round(performance.now() - startedAt))
         const nextExecutionCount = executionCounterRef.current + 1
 
         executionCounterRef.current = nextExecutionCount
@@ -391,11 +395,21 @@ function NotebookPrimitive({ blockTitle = 'Notebook', exportSettings, headerCont
             }
 
         insertOutputForCell(cellId, output)
+        logActivity({
+          metadata: {
+            cellId,
+            durationMs,
+            executionCount: nextExecutionCount,
+            language,
+          },
+          summary: `${language} notebook cell #${nextExecutionCount} ${result.success ? 'completed' : 'failed'}`,
+          type: 'execution',
+        })
       } finally {
         setRunningCellId('')
       }
     },
-    [executionData, insertOutputForCell, updateCell],
+    [executionData, insertOutputForCell, logActivity, updateCell],
   )
 
   const addCell = useCallback((type) => {

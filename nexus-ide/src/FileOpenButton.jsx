@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useActivity } from './activity/useActivity'
 import { useWorkspaceData } from './context/useWorkspaceData'
 import { parseFileToPrimitive } from './fileLoading/fileToPrimitive'
 import { parseProjectManifest } from './project/ProjectManifest'
@@ -23,6 +24,7 @@ function FileOpenButton({
   } = usePackRegistry()
   const { addDataset } = useWorkspaceData()
   const { addPrimitiveBlock, replacePrimitiveBlocks } = useRenderBlocks()
+  const { logActivity } = useActivity()
 
   const openFilePicker = () => {
     fileInputRef.current?.click()
@@ -63,6 +65,15 @@ function FileOpenButton({
         replacePrimitiveBlocks(manifest.canvasState, manifest.projectId)
       }
 
+      logActivity({
+        metadata: {
+          activatedExtensions: activatedCount,
+          fileName: file.name,
+        },
+        projectId: manifest.projectId,
+        summary: `Loaded project ${manifest.projectName}`,
+        type: 'project',
+      })
       onToast(`Project loaded — activated ${activatedCount} extensions`)
       return
     }

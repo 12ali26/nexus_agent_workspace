@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useActivity } from '../activity/useActivity'
 import { usePackRegistry } from '../registry/usePackRegistry'
 
 function ExtensionSection({ extensions, onInstall, onUninstall, title }) {
@@ -60,6 +61,7 @@ function ExtensionsPanel() {
     installExtension,
     uninstallExtension,
   } = usePackRegistry()
+  const { logActivity } = useActivity()
   const [searchValue, setSearchValue] = useState('')
   const normalizedSearchValue = searchValue.trim().toLowerCase()
   const filteredExtensions = availableExtensions.filter((extension) =>
@@ -68,6 +70,25 @@ function ExtensionsPanel() {
   const communityExtensions = filteredExtensions.filter(
     (extension) => !extension.core,
   )
+  const logExtensionAction = (extensionId, action) => {
+    const extension = availableExtensions.find(
+      (candidate) => candidate.id === extensionId,
+    )
+
+    logActivity({
+      metadata: { extensionId },
+      summary: `${action === 'install' ? 'Installed' : 'Uninstalled'} extension ${extension?.name ?? extensionId}`,
+      type: 'extension',
+    })
+  }
+  const installAndLog = (extensionId) => {
+    installExtension(extensionId)
+    logExtensionAction(extensionId, 'install')
+  }
+  const uninstallAndLog = (extensionId) => {
+    uninstallExtension(extensionId)
+    logExtensionAction(extensionId, 'uninstall')
+  }
 
   // Remote registry fetching will plug in here later for marketplace search.
   return (
@@ -87,8 +108,8 @@ function ExtensionsPanel() {
         <ExtensionSection
           title="Community"
           extensions={communityExtensions}
-          onInstall={installExtension}
-          onUninstall={uninstallExtension}
+          onInstall={installAndLog}
+          onUninstall={uninstallAndLog}
         />
         {!communityExtensions.length && (
           <p className="panel-empty">

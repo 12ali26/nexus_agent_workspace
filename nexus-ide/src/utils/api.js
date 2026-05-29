@@ -4,6 +4,7 @@ export class NexusAPIError extends Error {
     this.name = 'NexusAPIError'
     this.status = status
     this.url = url
+    this.type = status === 401 || status === 403 ? 'security' : 'api'
 
     window.dispatchEvent(
       new CustomEvent('nexus-error', {
@@ -11,11 +12,25 @@ export class NexusAPIError extends Error {
           message,
           status,
           timestamp: new Date().toISOString(),
-          type: 'api',
+          type: this.type,
           url,
         },
       }),
     )
+  }
+}
+
+async function readResponseBody(response) {
+  const text = await response.text()
+
+  if (!text) {
+    return null
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
   }
 }
 
@@ -25,20 +40,26 @@ async function nexusRequest(url, options = {}) {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     })
+    const responseData = await readResponseBody(response)
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData =
+        responseData && typeof responseData === 'object' ? responseData : {}
+      const fallbackMessage =
+        response.status === 401
+          ? 'Authentication required for NEXUS server access.'
+          : response.status === 403
+            ? 'You do not have permission to access this NEXUS resource.'
+            : `Request failed: ${response.status}`
 
       throw new NexusAPIError(
-        errorData.message ||
-          errorData.error ||
-          `Request failed: ${response.status}`,
+        errorData.message || errorData.error || fallbackMessage,
         response.status,
         url,
       )
     }
 
-    return await response.json()
+    return responseData
   } catch (error) {
     if (error instanceof NexusAPIError) {
       throw error

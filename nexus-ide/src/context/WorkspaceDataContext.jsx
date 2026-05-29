@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useActivity } from '../activity/useActivity'
 import { usePackRegistry } from '../registry/usePackRegistry'
 import { api } from '../utils/api'
 import {
@@ -48,6 +49,7 @@ function writeLocalDatasets(projectId, datasets) {
 
 export function WorkspaceDataProvider({ children }) {
   const { activeProject } = usePackRegistry()
+  const { logActivity } = useActivity()
   const projectId = activeProject?.projectId ?? 'project_default'
   const [datasets, setDatasets] = useState([])
   const [activeDatasetId, setActiveDatasetId] = useState('')
@@ -117,9 +119,19 @@ export function WorkspaceDataProvider({ children }) {
       .catch(() => {
         // Plain Vite dev uses local fallback storage.
       })
+    logActivity({
+      metadata: {
+        columns: dataset.columns.length,
+        datasetId: dataset.id,
+        rows: dataset.rows.length,
+        source: dataset.source,
+      },
+      summary: `Added dataset ${dataset.name}`,
+      type: 'dataset',
+    })
 
     return dataset
-  }, [projectId])
+  }, [logActivity, projectId])
 
   const removeDataset = useCallback((datasetId) => {
     setDatasets((currentDatasets) => {
@@ -140,13 +152,22 @@ export function WorkspaceDataProvider({ children }) {
     api.delete(`/api/datasets/${datasetId}`).catch(() => {
       // Plain Vite dev uses local fallback storage.
     })
-  }, [])
+    logActivity({
+      metadata: { datasetId },
+      summary: 'Removed dataset',
+      type: 'dataset',
+    })
+  }, [logActivity])
 
   const clearDatasets = useCallback(() => {
     setDatasets([])
     setActiveDatasetId('')
     writeLocalDatasets(projectId, [])
-  }, [projectId])
+    logActivity({
+      summary: 'Cleared datasets',
+      type: 'dataset',
+    })
+  }, [logActivity, projectId])
 
   const activeDataset = useMemo(
     () =>

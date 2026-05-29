@@ -1,4 +1,4 @@
-import { LayoutGrid } from 'lucide-react'
+import { GitBranch, LayoutGrid } from 'lucide-react'
 
 const activityItems = [
   {
@@ -14,6 +14,11 @@ const activityItems = [
     id: 'primitives',
     label: 'Primitives',
     icon: <LayoutGrid aria-hidden="true" size={23} strokeWidth={1.8} />,
+  },
+  {
+    id: 'activity',
+    label: 'Activity',
+    icon: <GitBranch aria-hidden="true" size={23} strokeWidth={1.8} />,
   },
   {
     id: 'extensions',

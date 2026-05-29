@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useActivity } from '../activity/useActivity'
 import { createBlockLayout } from '../canvas/blockLayout'
 import { usePackRegistry } from '../registry/usePackRegistry'
 import { api } from '../utils/api'
@@ -134,6 +135,7 @@ function hasPropChanges(currentProps, nextProps) {
 
 export function RenderBlocksProvider({ children }) {
   const { activeProject } = usePackRegistry()
+  const { logActivity } = useActivity()
   const projectId = activeProject?.projectId ?? 'project_default'
   const [primitiveBlocks, setPrimitiveBlocks] = useState(() =>
     readStoredCanvasState(projectId),
@@ -246,8 +248,16 @@ export function RenderBlocksProvider({ children }) {
 
         return nextZ
       })
+      logActivity({
+        metadata: {
+          blockType: primitivePayload.type,
+          source: options.meta?.source || primitivePayload.meta?.source,
+        },
+        summary: `Added ${primitivePayload.data?.title ?? primitivePayload.type}`,
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const removePrimitiveBlock = useCallback(
@@ -255,8 +265,13 @@ export function RenderBlocksProvider({ children }) {
       commitPrimitiveBlocks((currentBlocks) =>
         currentBlocks.filter((block) => block.id !== blockId),
       )
+      logActivity({
+        metadata: { blockId },
+        summary: 'Removed canvas block',
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const renamePrimitiveBlock = useCallback(
@@ -280,8 +295,13 @@ export function RenderBlocksProvider({ children }) {
             : block,
         ),
       )
+      logActivity({
+        metadata: { blockId },
+        summary: `Renamed block to ${nextTitle}`,
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const duplicatePrimitiveBlock = useCallback(
@@ -323,8 +343,13 @@ export function RenderBlocksProvider({ children }) {
 
         return nextZ
       })
+      logActivity({
+        metadata: { blockId },
+        summary: 'Duplicated canvas block',
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const updatePrimitiveBlockLayout = useCallback(
@@ -339,8 +364,16 @@ export function RenderBlocksProvider({ children }) {
             : block,
         ),
       )
+      logActivity({
+        metadata: {
+          blockId,
+          fields: Object.keys(layout ?? {}),
+        },
+        summary: 'Updated block layout',
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const updatePrimitiveBlockData = useCallback(
@@ -378,8 +411,16 @@ export function RenderBlocksProvider({ children }) {
 
         return didUpdate ? nextBlocks : currentBlocks
       })
+      logActivity({
+        metadata: {
+          blockId,
+          fields: Object.keys(newData),
+        },
+        summary: 'Updated block settings',
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const focusPrimitiveBlock = useCallback(
@@ -408,7 +449,11 @@ export function RenderBlocksProvider({ children }) {
     setMaxZ(0)
     removeStoredCanvasState(projectId)
     setPrimitiveBlocks([])
-  }, [projectId])
+    logActivity({
+      summary: 'Cleared canvas',
+      type: 'canvas',
+    })
+  }, [logActivity, projectId])
 
   const replacePrimitiveBlocks = useCallback((blocks, targetProjectId = projectId) => {
     const restoredBlocks = restorePrimitiveBlocks(blocks)
@@ -423,9 +468,17 @@ export function RenderBlocksProvider({ children }) {
       })
       .catch(() => {
         // Plain Vite dev uses local fallback storage.
-      })
+    })
     setPrimitiveBlocks(restoredBlocks)
-  }, [projectId])
+    logActivity({
+      metadata: {
+        blockCount: restoredBlocks.length,
+      },
+      projectId: targetProjectId,
+      summary: 'Replaced canvas state',
+      type: 'canvas',
+    })
+  }, [logActivity, projectId])
 
   const reorderPrimitiveBlocks = useCallback(
     (fromBlockId, toBlockId) => {
@@ -449,8 +502,16 @@ export function RenderBlocksProvider({ children }) {
 
         return nextBlocks
       })
+      logActivity({
+        metadata: {
+          fromBlockId,
+          toBlockId,
+        },
+        summary: 'Reordered canvas blocks',
+        type: 'canvas',
+      })
     },
-    [commitPrimitiveBlocks],
+    [commitPrimitiveBlocks, logActivity],
   )
 
   const value = useMemo(
