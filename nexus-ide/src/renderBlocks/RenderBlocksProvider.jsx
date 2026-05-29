@@ -382,6 +382,8 @@ export function RenderBlocksProvider({ children }) {
         return
       }
 
+      let didCommitUpdate = false
+
       commitPrimitiveBlocks((currentBlocks) => {
         let didUpdate = false
         const nextBlocks = currentBlocks.map((block) => {
@@ -409,8 +411,14 @@ export function RenderBlocksProvider({ children }) {
           }
         })
 
+        didCommitUpdate = didUpdate
         return didUpdate ? nextBlocks : currentBlocks
       })
+
+      if (!didCommitUpdate) {
+        return
+      }
+
       logActivity({
         metadata: {
           blockId,

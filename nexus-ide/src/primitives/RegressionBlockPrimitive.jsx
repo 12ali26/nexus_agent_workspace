@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import katex from 'katex'
 import {
   CartesianGrid,
-  Cell,
   Line,
   ReferenceLine,
   ResponsiveContainer,
@@ -15,6 +14,7 @@ import {
 import { linearRegression } from 'simple-statistics'
 import { EmptyState } from '../components/BlockStates'
 import { useWorkspaceData } from '../context/useWorkspaceData'
+import { useToast } from '../toast/useToast'
 import 'katex/dist/katex.min.css'
 
 const resultTabs = ['Coefficients', 'Residual Plot', 'Fit Plot']
@@ -365,6 +365,7 @@ function validateConfiguration(dataset, numericColumns, yColumn, xColumns, regre
 function RegressionBlockPrimitive({ blockId, updateBlockData }) {
   const { activeDataset, addDataset, datasets, setActiveDataset } =
     useWorkspaceData()
+  const showToast = useToast()
   const [activeTab, setActiveTab] = useState(resultTabs[0])
   const [error, setError] = useState('')
   const [regressionType, setRegressionType] = useState('simple')
@@ -372,18 +373,23 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
   const [selectedXColumns, setSelectedXColumns] = useState([])
   const [selectedYColumn, setSelectedYColumn] = useState('')
   const [results, setResults] = useState(null)
-  const selectedDataset =
-    datasets.find((dataset) => dataset.id === selectedDatasetId) ??
-    activeDataset
+  const [savedResultsSignature, setSavedResultsSignature] = useState('')
+  const selectedDataset = useMemo(
+    () =>
+      datasets.find((dataset) => dataset.id === selectedDatasetId) ??
+      activeDataset,
+    [activeDataset, datasets, selectedDatasetId],
+  )
   const numericColumns = useMemo(
     () => getNumericColumns(selectedDataset?.rows ?? []),
-    [selectedDataset],
+    [selectedDataset?.rows],
   )
   const activeYColumn = numericColumns.includes(selectedYColumn)
     ? selectedYColumn
     : numericColumns[0] ?? ''
-  const availableXColumns = numericColumns.filter(
-    (column) => column !== activeYColumn,
+  const availableXColumns = useMemo(
+    () => numericColumns.filter((column) => column !== activeYColumn),
+    [activeYColumn, numericColumns],
   )
   const activeXColumns = useMemo(
     () =>
@@ -392,25 +398,46 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
       ),
     [availableXColumns, selectedXColumns],
   )
-  const renderedEquation = results
-    ? katex.renderToString(results.equation, {
-        displayMode: true,
-        throwOnError: false,
-      })
+  const renderedEquation = useMemo(
+    () =>
+      results
+        ? katex.renderToString(results.equation, {
+            displayMode: true,
+            throwOnError: false,
+          })
+        : '',
+    [results],
+  )
+  const actualValues = useMemo(
+    () =>
+      results?.fitData.flatMap((point) => [
+        point.actual,
+        point.predicted,
+      ]) ?? [0, 1],
+    [results?.fitData],
+  )
+  const referenceLine = useMemo(() => {
+    const fitMin = Math.min(...actualValues)
+    const fitMax = Math.max(...actualValues)
+
+    return [
+      { actual: fitMin, reference: fitMin },
+      { actual: fitMax, reference: fitMax },
+    ]
+  }, [actualValues])
+  const resultsSignature = results
+    ? [
+        selectedDataset?.id,
+        regressionType,
+        activeYColumn,
+        activeXColumns.join('|'),
+        results.resultRows.length,
+        results.rSquared,
+      ].join(':')
     : ''
-  const maxResidual = results
-    ? Math.max(...results.residualData.map((point) => point.magnitude), 1)
-    : 1
-  const actualValues = results?.fitData.flatMap((point) => [
-    point.actual,
-    point.predicted,
-  ]) ?? [0, 1]
-  const fitMin = Math.min(...actualValues)
-  const fitMax = Math.max(...actualValues)
-  const referenceLine = [
-    { actual: fitMin, reference: fitMin },
-    { actual: fitMax, reference: fitMax },
-  ]
+  const hasUnsavedResults = Boolean(
+    resultsSignature && resultsSignature !== savedResultsSignature,
+  )
 
   useEffect(() => {
     updateBlockData?.(blockId, {
@@ -480,20 +507,28 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
         }
       }
 
-      const nextResults = runOls(rows, activeYColumn, activeXColumns)
-
-      addDataset({
-        name: 'regression_fitted_values',
-        rows: nextResults.resultRows,
-        source: 'code',
-      })
-      setResults(nextResults)
+      setResults(runOls(rows, activeYColumn, activeXColumns))
+      setSavedResultsSignature('')
       setActiveTab(resultTabs[0])
       setError('')
     } catch (regressionError) {
       setError(regressionError.message)
       setResults(null)
     }
+  }
+
+  const saveFittedValuesAsDataset = () => {
+    if (!results?.resultRows?.length) {
+      return
+    }
+
+    addDataset({
+      name: 'regression_fitted_values',
+      rows: results.resultRows,
+      source: 'regression',
+    })
+    setSavedResultsSignature(resultsSignature)
+    showToast('Regression fitted values saved as dataset', 'success')
   }
 
   return (
@@ -577,6 +612,15 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
         <button type="button" onClick={runRegression}>
           Run Regression
         </button>
+        <button
+          type="button"
+          disabled={!hasUnsavedResults}
+          onClick={saveFittedValuesAsDataset}
+        >
+          {resultsSignature && resultsSignature === savedResultsSignature
+            ? 'Fitted Values Saved'
+            : 'Save Fitted Values as Dataset'}
+        </button>
         {error && <p className="regression-error">{error}</p>}
       </section>
 
@@ -650,18 +694,7 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
                         color: 'var(--color-text)',
                       }}
                     />
-                    <Scatter data={results.residualData}>
-                      {results.residualData.map((point) => (
-                        <Cell
-                          key={`${point.fitted}-${point.residual}`}
-                          fill={`color-mix(in srgb, var(--accent-blue) ${
-                            Math.round(
-                              (28 + (point.magnitude / maxResidual) * 72) * 100,
-                            ) / 100
-                          }%, transparent)`}
-                        />
-                      ))}
-                    </Scatter>
+                    <Scatter data={results.residualData} fill="var(--accent-blue)" />
                   </ScatterChart>
                 </ResponsiveContainer>
               )}
