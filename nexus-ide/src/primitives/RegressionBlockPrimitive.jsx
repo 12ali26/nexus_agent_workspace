@@ -362,17 +362,28 @@ function validateConfiguration(dataset, numericColumns, yColumn, xColumns, regre
   return ''
 }
 
-function RegressionBlockPrimitive({ blockId, updateBlockData }) {
+function RegressionBlockPrimitive({
+  blockId,
+  dependentVar,
+  independentVars,
+  regressionType: storedRegressionType,
+  results: storedResults,
+  updateBlockData,
+}) {
   const { activeDataset, addDataset, datasets, setActiveDataset } =
     useWorkspaceData()
   const showToast = useToast()
   const [activeTab, setActiveTab] = useState(resultTabs[0])
   const [error, setError] = useState('')
-  const [regressionType, setRegressionType] = useState('simple')
+  const [regressionType, setRegressionType] = useState(
+    storedRegressionType ?? 'simple',
+  )
   const [selectedDatasetId, setSelectedDatasetId] = useState('')
-  const [selectedXColumns, setSelectedXColumns] = useState([])
-  const [selectedYColumn, setSelectedYColumn] = useState('')
-  const [results, setResults] = useState(null)
+  const [selectedXColumns, setSelectedXColumns] = useState(
+    Array.isArray(independentVars) ? independentVars : [],
+  )
+  const [selectedYColumn, setSelectedYColumn] = useState(dependentVar ?? '')
+  const [results, setResults] = useState(() => storedResults ?? null)
   const [savedResultsSignature, setSavedResultsSignature] = useState('')
   const selectedDataset = useMemo(
     () =>
@@ -443,6 +454,7 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
     updateBlockData?.(blockId, {
       dependentVar: activeYColumn,
       independentVars: activeXColumns,
+      regressionType,
       results: results
         ? {
             ...results,
@@ -456,6 +468,7 @@ function RegressionBlockPrimitive({ blockId, updateBlockData }) {
     activeXColumns,
     activeYColumn,
     blockId,
+    regressionType,
     results,
     updateBlockData,
   ])
